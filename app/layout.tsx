@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { NavShell } from "@/components/layout/NavShell";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { getSiteSettings } from "@/lib/content";
+import { basePath } from "@/lib/basePath";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Zinéma — Cinéma indépendant à Lausanne",
   description:
     "Le Zinéma, cinéma indépendant à Lausanne : films en VO, avant-premières, ciné-club, brunchs-ciné et cycles thématiques.",
-  icons: { icon: "/zinema-logo.png" },
+  icons: { icon: `${basePath}/zinema-logo.png` },
 };
 
 export default async function RootLayout({

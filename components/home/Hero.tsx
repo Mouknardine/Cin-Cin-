@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import zinemaLogo from "@/public/zinema-logo.png";
 
 export function Hero({ tagline }: { tagline?: string }) {
   return (
@@ -13,7 +14,7 @@ export function Hero({ tagline }: { tagline?: string }) {
       <div className="mt-8 grid items-end gap-8 md:mt-14 md:grid-cols-12">
         <div className="md:col-span-4">
           <Image
-            src="/zinema-logo.png"
+            src={zinemaLogo}
             alt="Zinéma"
             width={520}
             height={128}

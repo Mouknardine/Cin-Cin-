@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { navLinks } from "@/lib/nav";
+import zinemaLogo from "@/public/zinema-logo.png";
 
 export function NavShell() {
   const [open, setOpen] = useState(false);
@@ -27,7 +28,7 @@ export function NavShell() {
       <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-ink/15 bg-paper/90 px-4 py-3 backdrop-blur-sm md:px-8 md:py-4">
         <Link href="/" className="relative z-10 flex items-center gap-3" aria-label="Zinéma — accueil">
           <Image
-            src="/zinema-logo.png"
+            src={zinemaLogo}
             alt="Zinéma"
             width={220}
             height={54}

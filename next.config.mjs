@@ -1,3 +1,10 @@
+// GitHub Pages sert un "project site" dans un sous-dossier
+// (mouknardine.github.io/Cin-Cin-/), pas à la racine du domaine. Le
+// workflow GitHub Actions positionne NEXT_PUBLIC_BASE_PATH="/Cin-Cin-"
+// avant le build ; en local ou sur un hébergement à la racine (Infomaniak
+// avec domaine dédié), la variable est absente et basePath reste vide.
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Export statique : "next build" écrit un site HTML/CSS/JS pur dans out/,
@@ -6,6 +13,8 @@ const nextConfig = {
   // moment du build — il faut rebuild + redéployer après chaque changement
   // dans le Studio.
   output: "export",
+  basePath,
+  assetPrefix: basePath || undefined,
   // Génère /agenda/index.html plutôt que /agenda.html : un hébergement
   // statique basique (Apache mutualisé Infomaniak, GitHub Pages...) sert
   // nativement l'index d'un dossier, sans règle de réécriture à configurer.
