@@ -27,7 +27,7 @@ export function PosterWall({ films }: { films: Film[] }) {
               <FilmPoster film={film} priority={i === 0} />
             </div>
             {hasRealImage(film.poster) && (
-              <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-ink/90 via-ink/0 to-ink/0 p-4 opacity-0 transition-opacity duration-400 ease-editorial group-hover:opacity-100 md:p-5">
+              <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-ink/90 via-ink/10 to-transparent p-4 md:p-5">
                 <p className="font-display text-lg tracking-tightest text-paper md:text-2xl">
                   {film.title}
                 </p>
@@ -36,9 +36,11 @@ export function PosterWall({ films }: { films: Film[] }) {
                 </p>
               </div>
             )}
-            <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center border border-paper/70 text-paper opacity-0 transition-opacity duration-300 group-hover:opacity-100 md:right-4 md:top-4">
-              →
-            </span>
+            {hasRealImage(film.poster) && (
+              <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center border border-paper/70 bg-ink/40 text-paper backdrop-blur-sm transition-transform duration-300 group-hover:scale-110 md:right-4 md:top-4">
+                →
+              </span>
+            )}
           </Link>
         </Reveal>
       ))}

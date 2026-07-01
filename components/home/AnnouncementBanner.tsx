@@ -15,7 +15,7 @@ export function AnnouncementBanner({ announcement }: { announcement?: Announceme
   return (
     <Link
       href="/annonces"
-      className="group flex flex-col gap-2 border-b border-ink/15 bg-mustard px-4 py-4 text-ink transition-colors duration-300 hover:bg-ink hover:text-mustard md:flex-row md:items-center md:justify-between md:px-8"
+      className="group flex flex-col gap-2 border-b border-ink/15 bg-blue px-4 py-4 text-paper transition-colors duration-300 hover:bg-ink md:flex-row md:items-center md:justify-between md:px-8"
     >
       <span className="flex items-center gap-3 font-display text-xs tracking-widen">
         <span className="border border-current px-2 py-0.5">

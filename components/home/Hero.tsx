@@ -15,7 +15,7 @@ export function Hero({ tagline, featuredFilm }: { tagline?: string; featuredFilm
 
       <div className="grid md:grid-cols-12">
         <div
-          className={`flex flex-col justify-between gap-10 px-4 py-10 md:px-8 md:py-14 ${
+          className={`flex flex-col gap-8 px-4 py-10 md:self-start md:px-8 md:py-14 ${
             featuredFilm ? "md:col-span-7" : "md:col-span-12"
           }`}
         >
@@ -44,30 +44,33 @@ export function Hero({ tagline, featuredFilm }: { tagline?: string; featuredFilm
         </div>
 
         {featuredFilm && (
-          <Link
-            href={`/films/${featuredFilm.slug}`}
-            className="group relative block min-h-[420px] overflow-hidden border-t border-ink/15 bg-ink md:col-span-5 md:min-h-[600px] md:border-l md:border-t-0"
-          >
-            <div className="absolute inset-0 transition-transform duration-700 ease-editorial group-hover:scale-[1.03]">
-              <FilmPoster film={featuredFilm} priority sizes="(min-width: 768px) 42vw, 100vw" />
-            </div>
-            <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-ink/95 via-ink/10 to-transparent p-5 text-paper md:p-8">
-              <p className="font-display text-[10px] tracking-widen text-paper/70">
+          <div className="flex flex-col border-t border-ink/15 md:col-span-5 md:border-l md:border-t-0">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-ink/15 bg-ink px-4 py-2 font-display text-[10px] tracking-widen text-paper md:px-8">
+              <span>FILM DU MOMENT</span>
+              <span className="text-paper/60">
                 {statusLabel(featuredFilm.status)} — {filmMetaLine(featuredFilm)}
-              </p>
+              </span>
+            </div>
+            <Link
+              href={`/films/${featuredFilm.slug}`}
+              className="group relative block min-h-[380px] flex-1 overflow-hidden bg-ink md:min-h-[540px]"
+            >
+              <div className="absolute inset-0 transition-transform duration-700 ease-editorial group-hover:scale-[1.03]">
+                <FilmPoster film={featuredFilm} priority sizes="(min-width: 768px) 42vw, 100vw" />
+              </div>
               {hasRealImage(featuredFilm.poster) && (
-                <>
-                  <p className="mt-2 font-display text-2xl leading-[0.95] tracking-tightest md:text-4xl">
+                <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-ink/95 via-ink/15 to-transparent p-5 text-paper md:p-8">
+                  <p className="font-display text-2xl leading-[0.95] tracking-tightest md:text-4xl">
                     {featuredFilm.title}
                   </p>
                   <p className="mt-1 text-sm text-paper/80">{featuredFilm.director}</p>
-                </>
+                  <span className="mt-3 inline-flex w-fit items-center gap-2 font-display text-xs tracking-widen text-paper underline-hover">
+                    Voir le film →
+                  </span>
+                </div>
               )}
-            </div>
-            <span className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center border border-paper/70 text-paper opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-              →
-            </span>
-          </Link>
+            </Link>
+          </div>
         )}
       </div>
     </section>

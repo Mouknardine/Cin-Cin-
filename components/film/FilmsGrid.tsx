@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { FilmPoster } from "@/components/poster/FilmPoster";
 import { Reveal } from "@/components/motion/Reveal";
 import { FilmMeta, statusLabel } from "@/components/film/FilmMeta";
+import { hasRealImage } from "@/lib/sanity/image";
 import type { Film, FilmStatus } from "@/lib/types";
 
 const spanBySize: Record<Film["posterSize"], string> = {
@@ -50,9 +51,11 @@ export function FilmsGrid({ films }: { films: Film[] }) {
                 <div className="absolute inset-0 transition-transform duration-700 ease-editorial group-hover:scale-[1.04]">
                   <FilmPoster film={film} />
                 </div>
-                <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center border border-paper/70 text-paper opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                  →
-                </span>
+                {hasRealImage(film.poster) && (
+                  <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center border border-paper/70 bg-ink/40 text-paper backdrop-blur-sm transition-transform duration-300 group-hover:scale-110">
+                    →
+                  </span>
+                )}
               </div>
               <FilmMeta film={film} className="mt-3" />
             </Link>

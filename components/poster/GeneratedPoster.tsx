@@ -74,13 +74,13 @@ export function GeneratedPoster({ title, director, year, seed, className = "" }:
 
   if (variant === 3) {
     return (
-      <div className={`${base} bg-mustard text-ink ${className}`}>
+      <div className={`${base} bg-blue text-paper ${className}`}>
         <div className="p-4 font-display text-[clamp(1.9rem,8.5vw,3.6rem)] leading-[0.86]">
           {title}
         </div>
         <div className="mt-auto flex items-end justify-between p-4">
           <span className="font-display text-[10px] tracking-widest">{director}</span>
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-ink font-display text-[11px] text-mustard">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-ink font-display text-[11px] text-paper">
             {year}
           </span>
         </div>

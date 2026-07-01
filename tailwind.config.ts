@@ -15,7 +15,7 @@ const config: Config = {
         ink: "#100F0C",
         paper: "#FFFFFF",
         red: "#C22A1D",
-        mustard: "#E0A32B",
+        blue: "#2F49C2",
         line: "#100F0C1a",
       },
       fontFamily: {
