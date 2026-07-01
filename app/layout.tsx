@@ -1,0 +1,37 @@
+import type { Metadata } from "next";
+import { NavShell } from "@/components/layout/NavShell";
+import { SiteFooter } from "@/components/layout/SiteFooter";
+import { getSiteSettings } from "@/lib/content";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: "Zinéma — Cinéma indépendant à Lausanne",
+  description:
+    "Le Zinéma, cinéma indépendant à Lausanne : films en VO, avant-premières, ciné-club, brunchs-ciné et cycles thématiques.",
+  icons: { icon: "/zinema-logo.png" },
+};
+
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const settings = await getSiteSettings();
+
+  return (
+    <html lang="fr">
+      <head>
+        <link rel="preconnect" href="https://api.fontshare.com" />
+        <link
+          href="https://api.fontshare.com/v2/css?f[]=tanker@400&f[]=general-sans@400,500,600,700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="font-body">
+        <NavShell />
+        <main className="pt-[57px] md:pt-[73px]">{children}</main>
+        <SiteFooter settings={settings} />
+      </body>
+    </html>
+  );
+}
