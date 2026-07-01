@@ -1,4 +1,10 @@
-import { groq } from "next-sanity";
+// Tag littérale minimale (pas d'exécution particulière, juste de la
+// coloration syntaxique GROQ dans l'éditeur). On évite d'importer `groq`
+// depuis le paquet `next-sanity` : son export groupé embarque des Server
+// Actions (live preview) incompatibles avec l'export statique.
+function groq(strings: TemplateStringsArray, ...values: unknown[]): string {
+  return strings.reduce((acc, s, i) => acc + s + (values[i] !== undefined ? String(values[i]) : ""), "");
+}
 
 const filmFields = groq`
   _id,

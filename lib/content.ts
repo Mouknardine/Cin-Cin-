@@ -19,7 +19,11 @@ import type { Announcement, Film, HistoryEntry, Screening, SiteSettings } from "
 async function safeFetch<T>(query: string, params: Record<string, unknown>, fallback: T): Promise<T> {
   if (!client) return fallback;
   try {
-    const result = await client.fetch<T>(query, params, { next: { revalidate: 60 } } as never);
+    // Export statique : les données sont lues une seule fois, au moment du
+    // "next build". Pas de revalidation ISR possible sans serveur, donc pas
+    // de cache CDN Sanity ici — on veut le contenu le plus frais disponible
+    // à l'instant du build.
+    const result = await client.fetch<T>(query, params, { cache: "no-store" });
     if (Array.isArray(result) && result.length === 0) return fallback;
     if (result == null) return fallback;
     return result;
