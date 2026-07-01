@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Reveal } from "@/components/motion/Reveal";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { formatLongDate } from "@/lib/dates";
 import { getAnnouncements } from "@/lib/content";
 
@@ -22,12 +23,7 @@ export default async function AnnoncesPage() {
 
   return (
     <div className="py-8 md:py-12">
-      <div className="px-4 pb-8 md:px-8 md:pb-10">
-        <p className="font-display text-xs tracking-widen text-ink/50">04 — ANNONCES</p>
-        <h1 className="mt-3 font-display text-[16vw] leading-[0.85] tracking-tightest md:text-[6vw]">
-          Ça se passe ici
-        </h1>
-      </div>
+      <PageHeader eyebrow="04 — ANNONCES" title="Ça se passe ici" />
 
       {first && (
         <Reveal className="mx-4 mb-10 border border-ink px-5 py-8 md:mx-8 md:px-10 md:py-12">
@@ -57,10 +53,10 @@ export default async function AnnoncesPage() {
         {rest.map((a, i) => (
           <Reveal key={a._id} delay={i * 0.05}>
             <li className="grid gap-2 border-t border-ink/15 py-6 last:border-b md:grid-cols-[160px_1fr] md:gap-8">
-              <p className="font-display text-xs tracking-widen text-ink/50">
+              <p className="font-display text-xs tracking-widen text-ink/70">
                 {formatLongDate(a.date)}
                 <br />
-                <span className="text-ink/70">{categoryLabels[a.category] || "Annonce"}</span>
+                <span className="text-ink/85">{categoryLabels[a.category] || "Annonce"}</span>
               </p>
               <div>
                 <h3 className="font-display text-xl tracking-tightest md:text-2xl">{a.title}</h3>
@@ -82,7 +78,7 @@ export default async function AnnoncesPage() {
       </ul>
 
       {announcements.length === 0 && (
-        <p className="px-4 py-16 text-center font-display text-sm tracking-widen text-ink/50 md:px-8">
+        <p className="px-4 py-16 text-center font-display text-sm tracking-widen text-ink/60 md:px-8">
           Aucune annonce publiée pour le moment.
         </p>
       )}

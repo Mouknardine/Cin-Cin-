@@ -10,7 +10,7 @@ export function TrailerEmbed({ url, title }: { url?: string; title: string }) {
         role="img"
         aria-label="Bande-annonce à venir"
       >
-        <p className="font-display text-xs tracking-widen text-ink/50">
+        <p className="font-display text-xs tracking-widen text-ink/65">
           BANDE-ANNONCE À VENIR
         </p>
       </div>

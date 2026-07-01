@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Reveal } from "@/components/motion/Reveal";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { getSiteSettings } from "@/lib/content";
 
 export const metadata: Metadata = {
@@ -23,16 +24,11 @@ export default async function InfosPratiquesPage() {
 
   return (
     <div className="py-8 md:py-12">
-      <div className="px-4 pb-8 md:px-8 md:pb-10">
-        <p className="font-display text-xs tracking-widen text-ink/50">05 — INFOS PRATIQUES</p>
-        <h1 className="mt-3 font-display text-[16vw] leading-[0.85] tracking-tightest md:text-[6vw]">
-          Nous trouver
-        </h1>
-      </div>
+      <PageHeader eyebrow="05 — INFOS PRATIQUES" title="Nous trouver" />
 
       <div className="grid gap-10 border-t border-ink/15 px-4 py-10 md:grid-cols-12 md:px-8 md:py-14">
         <Reveal className="md:col-span-5">
-          <p className="font-display text-xs tracking-widen text-ink/50">ADRESSE</p>
+          <p className="font-display text-xs tracking-widen text-ink/70">ADRESSE</p>
           <p className="mt-2 max-w-xs whitespace-pre-line font-display text-3xl leading-[1.05] tracking-tightest md:text-4xl">
             {settings.address || "Adresse à venir"}
           </p>
@@ -47,7 +43,7 @@ export default async function InfosPratiquesPage() {
             </a>
           )}
 
-          <p className="mt-8 font-display text-xs tracking-widen text-ink/50">CONTACT</p>
+          <p className="mt-8 font-display text-xs tracking-widen text-ink/70">CONTACT</p>
           <div className="mt-2 flex flex-col gap-1 font-display text-xl tracking-tightest">
             {settings.phone && <a href={`tel:${settings.phone.replace(/\s/g, "")}`}>{settings.phone}</a>}
             {settings.email && <a href={`mailto:${settings.email}`}>{settings.email}</a>}
@@ -71,7 +67,7 @@ export default async function InfosPratiquesPage() {
         </Reveal>
 
         <Reveal delay={0.08} className="md:col-span-4">
-          <p className="font-display text-xs tracking-widen text-ink/50">HORAIRES</p>
+          <p className="font-display text-xs tracking-widen text-ink/70">HORAIRES</p>
           <ul className="mt-3 flex flex-col gap-3">
             {(settings.openingHours || []).map((h) => (
               <li key={h.label} className="flex justify-between gap-4 border-b border-ink/15 pb-2">
@@ -83,7 +79,7 @@ export default async function InfosPratiquesPage() {
         </Reveal>
 
         <Reveal delay={0.16} className="md:col-span-3">
-          <p className="font-display text-xs tracking-widen text-ink/50">ACCÈS</p>
+          <p className="font-display text-xs tracking-widen text-ink/70">ACCÈS</p>
           <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-ink/70">
             {access || "Bus et métro m2, arrêt à quelques minutes. Détails à venir."}
           </p>

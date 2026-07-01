@@ -41,7 +41,7 @@ export default async function FilmDetailPage({ params }: { params: { slug: strin
         {nextAvailable && (
           <div className="mt-4 flex items-center justify-between border border-ink/15 px-4 py-3">
             <div>
-              <p className="font-display text-[10px] tracking-widen text-ink/50">
+              <p className="font-display text-[10px] tracking-widen text-ink/70">
                 PROCHAINE SÉANCE
               </p>
               <p className="font-display text-lg tracking-tightest">
@@ -63,7 +63,7 @@ export default async function FilmDetailPage({ params }: { params: { slug: strin
           {film.title}
         </h1>
         {film.originalTitle && film.originalTitle !== film.title && (
-          <p className="mt-1 text-sm italic text-ink/50">{film.originalTitle}</p>
+          <p className="mt-1 text-sm italic text-ink/65">{film.originalTitle}</p>
         )}
 
         <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 border-y border-ink/15 py-4 font-display text-xs tracking-widen text-ink/70">
@@ -88,12 +88,12 @@ export default async function FilmDetailPage({ params }: { params: { slug: strin
         )}
 
         <section className="mt-10">
-          <p className="font-display text-xs tracking-widen text-ink/50">SÉANCES</p>
+          <p className="font-display text-xs tracking-widen text-ink/70">SÉANCES</p>
           <ScreeningsForFilm film={film} />
         </section>
 
         <section className="mt-10">
-          <p className="mb-3 font-display text-xs tracking-widen text-ink/50">BANDE-ANNONCE</p>
+          <p className="mb-3 font-display text-xs tracking-widen text-ink/70">BANDE-ANNONCE</p>
           <TrailerEmbed url={film.trailerUrl} title={film.title} />
         </section>
 

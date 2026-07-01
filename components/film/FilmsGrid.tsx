@@ -61,7 +61,7 @@ export function FilmsGrid({ films }: { films: Film[] }) {
       </div>
 
       {visible.length === 0 && (
-        <p className="px-4 py-16 text-center font-display text-sm tracking-widen text-ink/50 md:px-8">
+        <p className="px-4 py-16 text-center font-display text-sm tracking-widen text-ink/60 md:px-8">
           Aucun film dans cette catégorie pour le moment.
         </p>
       )}

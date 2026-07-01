@@ -12,7 +12,7 @@
 }
 
 html {
-  background: #f1eee4;
+  background: #ffffff;
   scroll-behavior: smooth;
 }
 
@@ -34,13 +34,13 @@ body {
   color: #100f0c;
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
-  background-color: #f1eee4;
+  background-color: #ffffff;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
 }
 
 ::selection {
   background: #100f0c;
-  color: #f1eee4;
+  color: #ffffff;
 }
 
 a {
@@ -99,9 +99,9 @@ a {
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1eee4;
+  background: #ffffff;
 }
 ::-webkit-scrollbar-thumb {
   background: #100f0c;
-  border: 2px solid #f1eee4;
+  border: 2px solid #ffffff;
 }

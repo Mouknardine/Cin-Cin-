@@ -24,7 +24,7 @@ export function AgendaView({ screenings }: { screenings: Screening[] }) {
 
   if (days.length === 0) {
     return (
-      <p className="px-4 py-16 text-center font-display text-sm tracking-widen text-ink/50 md:px-8">
+      <p className="px-4 py-16 text-center font-display text-sm tracking-widen text-ink/60 md:px-8">
         Aucune séance programmée pour le moment.
       </p>
     );
@@ -54,7 +54,7 @@ export function AgendaView({ screenings }: { screenings: Screening[] }) {
                   key={d.date}
                   onClick={() => setActiveDate(d.date)}
                   className={`flex shrink-0 flex-col items-center px-4 py-2 font-display transition-colors duration-200 ${
-                    active ? "bg-ink text-paper" : "text-ink/60 hover:text-ink"
+                    active ? "bg-ink text-paper" : "text-ink/70 hover:text-ink"
                   }`}
                 >
                   <span className="text-[10px] tracking-widen">
@@ -94,14 +94,14 @@ export function AgendaView({ screenings }: { screenings: Screening[] }) {
                       >
                         {s.film?.title || "Séance"}
                       </Link>
-                      <p className="mt-0.5 text-xs text-ink/55">
+                      <p className="mt-0.5 text-xs text-ink/70">
                         {s.room}
                         {s.versionNote ? ` — ${s.versionNote}` : ""}
                       </p>
                     </div>
                     <span
                       className={`col-span-2 font-display text-xs tracking-widen md:col-span-1 md:text-right ${
-                        s.status === "annule" ? "text-red" : "text-ink/50"
+                        s.status === "annule" ? "text-red" : "text-ink/60"
                       }`}
                     >
                       {statusText[s.status]}
@@ -128,7 +128,7 @@ export function AgendaView({ screenings }: { screenings: Screening[] }) {
                     >
                       {s.time} — {s.film?.title}
                     </Link>
-                    <p className="text-[11px] text-ink/50">
+                    <p className="text-[11px] text-ink/65">
                       {s.room}
                       {statusText[s.status] ? ` · ${statusText[s.status]}` : ""}
                     </p>

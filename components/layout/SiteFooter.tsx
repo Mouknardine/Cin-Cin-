@@ -27,7 +27,7 @@ export function SiteFooter({ settings }: { settings: SiteSettings }) {
           {settings.email && <p className="mt-1">{settings.email}</p>}
         </div>
       </div>
-      <p className="mx-auto mt-10 max-w-[1720px] border-t border-ink/10 pt-4 text-[11px] tracking-widen text-ink/45">
+      <p className="mx-auto mt-10 max-w-[1720px] border-t border-ink/10 pt-4 text-[11px] tracking-widen text-ink/60">
         © {new Date().getFullYear()} Zinéma, Lausanne. Site édité via Sanity.
       </p>
     </footer>

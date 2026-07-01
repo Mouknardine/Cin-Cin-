@@ -13,9 +13,7 @@ const config: Config = {
     extend: {
       colors: {
         ink: "#100F0C",
-        paper: "#F1EEE4",
-        paper2: "#E7E2D3",
-        bone: "#C9C3AF",
+        paper: "#FFFFFF",
         red: "#C22A1D",
         mustard: "#E0A32B",
         line: "#100F0C1a",

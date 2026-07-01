@@ -8,7 +8,7 @@ export function ReviewQuote({ review }: { review?: Review }) {
       <p className="font-display text-2xl leading-[1.05] tracking-tightest md:text-4xl">
         « {review.quote} »
       </p>
-      <p className="mt-4 font-display text-xs tracking-widen text-ink/55">
+      <p className="mt-4 font-display text-xs tracking-widen text-ink/70">
         {[review.author, review.source].filter(Boolean).join(" — ")}
       </p>
     </>

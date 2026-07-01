@@ -9,11 +9,11 @@ const statusText: Record<Screening["status"], string> = {
 };
 
 export function ScreeningsForFilm({ film }: { film: Film }) {
-  const screenings = (film.screenings || []).filter((s) => s.status !== "annule" || true);
+  const screenings = film.screenings || [];
 
   if (screenings.length === 0) {
     return (
-      <p className="border-t border-ink/15 py-6 font-display text-sm tracking-widen text-ink/50">
+      <p className="border-t border-ink/15 py-6 font-display text-sm tracking-widen text-ink/60">
         Aucune séance programmée pour le moment — revenez bientôt.
       </p>
     );
@@ -41,11 +41,11 @@ export function ScreeningsForFilm({ film }: { film: Film }) {
               >
                 <div>
                   <p className="font-display text-xl tracking-tightest">{s.time}</p>
-                  <p className="text-xs text-ink/55">
+                  <p className="text-xs text-ink/70">
                     {s.room}
                     {s.versionNote ? ` — ${s.versionNote}` : ""}
                     {" · "}
-                    <span className={s.status === "disponible" ? "text-ink/55" : "text-red"}>
+                    <span className={s.status === "disponible" ? "text-ink/70" : "text-red"}>
                       {statusText[s.status]}
                     </span>
                   </p>
@@ -56,7 +56,7 @@ export function ScreeningsForFilm({ film }: { film: Film }) {
                     price={s.price || film.price}
                   />
                 ) : (
-                  <span className="px-5 py-3 font-display text-sm tracking-widen text-ink/30">
+                  <span className="px-5 py-3 font-display text-sm tracking-widen text-ink/45">
                     {statusText[s.status]}
                   </span>
                 )}

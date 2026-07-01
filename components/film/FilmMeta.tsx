@@ -26,14 +26,14 @@ export function filmMetaLine(film: Film): string {
 export function FilmMeta({ film, className = "" }: { film: Film; className?: string }) {
   return (
     <div className={className}>
-      <p className="font-display text-[11px] tracking-widen text-ink/55">
+      <p className="font-display text-[11px] tracking-widen text-red">
         {statusLabel(film.status)}
       </p>
       <p className="mt-0.5 font-display text-lg leading-tight tracking-tightest md:text-xl">
         {film.title}
       </p>
-      <p className="mt-0.5 text-xs text-ink/60">{film.director}</p>
-      <p className="mt-0.5 text-[11px] uppercase tracking-wide text-ink/45">
+      <p className="mt-0.5 text-xs text-ink/75">{film.director}</p>
+      <p className="mt-0.5 text-[11px] uppercase tracking-wide text-ink/60">
         {filmMetaLine(film)}
       </p>
     </div>

@@ -15,7 +15,7 @@ export function BuyButton({ checkoutUrl, price, label = "Réserver", className =
   if (!checkoutUrl) {
     return (
       <span
-        className={`inline-flex items-center justify-between gap-4 border border-ink/25 px-5 py-3 font-display text-sm tracking-widen text-ink/40 ${className}`}
+        className={`inline-flex items-center justify-between gap-4 border border-ink/25 px-5 py-3 font-display text-sm tracking-widen text-ink/55 ${className}`}
         aria-disabled="true"
       >
         Billetterie bientôt disponible

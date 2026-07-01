@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Reveal } from "@/components/motion/Reveal";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { getHistory } from "@/lib/content";
 
 export const metadata: Metadata = {
@@ -24,12 +25,7 @@ export default async function HistoirePage() {
 
   return (
     <div className="py-8 md:py-12">
-      <div className="px-4 pb-8 md:px-8 md:pb-10">
-        <p className="font-display text-xs tracking-widen text-ink/50">03 — HISTOIRE</p>
-        <h1 className="mt-3 font-display text-[16vw] leading-[0.85] tracking-tightest md:text-[6vw]">
-          Depuis 2001
-        </h1>
-      </div>
+      <PageHeader eyebrow="03 — HISTOIRE" title="Depuis 2001" />
 
       <Reveal className="mx-4 mb-14 border-y border-ink/15 py-8 md:mx-8 md:py-12">
         <p className="max-w-3xl font-display text-2xl leading-[1.1] tracking-tightest md:text-4xl">
