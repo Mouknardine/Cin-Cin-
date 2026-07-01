@@ -15,12 +15,13 @@ export default async function HomePage() {
 
   const featured = films.filter((f) => f.featuredHome && f.status !== "passe");
   const wallFilms = featured.length ? featured : films.filter((f) => f.status === "a-laffiche");
-  const [heroFilm, ...restWallFilms] = wallFilms;
+  const heroFilms = wallFilms.slice(0, 3);
+  const restWallFilms = wallFilms.slice(1);
   const pinned = announcements.find((a) => a.pinned) || announcements[0];
 
   return (
     <>
-      <Hero tagline={settings.tagline} featuredFilm={heroFilm} />
+      <Hero tagline={settings.tagline} films={heroFilms} />
       <AnnouncementBanner announcement={pinned} />
       <section className="border-b border-ink/15 py-10 md:py-16">
         <div className="mb-6 flex items-baseline justify-between px-4 md:px-8">

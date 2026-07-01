@@ -35,7 +35,7 @@ export default async function FilmDetailPage({ params }: { params: { slug: strin
   return (
     <article className="grid gap-8 px-4 py-8 md:grid-cols-12 md:gap-10 md:px-8 md:py-12">
       <div className="md:sticky md:top-24 md:col-span-5 md:h-fit lg:col-span-4">
-        <div className="relative aspect-[2/3] w-full overflow-hidden bg-ink">
+        <div className="relative aspect-[2/3] w-full overflow-hidden border-2 border-ink bg-ink shadow-[10px_10px_0_0_#100F0C]">
           <FilmPoster film={film} priority sizes="(min-width: 1080px) 33vw, 100vw" />
         </div>
         {nextAvailable && (

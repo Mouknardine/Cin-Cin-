@@ -47,7 +47,7 @@ export function FilmsGrid({ films }: { films: Film[] }) {
             className={`col-span-2 ${spanBySize[film.posterSize]} ${offsetPattern[i % offsetPattern.length]}`}
           >
             <Link href={`/films/${film.slug}`} className="group block">
-              <div className="relative aspect-[2/3] overflow-hidden bg-ink">
+              <div className="relative aspect-[2/3] overflow-hidden border-2 border-ink bg-ink shadow-[8px_8px_0_0_#100F0C] transition-shadow duration-300 ease-editorial group-hover:shadow-[4px_4px_0_0_#100F0C]">
                 <div className="absolute inset-0 transition-transform duration-700 ease-editorial group-hover:scale-[1.04]">
                   <FilmPoster film={film} />
                 </div>
