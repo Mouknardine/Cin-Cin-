@@ -21,28 +21,42 @@ interface Slot {
   top: number;
 }
 
-// Trois colonnes : la colonne du milieu est centrée sur le logo, donc ses
-// affiches passent directement par-dessus en défilant.
-const columns: { left: number; tops: number[] }[] = [
-  { left: 40, tops: [20, 610, 1200, 1790] },
-  { left: 460, tops: [300, 890, 1480, 2070] },
-  { left: 880, tops: [150, 740, 1330, 1920] },
+// Trois colonnes, triées de haut en bas. La colonne du milieu (une seule
+// affiche par cycle) est centrée sur le logo, donc son affiche passe
+// directement par-dessus en défilant. Le cycle est répété à l'infini, mais
+// le film assigné à chaque case suit un compteur global (jamais réinitialisé
+// à chaque cycle) qui avance de 7 en 7 sur 8 films : comme 7 et 8 sont
+// premiers entre eux, la place de chaque film change à chaque passage, et
+// n'importe quelle suite de 8 cases consécutives (donc tout ce qui peut être
+// visible en même temps à l'écran) contient les 8 films une seule fois —
+// jamais deux fois la même affiche visible simultanément.
+const slots: Slot[] = [
+  { left: 40, top: 40 },
+  { left: 880, top: 300 },
+  { left: 40, top: 1150 },
+  { left: 880, top: 1410 },
+  { left: 460, top: 1780 },
+  { left: 40, top: 2260 },
+  { left: 880, top: 2520 },
 ];
+const SLOTS_PER_CYCLE = slots.length;
 
-const slots: Slot[] = columns.flatMap((col) => col.tops.map((top) => ({ left: col.left, top })));
+// Le plus grand vide de la colonne centrale (une seule affiche par cycle),
+// utilisé pour garantir que le logo est entièrement visible à l'arrivée.
+const SAFE_GAP_CENTER = 890;
 
-const DESIGN_CYCLE_HEIGHT = 2550;
-const VARIANTS = 3;
-// Répété 6 fois (2 tours complets des 3 variantes) pour laisser une large
-// marge de défilement avant chaque téléportation invisible — sur un écran
-// étroit, une seule variante de battement ne laissait presque aucune marge.
-const COPIES = 6;
-const JUMP = 3;
+const DESIGN_CYCLE_HEIGHT = 3400;
+// 7 cases par cycle et 8 films : le motif ne redevient identique qu'au bout
+// de 8 cycles (ppcm(7,8)/7 = 8). Il faut donc sauter d'exactement 8 cycles
+// pour que la téléportation de la boucle soit invisible, et en afficher au
+// moins deux fois plus pour garder une marge de défilement confortable.
+const COPIES = 16;
+const JUMP = 8;
 
-function filmForSlot(films: Film[], slotIndex: number, variantIndex: number) {
+function filmForSlot(films: Film[], copyIndex: number, slotIndex: number) {
   const n = films.length;
-  const rotation = (variantIndex * 3) % n;
-  return films[(slotIndex + rotation) % n];
+  const globalIndex = copyIndex * SLOTS_PER_CYCLE + slotIndex;
+  return films[globalIndex % n];
 }
 
 export function PosterCanvas({ films }: { films: Film[] }) {
@@ -63,7 +77,14 @@ export function PosterCanvas({ films }: { films: Film[] }) {
       // Next.js, qui peut sinon écraser ce saut initial.
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          window.scrollTo({ top: JUMP * cyclePx() + 1, left: 0, behavior: "instant" });
+          const s = window.innerWidth / DESIGN_WIDTH;
+          // Cale le centre de l'écran (où se trouve le logo fixe) sur le
+          // plus grand vide de la colonne centrale, pour que le logo soit
+          // entièrement visible à l'arrivée, quel que soit le format d'écran.
+          const viewportHeightDesign = window.innerHeight / s;
+          const targetCenterY = JUMP * DESIGN_CYCLE_HEIGHT + SAFE_GAP_CENTER;
+          const targetTopDesign = targetCenterY - viewportHeightDesign / 2;
+          window.scrollTo({ top: targetTopDesign * s, left: 0, behavior: "instant" });
         });
       });
     }
@@ -91,21 +112,18 @@ export function PosterCanvas({ films }: { films: Film[] }) {
     };
   }, []);
 
-  const copy = (c: number) => {
-    const v = c % VARIANTS;
-    return (
-      <div key={c} style={{ position: "absolute", top: c * DESIGN_CYCLE_HEIGHT, left: 0, width: DESIGN_WIDTH, height: DESIGN_CYCLE_HEIGHT }}>
-        {slots.map((slot, i) => (
-          <div
-            key={`${c}-${i}`}
-            style={{ position: "absolute", left: slot.left, top: slot.top, width: POSTER_WIDTH, height: POSTER_HEIGHT }}
-          >
-            <CanvasPoster film={filmForSlot(items, i, v)} priority={c === JUMP && i < 3} />
-          </div>
-        ))}
-      </div>
-    );
-  };
+  const copy = (c: number) => (
+    <div key={c} style={{ position: "absolute", top: c * DESIGN_CYCLE_HEIGHT, left: 0, width: DESIGN_WIDTH, height: DESIGN_CYCLE_HEIGHT }}>
+      {slots.map((slot, i) => (
+        <div
+          key={`${c}-${i}`}
+          style={{ position: "absolute", left: slot.left, top: slot.top, width: POSTER_WIDTH, height: POSTER_HEIGHT }}
+        >
+          <CanvasPoster film={filmForSlot(items, c, i)} priority={c === JUMP && i < 3} />
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <div className="relative overflow-hidden bg-paper" style={{ height: DESIGN_CYCLE_HEIGHT * COPIES * scale }}>
