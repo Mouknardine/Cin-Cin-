@@ -13,15 +13,15 @@ import {
   mockHistory,
   mockScreenings,
   mockSiteSettings,
-} from "../lib/mock-data";
+} from "./mock-data";
 
-const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID;
-const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || "production";
+const projectId = process.env.SANITY_STUDIO_PROJECT_ID;
+const dataset = process.env.SANITY_STUDIO_DATASET || "production";
 const token = process.env.SANITY_API_WRITE_TOKEN;
 
 if (!projectId || !token) {
   console.error(
-    "NEXT_PUBLIC_SANITY_PROJECT_ID et SANITY_API_WRITE_TOKEN sont requis dans .env.local pour lancer le seed."
+    "SANITY_STUDIO_PROJECT_ID et SANITY_API_WRITE_TOKEN sont requis dans .env.local pour lancer le seed."
   );
   process.exit(1);
 }

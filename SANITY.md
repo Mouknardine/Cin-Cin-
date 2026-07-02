@@ -1,15 +1,19 @@
 # Brancher Sanity (gestion du contenu)
 
-Le site est **statique** (fichiers HTML/CSS/JS, hébergeables n'importe où,
-y compris en hébergement mutualisé sans serveur type Infomaniak). Le
-contenu Sanity est lu **directement par le navigateur de chaque visiteur**,
-à chaque affichage — une publication dans le Studio apparaît donc en ligne
-immédiatement, **sans jamais reconstruire ni redéployer le site**. Tant
-qu'aucun projet Sanity n'est configuré (ou en cas de souci réseau/CORS), le
-site affiche un contenu d'exemple à la place — jamais de page vide.
+Le site est composé de **simples fichiers HTML/CSS/JS** (`index.html`,
+`films/`, `agenda/`, `annonces/`, `histoire/`, `infos-pratiques/`, `film/`,
+`assets/`) — pas de build, pas de framework, hébergeables tels quels
+n'importe où, y compris un hébergement mutualisé sans serveur comme
+Infomaniak. Le contenu Sanity est lu **directement par le navigateur de
+chaque visiteur**, à chaque affichage — une publication dans le Studio
+apparaît donc en ligne immédiatement, **sans jamais reconstruire ni
+redéployer le site**. Tant qu'aucun projet Sanity n'est configuré (ou en
+cas de souci réseau/CORS), le site affiche un contenu d'exemple à la
+place — jamais de page vide.
 
-Le site n'a besoin d'être reconstruit et redéployé que pour un changement
-de **code ou de design** — jamais pour un changement de contenu.
+Le Studio (l'interface d'édition, dans le dossier `sanity/`) est un outil
+séparé, à part le site : c'est la seule partie du projet qui utilise encore
+Node/npm, puisque Sanity Studio en a besoin pour fonctionner.
 
 ## 1. Créer le projet Sanity (une seule fois)
 
@@ -17,17 +21,31 @@ de **code ou de design** — jamais pour un changement de contenu.
 2. Créer un projet (nom libre, ex. « Zinéma »), dataset **production**.
 3. Noter le **Project ID** (visible dans l'URL et la page du projet).
 
-## 2. Configuration locale
+## 2. Brancher le site sur ce projet
 
-Copier `.env.local.example` vers `.env.local` et remplir le Project ID
-(les deux préfixes pointent vers le même projet) :
+Ouvrir `assets/js/data.js` et renseigner les deux constantes tout en haut
+du fichier :
+
+```js
+var SANITY_PROJECT_ID = "xxxxxxxx";
+var SANITY_DATASET = "production";
+```
+
+Ce ne sont pas des informations secrètes (elles sont visibles de tous les
+visiteurs, comme sur n'importe quel site), donc pas besoin de variable
+d'environnement ni de build : une fois ces deux lignes modifiées et le
+fichier envoyé sur l'hébergement, le site lit directement le contenu
+Sanity.
+
+## 3. Configuration du Studio (uniquement pour l'interface d'édition)
+
+Copier `.env.local.example` vers `.env.local` et remplir le Project ID :
 
 ```
-NEXT_PUBLIC_SANITY_PROJECT_ID=xxxxxxxx
 SANITY_STUDIO_PROJECT_ID=xxxxxxxx
 ```
 
-## 3. Lancer le Studio (interface d'édition)
+Puis :
 
 ```
 npm run studio:dev      # Studio local sur http://localhost:3333
@@ -65,30 +83,31 @@ générée.
 
 ## 6. Autoriser le site à lire Sanity depuis le navigateur (CORS)
 
-Le contenu étant désormais récupéré directement par le navigateur du
-visiteur, il faut indiquer à Sanity quels sites ont le droit de lui parler.
-Sans cette étape, le site retombe silencieusement sur le contenu d'exemple.
+Le contenu étant récupéré directement par le navigateur du visiteur, il
+faut indiquer à Sanity quels sites ont le droit de lui parler. Sans cette
+étape, le site retombe silencieusement sur le contenu d'exemple.
 
 Aller dans **Sanity Manage → API → CORS origins → Add CORS origin** et
 ajouter, sans case « Allow credentials » à cocher :
 
-- l'adresse définitive du site (ex. `https://www.zinema.ch` ou l'URL
+- l'adresse définitive du site (ex. `https://www.zinema.ch`, ou l'URL
   GitHub Pages `https://mouknardine.github.io`) ;
-- `http://localhost:3000` pour tester le site en local.
+- `http://localhost:8000` (ou le port utilisé) pour tester le site en local.
 
-## 7. Brancher le déploiement (code/design uniquement)
+## 7. Mettre le site en ligne
 
-Le build a seulement besoin de connaître le projet Sanity pour l'inclure
-dans les fichiers générés (ce ne sont pas des informations secrètes,
-elles sont visibles de tous les visiteurs) :
+Aucun build n'est nécessaire : il suffit d'envoyer les fichiers du site
+(`index.html`, `films/`, `agenda/`, `annonces/`, `histoire/`,
+`infos-pratiques/`, `film/`, `assets/` — pas `sanity/` ni les autres
+fichiers du dépôt, qui ne concernent que l'édition de contenu) sur
+l'hébergement :
 
-- En local : les valeurs de `.env.local` (étape 2) suffisent.
-- Sur GitHub → **Settings → Secrets and variables → Actions** :
-  - **Secret** `SANITY_PROJECT_ID` = le Project ID.
-  - (Facultatif) **Variable** `SANITY_DATASET` si le dataset n'est pas
-    `production`.
+- **Infomaniak (hébergement mutualisé)** : envoyer ces dossiers/fichiers
+  par FTP dans le répertoire du site (souvent nommé `web` ou
+  correspondant au nom de domaine).
+- **GitHub Pages** : le workflow `.github/workflows/deploy-pages.yml`
+  publie automatiquement ces mêmes fichiers à chaque envoi sur la branche.
 
-Ce build/déploiement n'est à relancer que lors d'un changement de code ou
-de design (GitHub → onglet **Actions** → « Déploiement GitHub Pages » →
-**Run workflow**, ou upload manuel du dossier `out/` sur Infomaniak) —
-**jamais** pour une simple mise à jour de contenu, qui apparaît seule.
+Cet envoi n'est à refaire qu'en cas de changement de **code ou de
+design** — **jamais** pour une simple mise à jour de contenu, qui
+apparaît seule dès qu'elle est publiée dans le Studio.

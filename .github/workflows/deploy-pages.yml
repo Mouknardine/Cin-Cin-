@@ -1,15 +1,14 @@
 name: Déploiement GitHub Pages
 
+# Le site est de simples fichiers HTML/CSS/JS : aucun build n'est
+# nécessaire, ce workflow ne fait que publier le dossier tel quel. Un
+# changement de contenu (Sanity) n'a pas besoin de ce workflow : il
+# apparaît seul, sans redéploiement (voir SANITY.md).
 on:
   push:
     branches:
       - claude/zinema-cinema-redesign-ttcpaf
   workflow_dispatch:
-  # Déclenché par le webhook Sanity à chaque publication de contenu, pour
-  # que le site statique se reconstruise avec le contenu à jour (voir
-  # SANITY.md, section « Reconstruction automatique »).
-  repository_dispatch:
-    types: [sanity-content-update]
 
 permissions:
   contents: read
@@ -21,40 +20,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - run: npm ci
-
-      - name: Build (export statique)
-        env:
-          NEXT_PUBLIC_BASE_PATH: /Cin-Cin-
-          # Ne renseigner que si un projet Sanity est déjà configuré dans
-          # les "secrets" du dépôt (Settings > Secrets and variables >
-          # Actions). Sans ça, le site utilise le contenu d'exemple.
-          NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ secrets.SANITY_PROJECT_ID }}
-          NEXT_PUBLIC_SANITY_DATASET: ${{ vars.SANITY_DATASET || 'production' }}
-        run: npm run build
-
-      - uses: actions/configure-pages@v5
-
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./out
-
   deploy:
-    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Rassembler les fichiers du site (sans le Studio Sanity ni les scripts)
+        run: |
+          mkdir site
+          cp -r index.html films agenda annonces histoire infos-pratiques film assets site/
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+
       - id: deployment
         uses: actions/deploy-pages@v4
