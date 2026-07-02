@@ -2,38 +2,42 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FilmPoster } from "@/components/poster/FilmPoster";
 import zinemaLogo from "@/public/zinema-logo.png";
 import type { Film } from "@/lib/types";
 
-// Tout est exprimé en vw (y compris les positions verticales) : la
-// disposition est donc une pure fonction de la largeur d'écran, strictement
-// identique sur mobile et desktop — jamais deux compositions différentes.
-// Quatre colonnes de largeur égale, comme sur gregorcollienne.com, avec un
-// grand vide central pour le logo et de larges espaces entre les affiches —
-// pas de grille serrée. Toutes les affiches ont la même taille.
+// Le canevas est dessiné une fois pour une largeur de référence fixe
+// (DESIGN_WIDTH, en pixels), puis mis à l'échelle en bloc avec un
+// `transform: scale()` pour occuper toute la largeur d'écran — mobile et
+// desktop affichent donc rigoureusement le même visuel, juste agrandi ou
+// réduit, jamais deux dispositions différentes.
+const DESIGN_WIDTH = 1200;
+const POSTER_WIDTH = 280;
+const POSTER_HEIGHT = POSTER_WIDTH * 1.5;
+
 interface Slot {
   left: number;
-  width: number;
   top: number;
 }
 
-const POSTER_WIDTH = 14;
-
+// Trois colonnes : la colonne du milieu est centrée sur le logo, donc ses
+// affiches passent directement par-dessus en défilant.
 const columns: { left: number; tops: number[] }[] = [
-  { left: 3, tops: [1, 31, 61, 91] },
-  { left: 20, tops: [12, 42, 72, 102] },
-  { left: 66, tops: [6, 36, 66, 96] },
-  { left: 83, tops: [18, 48, 78, 108] },
+  { left: 40, tops: [20, 610, 1200, 1790] },
+  { left: 460, tops: [300, 890, 1480, 2070] },
+  { left: 880, tops: [150, 740, 1330, 1920] },
 ];
 
-const slots: Slot[] = columns.flatMap((col) =>
-  col.tops.map((top) => ({ left: col.left, width: POSTER_WIDTH, top }))
-);
+const slots: Slot[] = columns.flatMap((col) => col.tops.map((top) => ({ left: col.left, top })));
 
-const CYCLE_VW = 132;
+const DESIGN_CYCLE_HEIGHT = 2550;
 const VARIANTS = 3;
+// Répété 6 fois (2 tours complets des 3 variantes) pour laisser une large
+// marge de défilement avant chaque téléportation invisible — sur un écran
+// étroit, une seule variante de battement ne laissait presque aucune marge.
+const COPIES = 6;
+const JUMP = 3;
 
 function filmForSlot(films: Film[], slotIndex: number, variantIndex: number) {
   const n = films.length;
@@ -43,16 +47,15 @@ function filmForSlot(films: Film[], slotIndex: number, variantIndex: number) {
 
 export function PosterCanvas({ films }: { films: Film[] }) {
   const items = films.slice(0, 8);
-  const megaRef = useRef<HTMLDivElement>(null);
-  const megaHeight = useRef(0);
+  const [scale, setScale] = useState(1);
   const scrolledIn = useRef(false);
 
   useEffect(() => {
-    const measure = () => {
-      if (megaRef.current) megaHeight.current = megaRef.current.offsetHeight;
-    };
-    measure();
-    window.addEventListener("resize", measure);
+    const updateScale = () => setScale(window.innerWidth / DESIGN_WIDTH);
+    updateScale();
+    window.addEventListener("resize", updateScale);
+
+    const cyclePx = () => DESIGN_CYCLE_HEIGHT * (window.innerWidth / DESIGN_WIDTH);
 
     if (!scrolledIn.current) {
       scrolledIn.current = true;
@@ -60,8 +63,7 @@ export function PosterCanvas({ films }: { films: Film[] }) {
       // Next.js, qui peut sinon écraser ce saut initial.
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          measure();
-          window.scrollTo({ top: megaHeight.current + 1, left: 0, behavior: "instant" });
+          window.scrollTo({ top: JUMP * cyclePx() + 1, left: 0, behavior: "instant" });
         });
       });
     }
@@ -71,14 +73,12 @@ export function PosterCanvas({ films }: { films: Film[] }) {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
-        const h = megaHeight.current;
+        const c = cyclePx();
         const y = window.scrollY;
-        if (h > 0) {
-          if (y < h * 0.05) {
-            window.scrollTo({ top: y + h, left: 0, behavior: "instant" });
-          } else if (y > h * 1.95) {
-            window.scrollTo({ top: y - h, left: 0, behavior: "instant" });
-          }
+        if (y < c * (JUMP - 1.5)) {
+          window.scrollTo({ top: y + JUMP * c, left: 0, behavior: "instant" });
+        } else if (y > c * (JUMP + 1.5)) {
+          window.scrollTo({ top: y - JUMP * c, left: 0, behavior: "instant" });
         }
         ticking = false;
       });
@@ -87,39 +87,38 @@ export function PosterCanvas({ films }: { films: Film[] }) {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", measure);
+      window.removeEventListener("resize", updateScale);
     };
   }, []);
 
-  const megaBlock = (
-    <>
-      {Array.from({ length: VARIANTS }, (_, v) => (
-        <div key={v} className="relative" style={{ height: `${CYCLE_VW}vw` }}>
-          {slots.map((slot, i) => (
-            <div
-              key={`${v}-${i}`}
-              className="absolute"
-              style={{ left: `${slot.left}vw`, top: `${slot.top}vw`, width: `${slot.width}vw` }}
-            >
-              <CanvasPoster film={filmForSlot(items, i, v)} priority={v === 0 && i < 4} />
-            </div>
-          ))}
-        </div>
-      ))}
-    </>
-  );
+  const copy = (c: number) => {
+    const v = c % VARIANTS;
+    return (
+      <div key={c} style={{ position: "absolute", top: c * DESIGN_CYCLE_HEIGHT, left: 0, width: DESIGN_WIDTH, height: DESIGN_CYCLE_HEIGHT }}>
+        {slots.map((slot, i) => (
+          <div
+            key={`${c}-${i}`}
+            style={{ position: "absolute", left: slot.left, top: slot.top, width: POSTER_WIDTH, height: POSTER_HEIGHT }}
+          >
+            <CanvasPoster film={filmForSlot(items, i, v)} priority={c === JUMP && i < 3} />
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
-    <div className="relative bg-paper">
+    <div className="relative overflow-hidden bg-paper" style={{ height: DESIGN_CYCLE_HEIGHT * COPIES * scale }}>
       {/* Le logo ne bouge jamais : les affiches défilent librement par-dessus. */}
       <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center">
         <Image src={zinemaLogo} alt="Zinéma" priority className="h-auto w-[34vw] max-w-[320px]" />
       </div>
 
-      <div className="relative z-10">
-        <div ref={megaRef}>{megaBlock}</div>
-        {megaBlock}
-        {megaBlock}
+      <div
+        className="absolute left-0 top-0 z-10"
+        style={{ width: DESIGN_WIDTH, height: DESIGN_CYCLE_HEIGHT * COPIES, transform: `scale(${scale})`, transformOrigin: "top left" }}
+      >
+        {Array.from({ length: COPIES }, (_, c) => copy(c))}
       </div>
     </div>
   );
@@ -129,10 +128,10 @@ function CanvasPoster({ film, priority = false }: { film: Film; priority?: boole
   return (
     <Link
       href={`/films/${film.slug}`}
-      className="group relative block aspect-[2/3] w-full overflow-hidden transition-transform duration-300 ease-editorial hover:-translate-y-1"
+      className="group relative block h-full w-full overflow-hidden transition-transform duration-300 ease-editorial hover:-translate-y-1"
     >
-      <FilmPoster film={film} priority={priority} sizes="14vw" />
-      <span className="pointer-events-none absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-paper text-xs text-ink opacity-0 shadow-[0_1px_4px_rgba(16,15,12,0.25)] transition-opacity duration-200 group-hover:opacity-100">
+      <FilmPoster film={film} priority={priority} sizes="280px" />
+      <span className="pointer-events-none absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-paper text-sm text-ink opacity-0 shadow-[0_1px_4px_rgba(16,15,12,0.25)] transition-opacity duration-200 group-hover:opacity-100">
         +
       </span>
     </Link>
