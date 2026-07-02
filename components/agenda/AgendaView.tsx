@@ -97,10 +97,16 @@ export function AgendaView({ screenings }: { screenings: Screening[] }) {
                       <p className="mt-0.5 text-xs text-ink/70">
                         {s.room}
                         {s.versionNote ? ` — ${s.versionNote}` : ""}
+                        {statusText[s.status] && (
+                          <span className={`md:hidden ${s.status === "annule" ? "text-red" : ""}`}>
+                            {" "}
+                            · {statusText[s.status]}
+                          </span>
+                        )}
                       </p>
                     </div>
                     <span
-                      className={`col-span-2 font-display text-xs tracking-widen md:col-span-1 md:text-right ${
+                      className={`hidden font-display text-xs tracking-widen md:block md:text-right ${
                         s.status === "annule" ? "text-red" : "text-ink/60"
                       }`}
                     >

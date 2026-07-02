@@ -41,7 +41,7 @@ export function GeneratedPoster({ title, director, year, seed, className = "" }:
   if (variant === 1) {
     return (
       <div className={`${base} border border-ink/70 bg-paper text-ink ${className}`}>
-        <div className="flex items-center justify-between p-4 font-display text-[10px] tracking-widest">
+        <div className="flex items-center justify-between gap-3 p-4 font-display text-[10px] tracking-widest">
           <span>{director}</span>
           <span>{year}</span>
         </div>
@@ -78,7 +78,7 @@ export function GeneratedPoster({ title, director, year, seed, className = "" }:
         <div className="break-words p-4 font-display text-[clamp(1.9rem,8.5vw,3.6rem)] leading-[0.86]">
           {title}
         </div>
-        <div className="mt-auto flex items-end justify-between p-4">
+        <div className="mt-auto flex items-end justify-between gap-3 p-4">
           <span className="font-display text-[10px] tracking-widest">{director}</span>
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-ink font-display text-[11px] text-paper">
             {year}
@@ -93,7 +93,7 @@ export function GeneratedPoster({ title, director, year, seed, className = "" }:
       <div className="m-3 flex flex-1 flex-col border border-paper/40 p-4">
         <div className="flex-1" />
         <div className="break-words font-display text-[clamp(1.8rem,8vw,3.4rem)] leading-[0.86]">{title}</div>
-        <div className="mt-3 flex justify-between border-t border-paper/30 pt-2 font-display text-[10px] tracking-widest opacity-80">
+        <div className="mt-3 flex justify-between gap-3 border-t border-paper/30 pt-2 font-display text-[10px] tracking-widest opacity-80">
           <span>{director}</span>
           <span>{year}</span>
         </div>

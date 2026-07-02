@@ -53,11 +53,10 @@ export default async function AnnoncesPage() {
         {rest.map((a, i) => (
           <Reveal key={a._id} delay={i * 0.05}>
             <li className="grid gap-2 border-t border-ink/15 py-6 last:border-b md:grid-cols-[160px_1fr] md:gap-8">
-              <p className="font-display text-xs tracking-widen text-ink/70">
-                {formatLongDate(a.date)}
-                <br />
-                <span className="text-ink/85">{categoryLabels[a.category] || "Annonce"}</span>
-              </p>
+              <div className="font-display text-xs tracking-widen text-ink/70">
+                <p>{formatLongDate(a.date)}</p>
+                <p className="mt-1.5 text-ink/85">{categoryLabels[a.category] || "Annonce"}</p>
+              </div>
               <div>
                 <h3 className="font-display text-xl tracking-tightest md:text-2xl">{a.title}</h3>
                 {a.excerpt && <p className="mt-2 max-w-2xl text-sm text-ink/70">{a.excerpt}</p>}
