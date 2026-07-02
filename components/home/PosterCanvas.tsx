@@ -7,33 +7,33 @@ import { FilmPoster } from "@/components/poster/FilmPoster";
 import zinemaLogo from "@/public/zinema-logo.png";
 import type { Film } from "@/lib/types";
 
-interface Slot {
-  left: string;
-  top: string;
-  width: string;
+// Grille dense (aucun trou), strictement identique sur mobile et desktop.
+// Quatre variantes tournent la place de chaque affiche, mises bout à bout
+// pour former un seul "méga-bloc" ; ce méga-bloc est répété trois fois pour
+// permettre un défilement en boucle sans fin, sans jamais montrer deux fois
+// la même disposition d'affilée.
+const COLS = 4;
+const ROWS = 5;
+const VARIANTS = 4;
+
+function tilesForVariant(films: Film[], variantIndex: number) {
+  const n = films.length;
+  const rotation = (variantIndex * 3) % n;
+  return Array.from({ length: COLS * ROWS }, (_, i) => films[(i + rotation) % n]);
 }
-
-// Une seule disposition (en vw / vh), strictement identique sur mobile et
-// desktop : seule l'échelle change avec la largeur d'écran, jamais l'agencement.
-const CYCLE_VH = 240;
-
-const slots: Slot[] = [
-  { left: "4vw", top: "4vh", width: "clamp(90px, 15vw, 260px)" },
-  { left: "28vw", top: "30vh", width: "clamp(80px, 12vw, 210px)" },
-  { left: "62vw", top: "10vh", width: "clamp(90px, 14vw, 240px)" },
-  { left: "78vw", top: "38vh", width: "clamp(80px, 12vw, 210px)" },
-  { left: "6vw", top: "72vh", width: "clamp(85px, 13vw, 225px)" },
-  { left: "27vw", top: "98vh", width: "clamp(90px, 15vw, 260px)" },
-  { left: "63vw", top: "80vh", width: "clamp(90px, 14vw, 240px)" },
-  { left: "79vw", top: "104vh", width: "clamp(80px, 12vw, 210px)" },
-];
 
 export function PosterCanvas({ films }: { films: Film[] }) {
   const items = films.slice(0, 8);
+  const megaRef = useRef<HTMLDivElement>(null);
+  const megaHeight = useRef(0);
   const scrolledIn = useRef(false);
 
   useEffect(() => {
-    const cyclePx = () => (CYCLE_VH / 100) * window.innerHeight;
+    const measure = () => {
+      if (megaRef.current) megaHeight.current = megaRef.current.offsetHeight;
+    };
+    measure();
+    window.addEventListener("resize", measure);
 
     if (!scrolledIn.current) {
       scrolledIn.current = true;
@@ -41,7 +41,8 @@ export function PosterCanvas({ films }: { films: Film[] }) {
       // Next.js, qui peut sinon écraser ce saut initial.
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          window.scrollTo({ top: cyclePx() + 1, left: 0, behavior: "instant" });
+          measure();
+          window.scrollTo({ top: megaHeight.current + 1, left: 0, behavior: "instant" });
         });
       });
     }
@@ -51,42 +52,49 @@ export function PosterCanvas({ films }: { films: Film[] }) {
       if (ticking) return;
       ticking = true;
       requestAnimationFrame(() => {
-        const c = cyclePx();
+        const h = megaHeight.current;
         const y = window.scrollY;
-        if (y < c * 0.05) {
-          window.scrollTo({ top: y + c, left: 0, behavior: "instant" });
-        } else if (y > c * 1.95) {
-          window.scrollTo({ top: y - c, left: 0, behavior: "instant" });
+        if (h > 0) {
+          if (y < h * 0.05) {
+            window.scrollTo({ top: y + h, left: 0, behavior: "instant" });
+          } else if (y > h * 1.95) {
+            window.scrollTo({ top: y - h, left: 0, behavior: "instant" });
+          }
         }
         ticking = false;
       });
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", measure);
+    };
   }, []);
+
+  const megaBlock = (
+    <>
+      {Array.from({ length: VARIANTS }, (_, v) => (
+        <div key={v} className="grid grid-cols-4 gap-2 p-2">
+          {tilesForVariant(items, v).map((film, i) => (
+            <CanvasPoster key={`${v}-${i}-${film._id}`} film={film} priority={v === 0 && i < 4} />
+          ))}
+        </div>
+      ))}
+    </>
+  );
 
   return (
     <div className="relative bg-paper">
-      {/* Le logo ne bouge jamais : les affiches défilent par-dessus. */}
+      {/* Le logo ne bouge jamais : les affiches défilent librement par-dessus. */}
       <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center">
         <Image src={zinemaLogo} alt="Zinéma" priority className="h-auto w-[42vw] max-w-[380px]" />
       </div>
 
-      <div className="relative z-10" style={{ height: `${CYCLE_VH * 3}vh` }}>
-        {[0, 1, 2].map((cycle) => (
-          <div
-            key={cycle}
-            className="absolute inset-x-0"
-            style={{ top: `${cycle * CYCLE_VH}vh`, height: `${CYCLE_VH}vh` }}
-          >
-            {items.map((film, i) => (
-              <div key={film._id} className="absolute" style={{ left: slots[i].left, top: slots[i].top, width: slots[i].width }}>
-                <CanvasPoster film={film} priority={cycle === 1} />
-              </div>
-            ))}
-          </div>
-        ))}
+      <div className="relative z-10">
+        <div ref={megaRef}>{megaBlock}</div>
+        {megaBlock}
+        {megaBlock}
       </div>
     </div>
   );
@@ -98,8 +106,8 @@ function CanvasPoster({ film, priority = false }: { film: Film; priority?: boole
       href={`/films/${film.slug}`}
       className="group relative block aspect-[2/3] w-full overflow-hidden transition-transform duration-300 ease-editorial hover:-translate-y-1"
     >
-      <FilmPoster film={film} priority={priority} sizes="(min-width: 768px) 16vw, 30vw" />
-      <span className="pointer-events-none absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-paper text-sm text-ink opacity-0 shadow-[0_1px_4px_rgba(16,15,12,0.25)] transition-opacity duration-200 group-hover:opacity-100">
+      <FilmPoster film={film} priority={priority} sizes="25vw" />
+      <span className="pointer-events-none absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-paper text-xs text-ink opacity-0 shadow-[0_1px_4px_rgba(16,15,12,0.25)] transition-opacity duration-200 group-hover:opacity-100">
         +
       </span>
     </Link>
