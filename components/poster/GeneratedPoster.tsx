@@ -26,7 +26,7 @@ export function GeneratedPoster({ title, director, year, seed, className = "" }:
           <span className="font-display text-[11px] tracking-widest opacity-70">
             {year || ""}
           </span>
-          <span className="font-display vertical-rl text-[clamp(2.2rem,10vw,4.5rem)] leading-[0.85] tracking-tightest">
+          <span className="font-display vertical-rl text-[clamp(2.2rem,10vw,4.5rem)] leading-[0.85] tracking-tightest break-words">
             {title}
           </span>
           <span />
@@ -46,7 +46,7 @@ export function GeneratedPoster({ title, director, year, seed, className = "" }:
           <span>{year}</span>
         </div>
         <div className="flex flex-1 items-center justify-center p-4 text-center">
-          <span className="stroke-text font-display text-[clamp(2rem,9vw,4rem)] leading-[0.86]">
+          <span className="stroke-text break-words font-display text-[clamp(2rem,9vw,4rem)] leading-[0.86]">
             {title}
           </span>
         </div>
@@ -65,7 +65,7 @@ export function GeneratedPoster({ title, director, year, seed, className = "" }:
         <div className="relative z-10 p-4 font-display text-[10px] tracking-widest">
           {year} — {director}
         </div>
-        <div className="relative z-10 mt-auto p-4 font-display text-[clamp(1.9rem,8.5vw,3.6rem)] leading-[0.86]">
+        <div className="relative z-10 mt-auto break-words p-4 font-display text-[clamp(1.9rem,8.5vw,3.6rem)] leading-[0.86]">
           {title}
         </div>
       </div>
@@ -75,7 +75,7 @@ export function GeneratedPoster({ title, director, year, seed, className = "" }:
   if (variant === 3) {
     return (
       <div className={`${base} bg-blue text-paper ${className}`}>
-        <div className="p-4 font-display text-[clamp(1.9rem,8.5vw,3.6rem)] leading-[0.86]">
+        <div className="break-words p-4 font-display text-[clamp(1.9rem,8.5vw,3.6rem)] leading-[0.86]">
           {title}
         </div>
         <div className="mt-auto flex items-end justify-between p-4">
@@ -92,7 +92,7 @@ export function GeneratedPoster({ title, director, year, seed, className = "" }:
     <div className={`${base} bg-ink text-paper ${className}`}>
       <div className="m-3 flex flex-1 flex-col border border-paper/40 p-4">
         <div className="flex-1" />
-        <div className="font-display text-[clamp(1.8rem,8vw,3.4rem)] leading-[0.86]">{title}</div>
+        <div className="break-words font-display text-[clamp(1.8rem,8vw,3.4rem)] leading-[0.86]">{title}</div>
         <div className="mt-3 flex justify-between border-t border-paper/30 pt-2 font-display text-[10px] tracking-widest opacity-80">
           <span>{director}</span>
           <span>{year}</span>

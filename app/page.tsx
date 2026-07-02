@@ -15,8 +15,7 @@ export default async function HomePage() {
 
   const featured = films.filter((f) => f.featuredHome && f.status !== "passe");
   const wallFilms = featured.length ? featured : films.filter((f) => f.status === "a-laffiche");
-  const heroFilms = wallFilms.slice(0, 3);
-  const restWallFilms = wallFilms.slice(1);
+  const heroFilms = films.filter((f) => f.status !== "passe").slice(0, 8);
   const pinned = announcements.find((a) => a.pinned) || announcements[0];
 
   return (
@@ -30,7 +29,7 @@ export default async function HomePage() {
             Tous les films →
           </a>
         </div>
-        <PosterWall films={restWallFilms.length ? restWallFilms : wallFilms} />
+        <PosterWall films={wallFilms} />
       </section>
       <WeekStrip screenings={screenings} />
       <SectionIndex />
