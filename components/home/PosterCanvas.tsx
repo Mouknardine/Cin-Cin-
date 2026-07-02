@@ -7,12 +7,16 @@ import { FilmPoster } from "@/components/poster/FilmPoster";
 import zinemaLogo from "@/public/zinema-logo.png";
 import type { Film } from "@/lib/types";
 
-// Le canevas est dessiné une fois pour une largeur de référence fixe
-// (DESIGN_WIDTH, en pixels), puis mis à l'échelle en bloc avec un
-// `transform: scale()` pour occuper toute la largeur d'écran — mobile et
-// desktop affichent donc rigoureusement le même visuel, juste agrandi ou
-// réduit, jamais deux dispositions différentes.
+// Le canevas est dessiné une fois pour un cadre de référence fixe
+// (DESIGN_WIDTH x DESIGN_VIEWPORT_HEIGHT, ratio 16:10, celui d'un écran
+// desktop), puis ce cadre entier est mis à l'échelle pour tenir dans
+// l'écran (comme une image en `object-fit: contain`) : sur un mobile,
+// beaucoup plus haut que large, ça laisse un bandeau vide en haut et en bas
+// plutôt que de montrer plus de contenu que sur desktop — la densité
+// affichée est donc rigoureusement identique partout, jamais deux visuels
+// différents.
 const DESIGN_WIDTH = 1200;
+const DESIGN_VIEWPORT_HEIGHT = 750;
 const POSTER_WIDTH = 280;
 const POSTER_HEIGHT = POSTER_WIDTH * 1.5;
 
@@ -45,11 +49,7 @@ const SLOTS_PER_CYCLE = slots.length;
 // réinitialise jamais d'un cycle à l'autre (pas de rotation par variante) :
 // deux cases ne peuvent porter le même film que si elles sont à au moins 8
 // positions d'écart dans l'ordre visuel, et la place de chaque film change
-// à chaque nouveau passage. Avec cette disposition dense et seulement 8
-// films, un écran mobile très haut peut malgré tout montrer plus de 8 cases
-// à la fois — dans ce cas rare, deux affiches identiques peuvent apparaître
-// en même temps ; cela disparaîtra de lui-même une fois de vraies affiches
-// (photos) mises en ligne, qui ne posent plus cette limite.
+// à chaque nouveau passage.
 function filmForSlot(films: Film[], copyIndex: number, slotIndex: number) {
   const n = films.length;
   const globalIndex = copyIndex * SLOTS_PER_CYCLE + slotIndex;
@@ -69,30 +69,36 @@ const JUMP = 2;
 
 export function PosterCanvas({ films }: { films: Film[] }) {
   const items = films.slice(0, 8);
-  const [scale, setScale] = useState(1);
+  const [frame, setFrame] = useState({ scale: 1, width: DESIGN_WIDTH, height: DESIGN_VIEWPORT_HEIGHT });
+  const scrollRef = useRef<HTMLDivElement>(null);
   const scrolledIn = useRef(false);
 
   useEffect(() => {
-    const updateScale = () => setScale(window.innerWidth / DESIGN_WIDTH);
-    updateScale();
-    window.addEventListener("resize", updateScale);
+    const computeScale = () => Math.min(window.innerWidth / DESIGN_WIDTH, window.innerHeight / DESIGN_VIEWPORT_HEIGHT);
 
-    const cyclePx = () => DESIGN_CYCLE_HEIGHT * (window.innerWidth / DESIGN_WIDTH);
+    const updateFrame = () => {
+      const s = computeScale();
+      setFrame({ scale: s, width: DESIGN_WIDTH * s, height: DESIGN_VIEWPORT_HEIGHT * s });
+    };
+    updateFrame();
+    window.addEventListener("resize", updateFrame);
+
+    const cyclePx = () => DESIGN_CYCLE_HEIGHT * computeScale();
+    const el = scrollRef.current;
+    if (!el) return;
 
     if (!scrolledIn.current) {
       scrolledIn.current = true;
-      // Repoussé après la peinture et après la restauration de scroll de
-      // Next.js, qui peut sinon écraser ce saut initial.
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          const s = window.innerWidth / DESIGN_WIDTH;
-          // Cale le centre de l'écran (où se trouve le logo fixe) sur le
-          // plus grand vide de la colonne centrale, pour que le logo soit
+          const s = computeScale();
+          // Cale le centre du cadre (où se trouve le logo fixe) sur le plus
+          // grand vide de la colonne centrale, pour que le logo soit
           // entièrement visible à l'arrivée, quel que soit le format d'écran.
-          const viewportHeightDesign = window.innerHeight / s;
+          const frameHeightDesign = DESIGN_VIEWPORT_HEIGHT;
           const targetCenterY = JUMP * DESIGN_CYCLE_HEIGHT + SAFE_GAP_CENTER;
-          const targetTopDesign = targetCenterY - viewportHeightDesign / 2;
-          window.scrollTo({ top: targetTopDesign * s, left: 0, behavior: "instant" });
+          const targetTopDesign = targetCenterY - frameHeightDesign / 2;
+          el.scrollTo({ top: targetTopDesign * s, left: 0, behavior: "instant" });
         });
       });
     }
@@ -105,19 +111,19 @@ export function PosterCanvas({ films }: { films: Film[] }) {
       if (settleTimer) clearTimeout(settleTimer);
       settleTimer = setTimeout(() => {
         const c = cyclePx();
-        const y = window.scrollY;
+        const y = el.scrollTop;
         if (y < c * (JUMP - 1.5)) {
-          window.scrollTo({ top: y + JUMP * c, left: 0, behavior: "instant" });
+          el.scrollTo({ top: y + JUMP * c, left: 0, behavior: "instant" });
         } else if (y > c * (JUMP + 1.5)) {
-          window.scrollTo({ top: y - JUMP * c, left: 0, behavior: "instant" });
+          el.scrollTo({ top: y - JUMP * c, left: 0, behavior: "instant" });
         }
       }, 120);
     };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
+    el.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", updateScale);
+      window.removeEventListener("resize", updateFrame);
+      el.removeEventListener("scroll", onScroll);
       if (settleTimer) clearTimeout(settleTimer);
     };
   }, []);
@@ -136,17 +142,27 @@ export function PosterCanvas({ films }: { films: Film[] }) {
   );
 
   return (
-    <div className="relative overflow-hidden bg-paper" style={{ height: DESIGN_CYCLE_HEIGHT * COPIES * scale }}>
-      {/* Le logo ne bouge jamais : les affiches défilent librement par-dessus. */}
-      <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center">
-        <Image src={zinemaLogo} alt="Zinéma" priority className="h-auto w-[34vw] max-w-[320px]" />
-      </div>
+    <div className="fixed inset-0 z-0 flex items-center justify-center overflow-hidden bg-paper">
+      <div className="relative" style={{ width: frame.width, height: frame.height }}>
+        {/* Le logo ne bouge jamais : les affiches défilent librement par-dessus. */}
+        <div className="pointer-events-none absolute inset-0 z-0 flex items-center justify-center">
+          <Image src={zinemaLogo} alt="Zinéma" priority className="h-auto w-[34vw] max-w-[320px]" />
+        </div>
 
-      <div
-        className="absolute left-0 top-0 z-10"
-        style={{ width: DESIGN_WIDTH, height: DESIGN_CYCLE_HEIGHT * COPIES, transform: `scale(${scale})`, transformOrigin: "top left" }}
-      >
-        {Array.from({ length: COPIES }, (_, c) => copy(c))}
+        <div ref={scrollRef} className="absolute inset-0 z-10 overflow-y-auto overflow-x-hidden" style={{ overscrollBehavior: "contain" }}>
+          <div style={{ position: "relative", width: frame.width, height: DESIGN_CYCLE_HEIGHT * COPIES * frame.scale }}>
+            <div
+              style={{
+                width: DESIGN_WIDTH,
+                height: DESIGN_CYCLE_HEIGHT * COPIES,
+                transform: `scale(${frame.scale})`,
+                transformOrigin: "top left",
+              }}
+            >
+              {Array.from({ length: COPIES }, (_, c) => copy(c))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
