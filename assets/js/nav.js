@@ -35,7 +35,7 @@
       .map(function (link, i) {
         return (
           '<li class="main-nav__item" style="transition-delay:' + (0.08 + i * 0.05) + 's">' +
-          '<a href="' + root + link.href + '" class="main-nav__link">' +
+          '<a href="' + root + link.href + '" class="main-nav__link font-display">' +
           '<span class="main-nav__link-label">' + link.label + "</span>" +
           '<span class="main-nav__link-num">' + link.num + "</span>" +
           "</a></li>"
@@ -44,7 +44,7 @@
       .join("");
     nav.innerHTML =
       '<ul class="main-nav__list">' + itemsHTML + "</ul>" +
-      '<div class="main-nav__footer">' +
+      '<div class="main-nav__footer font-display">' +
       "<span>Zinéma — Lausanne, cinéma indépendant depuis 2001</span>" +
       '<a href="' + root + 'agenda/" class="underline-hover">Voir les séances de la semaine →</a>' +
       "</div>";
