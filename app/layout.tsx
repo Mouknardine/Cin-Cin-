@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { NavShell } from "@/components/layout/NavShell";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { HideOnHome, MainArea } from "@/components/layout/HomeChrome";
 import { getSiteSettings } from "@/lib/content";
 import { basePath } from "@/lib/basePath";
 import "./globals.css";
@@ -30,8 +31,10 @@ export default async function RootLayout({
       </head>
       <body className="font-body">
         <NavShell />
-        <main className="pt-[57px] md:pt-[73px]">{children}</main>
-        <SiteFooter settings={settings} />
+        <MainArea>{children}</MainArea>
+        <HideOnHome>
+          <SiteFooter settings={settings} />
+        </HideOnHome>
       </body>
     </html>
   );

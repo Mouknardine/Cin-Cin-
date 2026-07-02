@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { FilmPoster } from "@/components/poster/FilmPoster";
 import zinemaLogo from "@/public/zinema-logo.png";
 import type { Film } from "@/lib/types";
@@ -10,86 +13,92 @@ interface Slot {
   width: string;
 }
 
-// Positions choisies à la main pour un effet dispersé mais équilibré :
-// pas de miroir strict, mais une masse à peu près égale de chaque côté.
-const desktopSlots: Slot[] = [
-  { left: "3%", top: "6%", width: "17%" },
-  { left: "23%", top: "20%", width: "14%" },
-  { left: "2%", top: "56%", width: "16%" },
-  { left: "20%", top: "68%", width: "15%" },
-  { left: "66%", top: "3%", width: "15%" },
-  { left: "85%", top: "22%", width: "13%" },
-  { left: "68%", top: "58%", width: "15%" },
-  { left: "86%", top: "66%", width: "13%" },
-];
+// Une seule disposition (en vw / vh), strictement identique sur mobile et
+// desktop : seule l'échelle change avec la largeur d'écran, jamais l'agencement.
+const CYCLE_VH = 240;
 
-const mobileOffsets = ["mt-0", "mt-10", "mt-4", "mt-16", "mt-2", "mt-12", "mt-6", "mt-0"];
+const slots: Slot[] = [
+  { left: "4vw", top: "4vh", width: "clamp(90px, 15vw, 260px)" },
+  { left: "28vw", top: "30vh", width: "clamp(80px, 12vw, 210px)" },
+  { left: "62vw", top: "10vh", width: "clamp(90px, 14vw, 240px)" },
+  { left: "78vw", top: "38vh", width: "clamp(80px, 12vw, 210px)" },
+  { left: "6vw", top: "72vh", width: "clamp(85px, 13vw, 225px)" },
+  { left: "27vw", top: "98vh", width: "clamp(90px, 15vw, 260px)" },
+  { left: "63vw", top: "80vh", width: "clamp(90px, 14vw, 240px)" },
+  { left: "79vw", top: "104vh", width: "clamp(80px, 12vw, 210px)" },
+];
 
 export function PosterCanvas({ films }: { films: Film[] }) {
   const items = films.slice(0, 8);
-  const left = items.filter((_, i) => i % 2 === 0);
-  const right = items.filter((_, i) => i % 2 === 1);
+  const scrolledIn = useRef(false);
+
+  useEffect(() => {
+    const cyclePx = () => (CYCLE_VH / 100) * window.innerHeight;
+
+    if (!scrolledIn.current) {
+      scrolledIn.current = true;
+      // Repoussé après la peinture et après la restauration de scroll de
+      // Next.js, qui peut sinon écraser ce saut initial.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: cyclePx() + 1, left: 0, behavior: "instant" });
+        });
+      });
+    }
+
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const c = cyclePx();
+        const y = window.scrollY;
+        if (y < c * 0.05) {
+          window.scrollTo({ top: y + c, left: 0, behavior: "instant" });
+        } else if (y > c * 1.95) {
+          window.scrollTo({ top: y - c, left: 0, behavior: "instant" });
+        }
+        ticking = false;
+      });
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <section className="relative bg-paper">
-      {/* Mobile : deux colonnes en quinconce, non symétriques */}
-      <div className="grid grid-cols-2 gap-3 px-4 pb-10 pt-6 md:hidden">
-        <div className="flex flex-col gap-3">
-          {left.slice(0, 2).map((film, i) => (
-            <CanvasPoster key={film._id} film={film} className={mobileOffsets[i]} />
-          ))}
-        </div>
-        <div className="flex flex-col gap-3">
-          {right.slice(0, 2).map((film, i) => (
-            <CanvasPoster key={film._id} film={film} className={mobileOffsets[i + 4]} />
-          ))}
-        </div>
+    <div className="relative bg-paper">
+      {/* Le logo ne bouge jamais : les affiches défilent par-dessus. */}
+      <div className="pointer-events-none fixed inset-0 z-0 flex items-center justify-center">
+        <Image src={zinemaLogo} alt="Zinéma" priority className="h-auto w-[42vw] max-w-[380px]" />
       </div>
 
-      <div className="flex justify-center py-4 md:hidden">
-        <Image src={zinemaLogo} alt="Zinéma" priority className="h-auto w-[58vw]" />
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 px-4 pb-16 pt-4 md:hidden">
-        <div className="flex flex-col gap-3">
-          {left.slice(2, 4).map((film, i) => (
-            <CanvasPoster key={film._id} film={film} className={mobileOffsets[i + 2]} />
-          ))}
-        </div>
-        <div className="flex flex-col gap-3">
-          {right.slice(2, 4).map((film, i) => (
-            <CanvasPoster key={film._id} film={film} className={mobileOffsets[i + 6]} />
-          ))}
-        </div>
-      </div>
-
-      {/* Desktop : canevas dispersé, le logo occupe le vide central */}
-      <div className="relative mx-auto hidden md:block" style={{ maxWidth: 1400, height: 1350 }}>
-        <div className="pointer-events-none absolute left-1/2 top-[47%] z-0 w-[30%] -translate-x-1/2 -translate-y-1/2">
-          <Image src={zinemaLogo} alt="Zinéma" priority className="h-auto w-full" />
-        </div>
-
-        {items.map((film, i) => (
+      <div className="relative z-10" style={{ height: `${CYCLE_VH * 3}vh` }}>
+        {[0, 1, 2].map((cycle) => (
           <div
-            key={film._id}
-            className="absolute z-10"
-            style={{ left: desktopSlots[i].left, top: desktopSlots[i].top, width: desktopSlots[i].width }}
+            key={cycle}
+            className="absolute inset-x-0"
+            style={{ top: `${cycle * CYCLE_VH}vh`, height: `${CYCLE_VH}vh` }}
           >
-            <CanvasPoster film={film} />
+            {items.map((film, i) => (
+              <div key={film._id} className="absolute" style={{ left: slots[i].left, top: slots[i].top, width: slots[i].width }}>
+                <CanvasPoster film={film} priority={cycle === 1} />
+              </div>
+            ))}
           </div>
         ))}
       </div>
-    </section>
+    </div>
   );
 }
 
-function CanvasPoster({ film, className = "" }: { film: Film; className?: string }) {
+function CanvasPoster({ film, priority = false }: { film: Film; priority?: boolean }) {
   return (
     <Link
       href={`/films/${film.slug}`}
-      className={`group relative block aspect-[2/3] w-full overflow-hidden transition-transform duration-300 ease-editorial hover:-translate-y-1 ${className}`}
+      className="group relative block aspect-[2/3] w-full overflow-hidden transition-transform duration-300 ease-editorial hover:-translate-y-1"
     >
-      <FilmPoster film={film} sizes="(min-width: 768px) 16vw, 45vw" />
+      <FilmPoster film={film} priority={priority} sizes="(min-width: 768px) 16vw, 30vw" />
       <span className="pointer-events-none absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-paper text-sm text-ink opacity-0 shadow-[0_1px_4px_rgba(16,15,12,0.25)] transition-opacity duration-200 group-hover:opacity-100">
         +
       </span>
