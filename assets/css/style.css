@@ -872,7 +872,22 @@ body:not([data-page="home"]) .main-area { padding-top: 57px; }
   line-height: 1.05;
 }
 @media (min-width: 768px) { .practical-address { font-size: 2.25rem; } }
-.practical-map-link { margin-top: 1rem; display: inline-block; font-family: var(--font-display); text-transform: uppercase; font-size: 0.875rem; letter-spacing: -0.01em; }
+
+.practical-map {
+  position: relative;
+  margin-top: 1.25rem;
+  height: 180px;
+  max-width: 24rem;
+  overflow: hidden;
+  border: 1px solid var(--ink);
+  filter: grayscale(1) contrast(1.05);
+  transition: filter 0.4s var(--ease-editorial);
+}
+.practical-map:hover, .practical-map:focus-within { filter: grayscale(0); }
+.practical-map iframe { position: absolute; inset: 0; height: 100%; width: 100%; border: 0; }
+@media (min-width: 768px) { .practical-map { height: 220px; } }
+
+.practical-map-link { margin-top: 0.75rem; display: inline-block; font-family: var(--font-display); text-transform: uppercase; font-size: 0.875rem; letter-spacing: -0.01em; }
 .practical-contact { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.25rem; font-family: var(--font-display); text-transform: uppercase; letter-spacing: -0.01em; font-size: 1.25rem; }
 .practical-socials { margin-top: 2rem; display: flex; gap: 1.5rem; }
 .practical-socials a { font-family: var(--font-display); text-transform: uppercase; font-size: 0.75rem; letter-spacing: -0.01em; }

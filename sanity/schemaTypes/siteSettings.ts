@@ -75,7 +75,9 @@ export const siteSettings = defineType({
     }),
     defineField({
       name: "mapUrl",
-      title: "Lien carte (Google/OSM)",
+      title: "Lien carte (facultatif)",
+      description:
+        "Par défaut, la page Infos pratiques affiche une carte Google Maps et un lien « Voir sur Google Maps » construits automatiquement à partir de l'adresse ci-dessus — inutile de remplir ce champ. Ne le renseigner que pour pointer vers une fiche Google Maps précise (avec avis, photos, etc.) plutôt que vers une simple recherche par adresse.",
       type: "url",
       group: "pratique",
     }),

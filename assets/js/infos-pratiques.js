@@ -22,9 +22,20 @@
   window.ZinemaData.getSiteSettings().then(function (settings) {
     var access = renderAccess(settings.accessInfo) || "Bus et métro m2, arrêt à quelques minutes. Détails à venir.";
 
-    var mapHTML = settings.mapUrl
-      ? '<a href="' + R.escapeHtml(settings.mapUrl) + '" target="_blank" rel="noopener noreferrer" class="practical-map-link underline-hover">Voir sur la carte →</a>'
-      : "";
+    // Carte Google Maps construite à partir de l'adresse renseignée dans
+    // Sanity (pas de clé API nécessaire pour cet embed en lecture seule) :
+    // elle suit automatiquement l'adresse, sans champ séparé à maintenir.
+    // "Lien carte" dans Sanity reste disponible pour pointer vers une fiche
+    // Google Maps précise (avec avis, photos, etc.) si besoin.
+    var mapQuery = encodeURIComponent(settings.address || "Lausanne, Suisse");
+    var mapLinkUrl = settings.mapUrl || "https://www.google.com/maps/search/?api=1&query=" + mapQuery;
+    var mapEmbedSrc = "https://www.google.com/maps?q=" + mapQuery + "&output=embed";
+
+    var mapEmbedHTML =
+      '<div class="practical-map"><iframe src="' + mapEmbedSrc + '" title="Localisation du Zinéma sur Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>';
+    var mapLinkHTML =
+      '<a href="' + R.escapeHtml(mapLinkUrl) + '" target="_blank" rel="noopener noreferrer" class="practical-map-link underline-hover">Voir sur Google Maps →</a>';
+    var mapHTML = mapEmbedHTML + mapLinkHTML;
 
     var contactHTML =
       (settings.phone ? '<a href="tel:' + settings.phone.replace(/\s/g, "") + '">' + R.escapeHtml(settings.phone) + "</a>" : "") +

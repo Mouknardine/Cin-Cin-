@@ -150,7 +150,6 @@
       { label: "Caisse, tous les jours", value: "dès 30 min avant la première séance" },
       { label: "Bureau", value: "lu–ve, 10h–18h" },
     ],
-    mapUrl: "https://www.openstreetmap.org/",
     socialLinks: [
       { label: "Instagram", url: "https://instagram.com" },
       { label: "Facebook", url: "https://facebook.com" },
