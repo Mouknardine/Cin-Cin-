@@ -1,8 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import { navLinks } from "@/lib/nav";
-import type { SiteSettings } from "@/lib/types";
+import { useSiteSettings } from "@/lib/sanity/useContent";
 
-export function SiteFooter({ settings }: { settings: SiteSettings }) {
+// Lu directement dans le navigateur à chaque visite : le contenu Sanity
+// publié apparaît sans jamais reconstruire le site.
+export function SiteFooter() {
+  const settings = useSiteSettings();
+
   return (
     <footer className="border-t border-ink/15 bg-paper px-4 py-10 md:px-8 md:py-14">
       <div className="mx-auto flex max-w-[1720px] flex-col gap-10 md:flex-row md:justify-between">

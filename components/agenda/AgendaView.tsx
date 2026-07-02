@@ -7,6 +7,7 @@ import { format, isToday, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { groupByDate } from "@/lib/agenda";
 import { formatDayHeading } from "@/lib/dates";
+import { useScreenings } from "@/lib/sanity/useContent";
 import type { Screening } from "@/lib/types";
 
 const statusText: Record<Screening["status"], string> = {
@@ -15,7 +16,10 @@ const statusText: Record<Screening["status"], string> = {
   annule: "Annulé",
 };
 
-export function AgendaView({ screenings }: { screenings: Screening[] }) {
+// Lu directement dans le navigateur à chaque visite : le contenu Sanity
+// publié apparaît sans jamais reconstruire le site.
+export function AgendaView() {
+  const screenings = useScreenings();
   const days = useMemo(() => groupByDate(screenings), [screenings]);
   const [activeDate, setActiveDate] = useState(days[0]?.date);
   const [mode, setMode] = useState<"jour" | "semaine">("jour");
@@ -89,7 +93,7 @@ export function AgendaView({ screenings }: { screenings: Screening[] }) {
                     </span>
                     <div>
                       <Link
-                        href={s.film ? `/films/${s.film.slug}` : "/films"}
+                        href={s.film ? `/film/?s=${s.film.slug}` : "/films"}
                         className="underline-hover font-display text-lg tracking-tightest md:text-xl"
                       >
                         {s.film?.title || "Séance"}
@@ -129,7 +133,7 @@ export function AgendaView({ screenings }: { screenings: Screening[] }) {
                 {d.screenings.map((s) => (
                   <li key={s._id}>
                     <Link
-                      href={s.film ? `/films/${s.film.slug}` : "/films"}
+                      href={s.film ? `/film/?s=${s.film.slug}` : "/films"}
                       className="underline-hover block font-display text-sm leading-tight tracking-tightest"
                     >
                       {s.time} — {s.film?.title}

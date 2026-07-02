@@ -6,6 +6,7 @@ import { FilmPoster } from "@/components/poster/FilmPoster";
 import { Reveal } from "@/components/motion/Reveal";
 import { FilmMeta, statusLabel } from "@/components/film/FilmMeta";
 import { hasRealImage } from "@/lib/sanity/image";
+import { useFilms } from "@/lib/sanity/useContent";
 import type { Film, FilmStatus } from "@/lib/types";
 
 const spanBySize: Record<Film["posterSize"], string> = {
@@ -16,7 +17,11 @@ const spanBySize: Record<Film["posterSize"], string> = {
 
 const offsetPattern = ["", "md:mt-10", "", "md:mt-16", "md:mt-6", ""];
 
-export function FilmsGrid({ films }: { films: Film[] }) {
+export function FilmsGrid() {
+  // Lu directement dans le navigateur à chaque visite : le contenu Sanity
+  // publié apparaît sans jamais reconstruire le site.
+  const fetched = useFilms();
+  const films = useMemo(() => [...fetched].sort((a, b) => a.status.localeCompare(b.status)), [fetched]);
   const [filter, setFilter] = useState<FilmStatus | "tous">("tous");
 
   const statuses = useMemo(() => {
@@ -46,7 +51,7 @@ export function FilmsGrid({ films }: { films: Film[] }) {
             delay={(i % 6) * 0.06}
             className={`col-span-2 ${spanBySize[film.posterSize]} ${offsetPattern[i % offsetPattern.length]}`}
           >
-            <Link href={`/films/${film.slug}`} className="group block">
+            <Link href={`/film/?s=${film.slug}`} className="group block">
               <div className="relative aspect-[2/3] overflow-hidden border-2 border-ink bg-ink shadow-[8px_8px_0_0_#100F0C] transition-shadow duration-300 ease-editorial group-hover:shadow-[4px_4px_0_0_#100F0C]">
                 <div className="absolute inset-0 transition-transform duration-700 ease-editorial group-hover:scale-[1.04]">
                   <FilmPoster film={film} />

@@ -1,34 +1,49 @@
-import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { FilmPoster } from "@/components/poster/FilmPoster";
-import { FilmMeta, filmMetaLine, statusLabel } from "@/components/film/FilmMeta";
+import { filmMetaLine, statusLabel } from "@/components/film/FilmMeta";
 import { TrailerEmbed } from "@/components/film/TrailerEmbed";
 import { ReviewQuote } from "@/components/film/ReviewQuote";
 import { ScreeningsForFilm } from "@/components/film/ScreeningsForFilm";
 import { BuyButton } from "@/components/commerce/BuyButton";
-import { getFilmBySlug, getFilms } from "@/lib/content";
+import { useFilmBySlug } from "@/lib/sanity/useContent";
 
-export async function generateStaticParams() {
-  const films = await getFilms();
-  return films.map((f) => ({ slug: f.slug }));
-}
+// Le site étant un export statique (aucun serveur), il ne peut pas générer
+// une page par film à l'avance sans reconstruire à chaque ajout dans
+// Sanity. La fiche film utilise donc une seule page réelle (/film/) qui lit
+// le film demandé dans l'URL (?s=le-slug) et va le chercher dans le
+// navigateur — un nouveau film publié dans Sanity a immédiatement une
+// fiche fonctionnelle, sans jamais reconstruire le site.
+export function FilmDetail() {
+  const [slug, setSlug] = useState<string | null>(null);
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
-  const film = await getFilmBySlug(params.slug);
-  if (!film) return {};
-  return {
-    title: `${film.title} — Zinéma`,
-    description: film.synopsis,
-  };
-}
+  useEffect(() => {
+    setSlug(new URLSearchParams(window.location.search).get("s") || "");
+  }, []);
 
-export default async function FilmDetailPage({ params }: { params: { slug: string } }) {
-  const film = await getFilmBySlug(params.slug);
-  if (!film) notFound();
+  const film = useFilmBySlug(slug || "");
+
+  useEffect(() => {
+    if (film) document.title = `${film.title} — Zinéma`;
+  }, [film]);
+
+  if (slug === null) return null;
+
+  if (!film) {
+    return (
+      <div className="px-4 py-16 text-center md:px-8">
+        <p className="font-display text-xs tracking-widen text-ink/70">FILM INTROUVABLE</p>
+        <p className="mt-3 font-display text-2xl tracking-tightest md:text-3xl">
+          Ce film n&apos;existe pas ou plus.
+        </p>
+        <Link href="/films/" className="underline-hover mt-5 inline-block font-display text-sm tracking-widen">
+          ← Retour aux films
+        </Link>
+      </div>
+    );
+  }
 
   const nextAvailable = film.screenings?.find((s) => s.status === "disponible");
 

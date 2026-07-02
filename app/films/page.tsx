@@ -1,21 +1,17 @@
 import type { Metadata } from "next";
 import { FilmsGrid } from "@/components/film/FilmsGrid";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { getFilms } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Films — Zinéma",
   description: "La programmation actuelle et à venir du Zinéma, à Lausanne.",
 };
 
-export default async function FilmsPage() {
-  const films = await getFilms();
-  const sorted = [...films].sort((a, b) => a.status.localeCompare(b.status));
-
+export default function FilmsPage() {
   return (
     <div className="py-8 md:py-12">
       <PageHeader eyebrow="01 — FILMS" title="À l'affiche" />
-      <FilmsGrid films={sorted} />
+      <FilmsGrid />
     </div>
   );
 }

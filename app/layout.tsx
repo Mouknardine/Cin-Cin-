@@ -17,13 +17,11 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const settings = await getSiteSettings();
-
   return (
     <html lang="fr">
       <head>
@@ -37,7 +35,7 @@ export default async function RootLayout({
         <NavShell />
         <MainArea>{children}</MainArea>
         <HideOnHome>
-          <SiteFooter settings={settings} />
+          <SiteFooter />
         </HideOnHome>
       </body>
     </html>

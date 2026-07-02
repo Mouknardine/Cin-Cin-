@@ -1,10 +1,15 @@
 # Brancher Sanity (gestion du contenu)
 
-Le site est **statique** (GitHub Pages) : le contenu est lu depuis Sanity
-**au moment du build**, puis figé dans les pages HTML. Tant qu'aucun projet
-Sanity n'est configuré, le site affiche un contenu d'exemple — dès que les
-variables ci-dessous sont renseignées, c'est le contenu de Sanity qui est
-utilisé, sans aucune modification de design.
+Le site est **statique** (fichiers HTML/CSS/JS, hébergeables n'importe où,
+y compris en hébergement mutualisé sans serveur type Infomaniak). Le
+contenu Sanity est lu **directement par le navigateur de chaque visiteur**,
+à chaque affichage — une publication dans le Studio apparaît donc en ligne
+immédiatement, **sans jamais reconstruire ni redéployer le site**. Tant
+qu'aucun projet Sanity n'est configuré (ou en cas de souci réseau/CORS), le
+site affiche un contenu d'exemple à la place — jamais de page vide.
+
+Le site n'a besoin d'être reconstruit et redéployé que pour un changement
+de **code ou de design** — jamais pour un changement de contenu.
 
 ## 1. Créer le projet Sanity (une seule fois)
 
@@ -58,39 +63,32 @@ Tout champ laissé vide retombe sur un texte de secours raisonnable ; les
 films sans affiche reçoivent automatiquement une affiche typographique
 générée.
 
-## 6. Brancher le déploiement GitHub Pages
+## 6. Autoriser le site à lire Sanity depuis le navigateur (CORS)
 
-Dans le dépôt GitHub → **Settings → Secrets and variables → Actions** :
+Le contenu étant désormais récupéré directement par le navigateur du
+visiteur, il faut indiquer à Sanity quels sites ont le droit de lui parler.
+Sans cette étape, le site retombe silencieusement sur le contenu d'exemple.
 
-- **Secret** `SANITY_PROJECT_ID` = le Project ID.
-- (Facultatif) **Variable** `SANITY_DATASET` si le dataset n'est pas
-  `production`.
+Aller dans **Sanity Manage → API → CORS origins → Add CORS origin** et
+ajouter, sans case « Allow credentials » à cocher :
 
-Le workflow de déploiement lit ces valeurs : au prochain build, le site
-est généré avec le contenu Sanity publié.
+- l'adresse définitive du site (ex. `https://www.zinema.ch` ou l'URL
+  GitHub Pages `https://mouknardine.github.io`) ;
+- `http://localhost:3000` pour tester le site en local.
 
-## 7. Reconstruction automatique à chaque publication
+## 7. Brancher le déploiement (code/design uniquement)
 
-Le site étant statique, une modification dans le Studio n'apparaît en
-ligne qu'après un nouveau build. Deux options :
+Le build a seulement besoin de connaître le projet Sanity pour l'inclure
+dans les fichiers générés (ce ne sont pas des informations secrètes,
+elles sont visibles de tous les visiteurs) :
 
-**Manuelle** — GitHub → onglet **Actions** → « Déploiement GitHub Pages »
-→ **Run workflow**.
+- En local : les valeurs de `.env.local` (étape 2) suffisent.
+- Sur GitHub → **Settings → Secrets and variables → Actions** :
+  - **Secret** `SANITY_PROJECT_ID` = le Project ID.
+  - (Facultatif) **Variable** `SANITY_DATASET` si le dataset n'est pas
+    `production`.
 
-**Automatique (recommandé)** — un webhook Sanity déclenche le build à
-chaque publication :
-
-1. GitHub → Settings (du compte) → Developer settings →
-   **Fine-grained personal access token** limité à ce dépôt, permission
-   **Contents : Read and write**. Copier le token.
-2. Sanity Manage → **API → Webhooks → Create webhook** :
-   - URL : `https://api.github.com/repos/Mouknardine/Cin-Cin-/dispatches`
-   - Trigger on : Create, Update, Delete
-   - HTTP method : `POST`
-   - HTTP headers :
-     - `Authorization` : `Bearer <le token>`
-     - `Accept` : `application/vnd.github+json`
-   - Payload (projection) : `{"event_type": "sanity-content-update"}`
-3. Chaque publication dans le Studio relance alors le workflow
-   (déclencheur `repository_dispatch`) et le site se met à jour tout seul
-   en ~2 minutes.
+Ce build/déploiement n'est à relancer que lors d'un changement de code ou
+de design (GitHub → onglet **Actions** → « Déploiement GitHub Pages » →
+**Run workflow**, ou upload manuel du dossier `out/` sur Infomaniak) —
+**jamais** pour une simple mise à jour de contenu, qui apparaît seule.

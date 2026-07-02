@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { FilmPoster } from "@/components/poster/FilmPoster";
+import { useFilms } from "@/lib/sanity/useContent";
 import zinemaLogo from "@/public/zinema-logo.png";
 import type { Film } from "@/lib/types";
 
@@ -74,8 +75,16 @@ function filmForSlot(films: Film[], copyIndex: number, slotIndex: number) {
   return films[globalIndex % n];
 }
 
-export function PosterCanvas({ films }: { films: Film[] }) {
-  const items = films.slice(0, 8);
+export function PosterCanvas() {
+  // Lu directement dans le navigateur à chaque visite : le contenu Sanity
+  // publié apparaît sans jamais reconstruire le site.
+  const films = useFilms();
+  const items = useMemo(() => {
+    const active = films
+      .filter((f) => f.status !== "passe")
+      .sort((a, b) => Number(Boolean(b.featuredHome)) - Number(Boolean(a.featuredHome)));
+    return active.slice(0, 8);
+  }, [films]);
   const [view, setView] = useState<{ config: CanvasConfig; scale: number } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrolledIn = useRef(false);
@@ -206,7 +215,7 @@ export function PosterCanvas({ films }: { films: Film[] }) {
 function CanvasPoster({ film, priority = false }: { film: Film; priority?: boolean }) {
   return (
     <Link
-      href={`/films/${film.slug}`}
+      href={`/film/?s=${film.slug}`}
       className="group relative block h-full w-full overflow-hidden transition-transform duration-300 ease-editorial hover:-translate-y-1"
     >
       <FilmPoster film={film} priority={priority} sizes="(min-width: 768px) 15vw, 33vw" />
