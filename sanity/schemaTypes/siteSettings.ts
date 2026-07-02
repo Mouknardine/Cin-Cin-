@@ -24,6 +24,15 @@ export const siteSettings = defineType({
       group: "general",
     }),
     defineField({
+      name: "historyIntro",
+      title: "Introduction de la page Histoire",
+      description:
+        "Grand paragraphe affiché en tête de la page Histoire, avant la frise chronologique.",
+      type: "text",
+      rows: 4,
+      group: "general",
+    }),
+    defineField({
       name: "address",
       title: "Adresse",
       type: "text",

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Reveal } from "@/components/motion/Reveal";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { getHistory } from "@/lib/content";
+import { getHistory, getSiteSettings } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Histoire — Zinéma",
@@ -21,18 +21,16 @@ function renderBody(body: unknown): string {
 }
 
 export default async function HistoirePage() {
-  const entries = await getHistory();
+  const [entries, settings] = await Promise.all([getHistory(), getSiteSettings()]);
 
   return (
     <div className="py-8 md:py-12">
       <PageHeader eyebrow="03 — HISTOIRE" title="Depuis 2001" />
 
       <Reveal className="mx-4 mb-14 border-y border-ink/15 py-8 md:mx-8 md:py-12">
-        <p className="max-w-3xl font-display text-2xl leading-[1.1] tracking-tightest md:text-4xl">
-          Pendant que les grandes salles rétrécissaient leurs rangées pour
-          multiplier les écrans, le Zinéma a fait le pari inverse&nbsp;: une
-          salle généreuse, pensée pour rassembler un public plutôt que le
-          fragmenter en micro-écrans.
+        <p className="max-w-3xl whitespace-pre-line font-display text-2xl leading-[1.1] tracking-tightest md:text-4xl">
+          {settings.historyIntro ||
+            "Pendant que les grandes salles rétrécissaient leurs rangées pour multiplier les écrans, le Zinéma a fait le pari inverse : une salle généreuse, pensée pour rassembler un public plutôt que le fragmenter en micro-écrans."}
         </p>
       </Reveal>
 

@@ -5,6 +5,11 @@ on:
     branches:
       - claude/zinema-cinema-redesign-ttcpaf
   workflow_dispatch:
+  # Déclenché par le webhook Sanity à chaque publication de contenu, pour
+  # que le site statique se reconstruise avec le contenu à jour (voir
+  # SANITY.md, section « Reconstruction automatique »).
+  repository_dispatch:
+    types: [sanity-content-update]
 
 permissions:
   contents: read

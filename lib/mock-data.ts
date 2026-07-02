@@ -328,6 +328,8 @@ export const mockHistory: HistoryEntry[] = [
 ];
 
 export const mockSiteSettings: SiteSettings = {
+  historyIntro:
+    "Pendant que les grandes salles rétrécissaient leurs rangées pour multiplier les écrans, le Zinéma a fait le pari inverse : une salle généreuse, pensée pour rassembler un public plutôt que le fragmenter en micro-écrans.",
   tagline: "Cinéma indépendant à Lausanne",
   seoDescription:
     "Le Zinéma, cinéma indépendant à Lausanne : films en VO, avant-premières, ciné-club et brunchs-ciné.",

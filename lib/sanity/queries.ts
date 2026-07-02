@@ -61,5 +61,5 @@ export const historyQuery = groq`*[_type == "historyEntry"] | order(order asc) {
 }`;
 
 export const siteSettingsQuery = groq`*[_type == "siteSettings"][0]{
-  tagline, seoDescription, address, phone, email, openingHours, accessInfo, mapUrl, socialLinks
+  tagline, seoDescription, historyIntro, address, phone, email, openingHours, accessInfo, mapUrl, socialLinks
 }`;

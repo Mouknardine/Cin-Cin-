@@ -102,6 +102,7 @@ export interface SocialLink {
 export interface SiteSettings {
   tagline?: string;
   seoDescription?: string;
+  historyIntro?: string;
   address?: string;
   phone?: string;
   email?: string;
