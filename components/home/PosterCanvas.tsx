@@ -7,14 +7,12 @@ import { FilmPoster } from "@/components/poster/FilmPoster";
 import zinemaLogo from "@/public/zinema-logo.png";
 import type { Film } from "@/lib/types";
 
-// Le canevas remplit tout l'écran, sans bande vide. La largeur se met à
-// l'échelle normalement (DESIGN_WIDTH -> largeur d'écran). L'espacement
-// vertical, lui, s'étire automatiquement sur un écran bien plus haut que
-// large (mobile) pour éviter d'entasser beaucoup plus d'affiches qu'sur
-// desktop — sans jamais laisser d'espace mort, juste un peu plus d'air
-// entre les affiches.
+// Le canevas est dessiné une fois pour une largeur de référence fixe
+// (DESIGN_WIDTH, en pixels) puis mis à l'échelle par la largeur d'écran :
+// mobile et desktop affichent rigoureusement la même composition (mêmes
+// positions, mêmes proportions, même espacement), juste plus petite sur un
+// écran étroit. Aucun étirement, aucun cadre, aucune variante.
 const DESIGN_WIDTH = 1200;
-const REFERENCE_ASPECT = 1.6; // largeur / hauteur d'un écran desktop courant
 const POSTER_WIDTH = 280;
 const POSTER_HEIGHT = POSTER_WIDTH * 1.5;
 
@@ -44,10 +42,9 @@ const slots: Slot[] = [
 const SLOTS_PER_CYCLE = slots.length;
 
 // Le film attribué à chaque case suit un compteur global qui ne se
-// réinitialise jamais d'un cycle à l'autre (pas de rotation par variante) :
-// deux cases ne peuvent porter le même film que si elles sont à au moins 8
-// positions d'écart dans l'ordre visuel, et la place de chaque film change
-// à chaque nouveau passage.
+// réinitialise jamais d'un cycle à l'autre : la place de chaque film change
+// à chaque nouveau passage, sans jamais répéter le même arrangement deux
+// cycles de suite.
 function filmForSlot(films: Film[], copyIndex: number, slotIndex: number) {
   const n = films.length;
   const globalIndex = copyIndex * SLOTS_PER_CYCLE + slotIndex;
@@ -60,36 +57,27 @@ const SAFE_GAP_CENTER = 150;
 
 const DESIGN_CYCLE_HEIGHT = 2550;
 // 12 cases par cycle et 8 films : le motif redevient identique tous les 2
-// cycles (ppcm(12,8)/12 = 2). Sauter d'exactement 2 cycles rend donc la
-// téléportation de la boucle invisible.
-const COPIES = 6;
-const JUMP = 2;
+// cycles (ppcm(12,8)/12 = 2), donc tout saut d'un multiple de 2 cycles est
+// invisible. Sur mobile, un cycle ne fait que ~830px réels : un seul geste
+// d'inertie peut traverser plusieurs cycles avant que la correction différée
+// ne se déclenche. D'où un tampon large (16 copies, recentrage à 8) et un
+// garde-fou immédiat près des bords physiques.
+const COPIES = 16;
+const JUMP = 8;
 
 export function PosterCanvas({ films }: { films: Film[] }) {
   const items = films.slice(0, 8);
-  const [layout, setLayout] = useState({ scale: 1, vStretch: 1 });
+  const [scale, setScale] = useState(1);
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrolledIn = useRef(false);
 
   useEffect(() => {
-    const compute = () => {
-      const scale = window.innerWidth / DESIGN_WIDTH;
-      const aspect = window.innerWidth / window.innerHeight;
-      // Sur un écran plus haut que la référence, on étire l'espacement
-      // vertical dans la même proportion pour garder une densité proche du
-      // desktop, sans jamais réduire l'espacement sur un écran large.
-      const vStretch = Math.max(1, REFERENCE_ASPECT / aspect);
-      return { scale, vStretch };
-    };
+    const computeScale = () => window.innerWidth / DESIGN_WIDTH;
+    const updateScale = () => setScale(computeScale());
+    updateScale();
+    window.addEventListener("resize", updateScale);
 
-    const updateLayout = () => setLayout(compute());
-    updateLayout();
-    window.addEventListener("resize", updateLayout);
-
-    const cyclePx = () => {
-      const { scale, vStretch } = compute();
-      return DESIGN_CYCLE_HEIGHT * scale * vStretch;
-    };
+    const cyclePx = () => DESIGN_CYCLE_HEIGHT * computeScale();
     const el = scrollRef.current;
     if (!el) return;
 
@@ -97,54 +85,65 @@ export function PosterCanvas({ films }: { films: Film[] }) {
       scrolledIn.current = true;
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          const { scale, vStretch } = compute();
+          const s = computeScale();
           // Cale le centre de l'écran (où se trouve le logo fixe) sur le
           // plus grand vide de la colonne centrale, pour que le logo soit
           // entièrement visible à l'arrivée, quel que soit le format d'écran.
-          const viewportHeightDesign = window.innerHeight / (scale * vStretch);
+          const viewportHeightDesign = window.innerHeight / s;
           const targetCenterY = JUMP * DESIGN_CYCLE_HEIGHT + SAFE_GAP_CENTER;
           const targetTopDesign = targetCenterY - viewportHeightDesign / 2;
-          el.scrollTo({ top: targetTopDesign * scale * vStretch, left: 0, behavior: "instant" });
+          el.scrollTo({ top: targetTopDesign * s, left: 0, behavior: "instant" });
         });
       });
     }
 
-    // La correction n'est appliquée qu'une fois le défilement stabilisé
-    // (et jamais pendant le geste), pour ne pas se battre avec l'inertie
-    // tactile sur mobile — c'est ce qui provoquait les à-coups.
+    const recentre = () => {
+      const c = cyclePx();
+      const y = el.scrollTop;
+      if (y < c * (JUMP - 4)) {
+        el.scrollTo({ top: y + JUMP * c, left: 0, behavior: "instant" });
+      } else if (y > c * (JUMP + 4)) {
+        el.scrollTo({ top: y - JUMP * c, left: 0, behavior: "instant" });
+      }
+    };
+
+    // Deux niveaux de protection pour la boucle :
+    // 1. Recentrage différé une fois le défilement stabilisé (doux, ne se
+    //    bat jamais avec l'inertie tactile).
+    // 2. Garde-fou immédiat si on s'approche des bords physiques du tampon
+    //    (un geste très fort peut traverser plusieurs cycles d'un coup) —
+    //    le saut étant un multiple exact de la période, il est invisible.
     let settleTimer: ReturnType<typeof setTimeout> | null = null;
+    let ticking = false;
     const onScroll = () => {
       if (settleTimer) clearTimeout(settleTimer);
-      settleTimer = setTimeout(() => {
+      settleTimer = setTimeout(recentre, 120);
+
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
         const c = cyclePx();
         const y = el.scrollTop;
-        if (y < c * (JUMP - 1.5)) {
-          el.scrollTo({ top: y + JUMP * c, left: 0, behavior: "instant" });
-        } else if (y > c * (JUMP + 1.5)) {
-          el.scrollTo({ top: y - JUMP * c, left: 0, behavior: "instant" });
-        }
-      }, 120);
+        const max = el.scrollHeight - el.clientHeight;
+        if (y < c * 2 || y > max - c * 2) recentre();
+        ticking = false;
+      });
     };
 
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      window.removeEventListener("resize", updateLayout);
+      window.removeEventListener("resize", updateScale);
       el.removeEventListener("scroll", onScroll);
       if (settleTimer) clearTimeout(settleTimer);
     };
   }, []);
 
-  const { scale, vStretch } = layout;
-
   const copy = (c: number) => (
-    <div
-      key={c}
-      style={{ position: "absolute", top: c * DESIGN_CYCLE_HEIGHT * vStretch, left: 0, width: DESIGN_WIDTH, height: DESIGN_CYCLE_HEIGHT * vStretch }}
-    >
+    <div key={c} style={{ position: "absolute", top: c * DESIGN_CYCLE_HEIGHT, left: 0, width: DESIGN_WIDTH, height: DESIGN_CYCLE_HEIGHT }}>
       {slots.map((slot, i) => (
         <div
           key={`${c}-${i}`}
-          style={{ position: "absolute", left: slot.left, top: slot.top * vStretch, width: POSTER_WIDTH, height: POSTER_HEIGHT }}
+          style={{ position: "absolute", left: slot.left, top: slot.top, width: POSTER_WIDTH, height: POSTER_HEIGHT }}
         >
           <CanvasPoster film={filmForSlot(items, c, i)} priority={c === JUMP && i < 3} />
         </div>
@@ -160,11 +159,11 @@ export function PosterCanvas({ films }: { films: Film[] }) {
       </div>
 
       <div ref={scrollRef} className="absolute inset-0 z-10 overflow-y-auto overflow-x-hidden" style={{ overscrollBehavior: "contain" }}>
-        <div style={{ position: "relative", width: "100%", height: DESIGN_CYCLE_HEIGHT * COPIES * vStretch * scale }}>
+        <div style={{ position: "relative", width: "100%", height: DESIGN_CYCLE_HEIGHT * COPIES * scale }}>
           <div
             style={{
               width: DESIGN_WIDTH,
-              height: DESIGN_CYCLE_HEIGHT * COPIES * vStretch,
+              height: DESIGN_CYCLE_HEIGHT * COPIES,
               transform: `scale(${scale})`,
               transformOrigin: "top left",
             }}
