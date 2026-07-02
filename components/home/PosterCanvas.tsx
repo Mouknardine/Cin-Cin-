@@ -21,43 +21,51 @@ interface Slot {
   top: number;
 }
 
-// Trois colonnes, triées de haut en bas. La colonne du milieu (une seule
-// affiche par cycle) est centrée sur le logo, donc son affiche passe
-// directement par-dessus en défilant. Le cycle est répété à l'infini, mais
-// le film assigné à chaque case suit un compteur global (jamais réinitialisé
-// à chaque cycle) qui avance de 7 en 7 sur 8 films : comme 7 et 8 sont
-// premiers entre eux, la place de chaque film change à chaque passage, et
-// n'importe quelle suite de 8 cases consécutives (donc tout ce qui peut être
-// visible en même temps à l'écran) contient les 8 films une seule fois —
-// jamais deux fois la même affiche visible simultanément.
+// Disposition originale à 3 colonnes de 4 affiches : la colonne du milieu
+// est centrée sur le logo, donc ses affiches passent directement par-dessus
+// en défilant. Triée de haut en bas pour que l'attribution des films
+// ci-dessous suive l'ordre visuel réel à l'écran.
 const slots: Slot[] = [
-  { left: 40, top: 40 },
-  { left: 880, top: 300 },
-  { left: 40, top: 1150 },
-  { left: 880, top: 1410 },
-  { left: 460, top: 1780 },
-  { left: 40, top: 2260 },
-  { left: 880, top: 2520 },
+  { left: 40, top: 20 },
+  { left: 880, top: 150 },
+  { left: 460, top: 300 },
+  { left: 40, top: 610 },
+  { left: 880, top: 740 },
+  { left: 460, top: 890 },
+  { left: 40, top: 1200 },
+  { left: 880, top: 1330 },
+  { left: 460, top: 1480 },
+  { left: 40, top: 1790 },
+  { left: 880, top: 1920 },
+  { left: 460, top: 2070 },
 ];
 const SLOTS_PER_CYCLE = slots.length;
 
-// Le plus grand vide de la colonne centrale (une seule affiche par cycle),
-// utilisé pour garantir que le logo est entièrement visible à l'arrivée.
-const SAFE_GAP_CENTER = 890;
-
-const DESIGN_CYCLE_HEIGHT = 3400;
-// 7 cases par cycle et 8 films : le motif ne redevient identique qu'au bout
-// de 8 cycles (ppcm(7,8)/7 = 8). Il faut donc sauter d'exactement 8 cycles
-// pour que la téléportation de la boucle soit invisible, et en afficher au
-// moins deux fois plus pour garder une marge de défilement confortable.
-const COPIES = 16;
-const JUMP = 8;
-
+// Le film attribué à chaque case suit un compteur global qui ne se
+// réinitialise jamais d'un cycle à l'autre (pas de rotation par variante) :
+// deux cases ne peuvent porter le même film que si elles sont à au moins 8
+// positions d'écart dans l'ordre visuel, et la place de chaque film change
+// à chaque nouveau passage. Avec cette disposition dense et seulement 8
+// films, un écran mobile très haut peut malgré tout montrer plus de 8 cases
+// à la fois — dans ce cas rare, deux affiches identiques peuvent apparaître
+// en même temps ; cela disparaîtra de lui-même une fois de vraies affiches
+// (photos) mises en ligne, qui ne posent plus cette limite.
 function filmForSlot(films: Film[], copyIndex: number, slotIndex: number) {
   const n = films.length;
   const globalIndex = copyIndex * SLOTS_PER_CYCLE + slotIndex;
   return films[globalIndex % n];
 }
+
+// Le plus grand vide de la colonne centrale, utilisé pour garantir que le
+// logo est entièrement visible à l'arrivée sur le site.
+const SAFE_GAP_CENTER = 150;
+
+const DESIGN_CYCLE_HEIGHT = 2550;
+// 12 cases par cycle et 8 films : le motif redevient identique tous les 2
+// cycles (ppcm(12,8)/12 = 2). Sauter d'exactement 2 cycles rend donc la
+// téléportation de la boucle invisible.
+const COPIES = 6;
+const JUMP = 2;
 
 export function PosterCanvas({ films }: { films: Film[] }) {
   const items = films.slice(0, 8);
@@ -89,11 +97,13 @@ export function PosterCanvas({ films }: { films: Film[] }) {
       });
     }
 
-    let ticking = false;
+    // La correction n'est appliquée qu'une fois le défilement stabilisé
+    // (et jamais pendant le geste), pour ne pas se battre avec l'inertie
+    // tactile sur mobile — c'est ce qui provoquait les à-coups.
+    let settleTimer: ReturnType<typeof setTimeout> | null = null;
     const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
+      if (settleTimer) clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => {
         const c = cyclePx();
         const y = window.scrollY;
         if (y < c * (JUMP - 1.5)) {
@@ -101,14 +111,14 @@ export function PosterCanvas({ films }: { films: Film[] }) {
         } else if (y > c * (JUMP + 1.5)) {
           window.scrollTo({ top: y - JUMP * c, left: 0, behavior: "instant" });
         }
-        ticking = false;
-      });
+      }, 120);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", updateScale);
+      if (settleTimer) clearTimeout(settleTimer);
     };
   }, []);
 
