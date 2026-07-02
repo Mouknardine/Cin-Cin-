@@ -11,6 +11,7 @@ import zinemaLogo from "@/public/zinema-logo.png";
 export function NavShell() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const isHome = pathname === "/";
 
   useEffect(() => {
     setOpen(false);
@@ -25,21 +26,31 @@ export function NavShell() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between border-b border-ink/15 bg-paper/90 px-4 py-3 backdrop-blur-sm md:px-8 md:py-4">
-        <Link href="/" className="relative z-10 flex items-center gap-3" aria-label="Zinéma — accueil">
-          <Image
-            src={zinemaLogo}
-            alt="Zinéma"
-            width={220}
-            height={54}
-            priority
-            className="h-8 w-auto md:h-10"
-          />
-        </Link>
+      <header
+        className={`fixed inset-x-0 top-0 z-50 flex items-center px-4 py-3 md:px-8 md:py-4 ${
+          isHome
+            ? "justify-end"
+            : "justify-between border-b border-ink/15 bg-paper/90 backdrop-blur-sm"
+        }`}
+      >
+        {!isHome && (
+          <Link href="/" className="relative z-10 flex items-center gap-3" aria-label="Zinéma — accueil">
+            <Image
+              src={zinemaLogo}
+              alt="Zinéma"
+              width={220}
+              height={54}
+              priority
+              className="h-8 w-auto md:h-10"
+            />
+          </Link>
+        )}
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="group relative z-10 flex items-center gap-3 font-display text-sm tracking-widen"
+          className={`group relative z-10 flex items-center gap-3 font-display text-sm tracking-widen ${
+            isHome ? "bg-paper px-3 py-2 shadow-[0_1px_6px_rgba(16,15,12,0.15)]" : ""
+          }`}
           aria-expanded={open}
           aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
         >
