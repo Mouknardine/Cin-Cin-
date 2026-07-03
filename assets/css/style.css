@@ -186,12 +186,13 @@ body[data-page="home"] .menu-toggle {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  border: 1px solid var(--ink);
+  border: 1.5px solid var(--ink);
 }
 .menu-toggle__bar {
-  height: 1.5px;
-  width: 1rem;
+  height: 2px;
+  width: 1.125rem;
   background: var(--ink);
+  border-radius: 1px;
   transition: transform 0.3s var(--ease-editorial);
 }
 .menu-toggle[aria-expanded="true"] .menu-toggle__bar--1 { transform: translateY(3.5px) rotate(45deg); }
