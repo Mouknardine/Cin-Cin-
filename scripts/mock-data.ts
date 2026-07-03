@@ -333,12 +333,14 @@ export const mockSiteSettings: SiteSettings = {
   tagline: "Cinéma indépendant à Lausanne",
   seoDescription:
     "Le Zinéma, cinéma indépendant à Lausanne : films en VO, avant-premières, ciné-club et brunchs-ciné.",
-  address: "Rue à préciser 00, 1000 Lausanne",
-  phone: "021 000 00 00",
-  email: "billetterie@zinema.ch",
+  address: "Rue du Maupas 4, 1004 Lausanne",
+  phone: "021 311 29 30",
+  phoneSecondary: "076 567 12 91",
+  email: "admin@zinema.ch",
   openingHours: [
-    { label: "Caisse, tous les jours", value: "dès 30 min avant la première séance" },
-    { label: "Bureau", value: "lu–ve, 10h–18h" },
+    { label: "Caisse", value: "15 min avant chaque séance" },
+    { label: "Réservation", value: "Non — billets vendus sur place" },
+    { label: "Paiement", value: "Cash ou Twint (pas de carte)" },
   ],
   socialLinks: [
     { label: "Instagram", url: "https://instagram.com" },

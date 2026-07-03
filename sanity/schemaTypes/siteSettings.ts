@@ -41,7 +41,14 @@ export const siteSettings = defineType({
     }),
     defineField({
       name: "phone",
-      title: "Téléphone",
+      title: "Téléphone (principal, ex. caisse/cinéma)",
+      type: "string",
+      group: "pratique",
+    }),
+    defineField({
+      name: "phoneSecondary",
+      title: "Téléphone secondaire (ex. bureau)",
+      description: "Facultatif — n'apparaît que si renseigné.",
       type: "string",
       group: "pratique",
     }),

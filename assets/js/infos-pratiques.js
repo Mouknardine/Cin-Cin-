@@ -38,7 +38,14 @@
     var mapHTML = mapEmbedHTML + mapLinkHTML;
 
     var contactHTML =
-      (settings.phone ? '<a href="tel:' + settings.phone.replace(/\s/g, "") + '">' + R.escapeHtml(settings.phone) + "</a>" : "") +
+      (settings.phone
+        ? '<a href="tel:' + settings.phone.replace(/\s/g, "") + '">' + R.escapeHtml(settings.phone) +
+          (settings.phoneSecondary ? ' <span class="practical-contact__note">cinéma</span>' : "") + "</a>"
+        : "") +
+      (settings.phoneSecondary
+        ? '<a href="tel:' + settings.phoneSecondary.replace(/\s/g, "") + '">' + R.escapeHtml(settings.phoneSecondary) +
+          ' <span class="practical-contact__note">bureau</span></a>'
+        : "") +
       (settings.email ? '<a href="mailto:' + settings.email + '">' + R.escapeHtml(settings.email) + "</a>" : "");
 
     var socialsHTML =

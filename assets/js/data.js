@@ -66,7 +66,7 @@
       "*[_type == \"announcement\"] | order(pinned desc, date desc) {_id,title,\"slug\":slug.current,category,date,image,excerpt,body,linkUrl,pinned}",
     history: "*[_type == \"historyEntry\"] | order(order asc) {_id,year,title,body,image,order}",
     siteSettings:
-      "*[_type == \"siteSettings\"][0]{tagline,seoDescription,historyIntro,address,phone,email,openingHours,accessInfo,mapUrl,socialLinks}",
+      "*[_type == \"siteSettings\"][0]{tagline,seoDescription,historyIntro,address,phone,phoneSecondary,email,openingHours,accessInfo,mapUrl,socialLinks}",
   };
 
   /* ---------------- Contenu d'exemple ---------------- */
@@ -143,12 +143,14 @@
     historyIntro: "Pendant que les grandes salles rétrécissaient leurs rangées pour multiplier les écrans, le Zinéma a fait le pari inverse : une salle généreuse, pensée pour rassembler un public plutôt que le fragmenter en micro-écrans.",
     tagline: "Cinéma indépendant à Lausanne",
     seoDescription: "Le Zinéma, cinéma indépendant à Lausanne : films en VO, avant-premières, ciné-club et brunchs-ciné.",
-    address: "Rue à préciser 00, 1000 Lausanne",
-    phone: "021 000 00 00",
-    email: "billetterie@zinema.ch",
+    address: "Rue du Maupas 4, 1004 Lausanne",
+    phone: "021 311 29 30",
+    phoneSecondary: "076 567 12 91",
+    email: "admin@zinema.ch",
     openingHours: [
-      { label: "Caisse, tous les jours", value: "dès 30 min avant la première séance" },
-      { label: "Bureau", value: "lu–ve, 10h–18h" },
+      { label: "Caisse", value: "15 min avant chaque séance" },
+      { label: "Réservation", value: "Non — billets vendus sur place" },
+      { label: "Paiement", value: "Cash ou Twint (pas de carte)" },
     ],
     socialLinks: [
       { label: "Instagram", url: "https://instagram.com" },

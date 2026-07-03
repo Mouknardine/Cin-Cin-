@@ -75,7 +75,7 @@ npm run seed
 | **Annonces** | titre, catégorie, date, image, résumé, texte, lien, épinglée |
 | **Critiques** | citation, auteur, média, lien |
 | **Histoire** | étapes de la frise : année, titre, texte, image, ordre |
-| **Réglages du site** | accroche, description SEO, **intro de la page Histoire**, adresse, téléphone, e-mail, horaires, accès, lien carte, réseaux sociaux |
+| **Réglages du site** | accroche, description SEO, **intro de la page Histoire**, adresse, téléphone (+ un second facultatif, ex. bureau), e-mail, horaires, accès, lien carte (facultatif — sinon calculé depuis l'adresse), réseaux sociaux |
 
 Tout champ laissé vide retombe sur un texte de secours raisonnable ; les
 films sans affiche reçoivent automatiquement une affiche typographique

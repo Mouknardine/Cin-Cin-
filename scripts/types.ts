@@ -105,6 +105,7 @@ export interface SiteSettings {
   historyIntro?: string;
   address?: string;
   phone?: string;
+  phoneSecondary?: string;
   email?: string;
   openingHours?: OpeningHour[];
   accessInfo?: unknown;

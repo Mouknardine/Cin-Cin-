@@ -297,11 +297,11 @@ body:not([data-page="home"]) .main-area { padding-top: 57px; }
   color: rgba(16, 15, 12, 0.7);
 }
 .page-header__title {
-  margin-top: 0.75rem;
+  margin-top: 4vw;
   font-size: 16vw;
   line-height: 0.85;
 }
-@media (min-width: 768px) { .page-header__title { font-size: 6vw; } }
+@media (min-width: 768px) { .page-header__title { font-size: 6vw; margin-top: 1.5vw; } }
 
 .page-body { padding: 2rem 0; }
 @media (min-width: 768px) { .page-body { padding: 3rem 0; } }
@@ -890,6 +890,7 @@ body:not([data-page="home"]) .main-area { padding-top: 57px; }
 
 .practical-map-link { margin-top: 0.75rem; display: inline-block; font-family: var(--font-display); text-transform: uppercase; font-size: 0.875rem; letter-spacing: -0.01em; }
 .practical-contact { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.25rem; font-family: var(--font-display); text-transform: uppercase; letter-spacing: -0.01em; font-size: 1.25rem; }
+.practical-contact__note { font-family: var(--font-body); text-transform: none; font-size: 0.75rem; letter-spacing: normal; color: rgba(16, 15, 12, 0.5); }
 .practical-socials { margin-top: 2rem; display: flex; gap: 1.5rem; }
 .practical-socials a { font-family: var(--font-display); text-transform: uppercase; font-size: 0.75rem; letter-spacing: -0.01em; }
 
