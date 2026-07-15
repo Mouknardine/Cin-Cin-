@@ -13,6 +13,10 @@
   --blue: #2f49c2;
   --line: rgba(16, 15, 12, 0.15);
   --ease-editorial: cubic-bezier(0.65, 0, 0.35, 1);
+  /* Les deux seules tailles de texte du site : titres et tout le reste.
+     La hiérarchie se fait avec les graisses, jamais avec la taille. */
+  --taille-titre: clamp(2.75rem, 1.5rem + 5.5vw, 6rem);
+  --taille-texte: clamp(1.375rem, 1.1rem + 0.75vw, 1.75rem);
 }
 
 * {
@@ -22,6 +26,9 @@
 html {
   background: var(--paper);
   scroll-behavior: smooth;
+  /* Caractères agrandis sur tout le site (clientèle âgée) :
+     toutes les tailles en rem grossissent proportionnellement. */
+  font-size: 112.5%;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -279,9 +286,9 @@ body[data-page="home"] .menu-toggle {
 .main-nav__footer a { color: var(--paper); }
 
 .main-area { }
-body:not([data-page="home"]) .main-area { padding-top: 57px; }
+body:not([data-page="home"]) .main-area { padding-top: 64px; }
 @media (min-width: 768px) {
-  body:not([data-page="home"]) .main-area { padding-top: 73px; }
+  body:not([data-page="home"]) .main-area { padding-top: 82px; }
 }
 
 /* ------------------------------------------------------------
@@ -565,120 +572,6 @@ body:not([data-page="home"]) .main-area { padding-top: 57px; }
   color: rgba(16, 15, 12, 0.6);
 }
 @media (min-width: 768px) { .empty-state { padding: 4rem 2rem; } }
-
-/* ------------------------------------------------------------
-   Fiche film
-   ------------------------------------------------------------ */
-.film-detail {
-  display: grid;
-  gap: 2rem;
-  padding: 2rem 1rem;
-}
-@media (min-width: 768px) {
-  .film-detail { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 2.5rem; padding: 3rem 2rem; }
-}
-.film-detail__poster-col { }
-@media (min-width: 768px) {
-  .film-detail__poster-col { grid-column: span 5 / span 5; position: sticky; top: 6rem; height: fit-content; }
-}
-@media (min-width: 1080px) { .film-detail__poster-col { grid-column: span 4 / span 4; } }
-
-.film-detail__poster {
-  position: relative;
-  aspect-ratio: 2 / 3;
-  width: 100%;
-  overflow: hidden;
-  border: 2px solid var(--ink);
-  background: var(--ink);
-  box-shadow: 10px 10px 0 0 var(--ink);
-}
-
-.film-detail__next {
-  margin-top: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: 1px solid var(--line);
-  padding: 0.75rem 1rem;
-}
-.film-detail__next-label { font-family: var(--font-display); text-transform: uppercase; font-size: 0.625rem; letter-spacing: -0.01em; color: rgba(16, 15, 12, 0.7); }
-.film-detail__next-time { font-family: var(--font-display); text-transform: uppercase; font-size: 1.125rem; letter-spacing: -0.01em; }
-
-.film-detail__main { }
-@media (min-width: 768px) { .film-detail__main { grid-column: span 7 / span 7; } }
-@media (min-width: 1080px) { .film-detail__main { grid-column: span 8 / span 8; } }
-
-.film-detail__status { font-family: var(--font-display); text-transform: uppercase; font-size: 0.75rem; letter-spacing: -0.01em; color: var(--red); }
-.film-detail__title { margin-top: 0.5rem; font-family: var(--font-display); text-transform: uppercase; letter-spacing: -0.01em; font-size: 11vw; line-height: 0.86; }
-@media (min-width: 768px) { .film-detail__title { font-size: 4.6vw; } }
-.film-detail__original { margin-top: 0.25rem; font-size: 0.875rem; font-style: italic; color: rgba(16, 15, 12, 0.65); }
-
-.film-detail__meta-row {
-  margin-top: 1.25rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.5rem;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  padding: 1rem 0;
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: -0.01em;
-  color: rgba(16, 15, 12, 0.7);
-}
-
-.film-detail__genres { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.film-detail__genre { border: 1px solid rgba(16, 15, 12, 0.2); padding: 0.25rem 0.5rem; font-size: 0.6875rem; letter-spacing: 0.02em; color: rgba(16, 15, 12, 0.6); }
-
-.film-detail__synopsis { margin-top: 1.5rem; max-width: 42rem; font-size: 1rem; line-height: 1.6; color: rgba(16, 15, 12, 0.85); }
-@media (min-width: 768px) { .film-detail__synopsis { font-size: 1.125rem; } }
-
-.film-detail__section { margin-top: 2.5rem; }
-.film-detail__section-label { font-family: var(--font-display); text-transform: uppercase; font-size: 0.75rem; letter-spacing: -0.01em; color: rgba(16, 15, 12, 0.7); }
-
-.screenings-list { border-top: 1px solid var(--line); }
-.screenings-list__empty { border-top: 1px solid var(--line); padding: 1.5rem 0; font-family: var(--font-display); text-transform: uppercase; font-size: 0.875rem; letter-spacing: -0.01em; color: rgba(16, 15, 12, 0.6); }
-.screenings-day { display: grid; gap: 0.75rem; border-bottom: 1px solid var(--line); padding: 1.25rem 0; }
-@media (min-width: 768px) { .screenings-day { grid-template-columns: 180px 1fr; } }
-.screenings-day__date { font-family: var(--font-display); text-transform: uppercase; font-size: 0.875rem; letter-spacing: -0.01em; color: rgba(16, 15, 12, 0.7); }
-.screenings-day__list { display: flex; flex-direction: column; gap: 0.75rem; }
-.screening-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  border: 1px solid var(--line);
-  padding: 0.75rem 1rem;
-}
-.screening-row__time { font-family: var(--font-display); text-transform: uppercase; font-size: 1.25rem; letter-spacing: -0.01em; }
-.screening-row__info { font-size: 0.75rem; color: rgba(16, 15, 12, 0.7); }
-.screening-row__info .is-status-red { color: var(--red); }
-.screening-row__unavailable { padding: 0.75rem 1.25rem; font-family: var(--font-display); text-transform: uppercase; font-size: 0.875rem; letter-spacing: -0.01em; color: rgba(16, 15, 12, 0.45); }
-
-.trailer { aspect-ratio: 16 / 9; border: 1px solid rgba(16, 15, 12, 0.2); margin-top: 0.75rem; }
-.trailer iframe { height: 100%; width: 100%; border: 0; }
-.trailer--empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-image: repeating-linear-gradient(135deg, transparent, transparent 10px, rgba(16, 15, 12, 0.06) 10px, rgba(16, 15, 12, 0.06) 11px);
-}
-.trailer--empty p { font-family: var(--font-display); text-transform: uppercase; font-size: 0.75rem; letter-spacing: -0.01em; color: rgba(16, 15, 12, 0.65); }
-
-.review-quote { border-left: 2px solid var(--red); padding-left: 1.25rem; }
-@media (min-width: 768px) { .review-quote { padding-left: 2rem; } }
-.review-quote__text { font-family: var(--font-display); text-transform: uppercase; letter-spacing: -0.01em; font-size: 1.5rem; line-height: 1.05; }
-@media (min-width: 768px) { .review-quote__text { font-size: 2.25rem; } }
-.review-quote__source { margin-top: 1rem; font-family: var(--font-display); text-transform: uppercase; font-size: 0.75rem; letter-spacing: -0.01em; color: rgba(16, 15, 12, 0.7); }
-
-.film-not-found { padding: 4rem 1rem; text-align: center; }
-@media (min-width: 768px) { .film-not-found { padding: 4rem 2rem; } }
-.film-not-found__eyebrow { font-family: var(--font-display); text-transform: uppercase; font-size: 0.75rem; letter-spacing: -0.01em; color: rgba(16, 15, 12, 0.7); }
-.film-not-found__title { margin-top: 0.75rem; font-family: var(--font-display); text-transform: uppercase; letter-spacing: -0.01em; font-size: 1.5rem; }
-@media (min-width: 768px) { .film-not-found__title { font-size: 1.875rem; } }
-.film-not-found__link { margin-top: 1.25rem; display: inline-block; font-family: var(--font-display); text-transform: uppercase; font-size: 0.875rem; letter-spacing: -0.01em; }
 
 /* ------------------------------------------------------------
    Agenda

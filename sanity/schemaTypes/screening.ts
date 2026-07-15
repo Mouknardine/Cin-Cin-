@@ -1,9 +1,51 @@
-import { defineField, defineType } from "sanity";
+import { defineField, defineType, type SanityDocument } from "sanity";
+
+import { intervallesSeChevauchent } from "../plugins/planification/utils/conflits";
+
+interface ScreeningEnCours extends SanityDocument {
+  film?: { _ref?: string };
+  date?: string;
+  time?: string;
+  room?: string;
+}
 
 export const screening = defineType({
   name: "screening",
   title: "Séance",
   type: "document",
+  // Avertit (sans bloquer) si une autre séance occupe déjà la même salle
+  // au même moment (durée du film + pause de nettoyage comprises).
+  validation: (Rule) =>
+    Rule.custom(async (document, contexte) => {
+      const seance = document as ScreeningEnCours | undefined;
+      const { date, time, room } = seance ?? {};
+      const filmRef = seance?.film?._ref;
+      if (!date || !time || !room || !filmRef) return true;
+
+      const client = contexte.getClient({ apiVersion: "2024-06-01" });
+      const idPublie = (seance?._id ?? "").replace(/^drafts\./, "");
+      const { duree, autres } = await client.fetch<{
+        duree: number | null;
+        autres: { heure: string; duree: number | null; titre: string | null }[];
+      }>(
+        `{
+          "duree": *[_id == $filmRef][0].duration,
+          "autres": *[_type == "screening" && date == $date && room == $room
+            && !(_id in [$idPublie, $idBrouillon])]{
+            "heure": time, "duree": film->duration, "titre": film->title
+          }
+        }`,
+        { filmRef, date, room, idPublie, idBrouillon: `drafts.${idPublie}` }
+      );
+
+      const genante = autres.find((autre) =>
+        intervallesSeChevauchent(time, duree, autre.heure, autre.duree)
+      );
+      if (genante) {
+        return `Conflit possible : « ${genante.titre ?? "un autre film"} » occupe déjà cette salle vers ${genante.heure} (durée + pause comprises).`;
+      }
+      return true;
+    }).warning(),
   fields: [
     defineField({
       name: "film",
@@ -32,8 +74,14 @@ export const screening = defineType({
       name: "room",
       title: "Salle",
       type: "string",
-      description: "Ex. Salle 1",
-      initialValue: "Salle unique",
+      options: {
+        list: [
+          { title: "Salle 1 (18 places)", value: "Salle 1" },
+          { title: "Salle 2 (14 places)", value: "Salle 2" },
+        ],
+        layout: "radio",
+      },
+      initialValue: "Salle 1",
     }),
     defineField({
       name: "versionNote",

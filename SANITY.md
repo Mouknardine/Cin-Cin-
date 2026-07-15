@@ -1,5 +1,12 @@
 # Brancher Sanity (gestion du contenu)
 
+> **✅ Déjà fait sur cette copie** (15 juillet 2026) : le site est branché sur le projet
+> Sanity **Zinema** (`g0k3smf3`, dataset `production`), le Studio est déployé sur
+> <https://zinema.sanity.studio>, les films et séances de l'ancienne version ont été
+> migrés, et le CORS autorise `http://localhost:3000`, `http://localhost:3333` et
+> `https://mouknardine.github.io`. Les étapes 1 à 4 et 6 ci-dessous ne sont donc utiles
+> qu'à titre de référence. Voir aussi « L'onglet Planification » en fin de document.
+
 Le site est composé de **simples fichiers HTML/CSS/JS** (`index.html`,
 `films/`, `agenda/`, `annonces/`, `histoire/`, `infos-pratiques/`, `film/`,
 `assets/`) — pas de build, pas de framework, hébergeables tels quels
@@ -111,3 +118,25 @@ l'hébergement :
 Cet envoi n'est à refaire qu'en cas de changement de **code ou de
 design** — **jamais** pour une simple mise à jour de contenu, qui
 apparaît seule dès qu'elle est publiée dans le Studio.
+
+## 8. L'onglet « Planification » du Studio
+
+En haut du Studio (à côté de « Structure »), l'onglet **Planification** affiche
+le calendrier de la semaine et automatise la programmation :
+
+- **Programmer un film** : choisir un film, ses créneaux habituels
+  (ex. mercredi 19 h Salle 1 + samedi 21 h Salle 2) et le nombre de semaines →
+  toutes les séances se créent et se publient d'un coup.
+- **Dupliquer la semaine** : recopie toutes les séances de la semaine affichée
+  vers une semaine suivante, en un clic.
+- **Supprimer une séance** : menu ⋮ sur la séance → Supprimer.
+- **Conflits de salle détectés automatiquement** : deux films ne peuvent pas se
+  chevaucher dans la même salle (durée du film + 15 min de pause). Les conflits
+  existants apparaissent en rouge ; l'outil refuse d'en créer de nouveaux et les
+  doublons sont ignorés. La même alerte apparaît dans le formulaire classique
+  d'une séance.
+- **Publication immédiate** : tout ce qui est créé dans cet onglet est
+  directement visible sur le site, sans clic « Publish ».
+
+> Astuce : renseigner la **durée** de chaque film rend la détection de conflits
+> précise (sans durée, l'outil compte 2 h par défaut).

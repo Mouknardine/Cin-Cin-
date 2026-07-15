@@ -1,9 +1,9 @@
 /* ============================================================
-   Zinéma — fiche film. Une seule page réelle (film/index.html)
-   qui lit le film demandé dans l'URL (?s=le-slug) et va le
-   chercher dans le navigateur : un nouveau film publié dans
-   Sanity a immédiatement une fiche fonctionnelle, sans jamais
-   reconstruire le site.
+   Zinéma — fiche film « Mondrian ». Une seule page réelle
+   (film/index.html) qui lit le film demandé dans l'URL (?s=le-slug)
+   et construit un quadrillage : une case = une information.
+   La page défile : synopsis complet, toutes les séances à venir,
+   bande-annonce intégrée, pied de page dans le quadrillage.
    ============================================================ */
 (function () {
   "use strict";
@@ -12,133 +12,201 @@
   var app = document.getElementById("film-app");
   var R = window.ZinemaRender;
 
-  var statusText = { disponible: "Places disponibles", complet: "Complet", annule: "Annulé" };
+  var statusSeance = { disponible: "Places disponibles", complet: "Complet", annule: "Annulé" };
 
-  function screeningsHTML(film) {
-    var screenings = film.screenings || [];
-    if (screenings.length === 0) {
-      return '<p class="screenings-list__empty font-display">Aucune séance programmée pour le moment — revenez bientôt.</p>';
-    }
-    var byDate = [];
-    var index = {};
-    screenings.forEach(function (s) {
-      if (!(s.date in index)) {
-        index[s.date] = byDate.length;
-        byDate.push({ date: s.date, list: [] });
-      }
-      byDate[index[s.date]].list.push(s);
-    });
-
-    var days = byDate
-      .map(function (day) {
-        var rows = day.list
-          .map(function (s) {
-            var infoBits = [
-              R.escapeHtml(s.room || ""),
-              s.versionNote ? "— " + R.escapeHtml(s.versionNote) : "",
-            ]
-              .filter(Boolean)
-              .join(" ");
-            var statusSpan = '<span class="' + (s.status === "disponible" ? "" : "is-status-red") + '">' + statusText[s.status] + "</span>";
-            var action =
-              s.status === "disponible"
-                ? R.buyButtonHTML(s.sumupCheckoutUrl || film.sumupCheckoutUrl, s.price || film.price)
-                : '<span class="screening-row__unavailable">' + statusText[s.status] + "</span>";
-            return (
-              '<li class="screening-row"><div><p class="screening-row__time font-display">' + s.time + "</p>" +
-              '<p class="screening-row__info">' + infoBits + " · " + statusSpan + "</p></div>" +
-              action + "</li>"
-            );
-          })
-          .join("");
-        return (
-          '<div class="screenings-day"><p class="screenings-day__date font-display">' + R.formatDayHeading(day.date) + "</p>" +
-          '<ul class="screenings-day__list">' + rows + "</ul></div>"
-        );
-      })
-      .join("");
-    return '<div class="screenings-list">' + days + "</div>";
-  }
-
-  function trailerHTML(url, title) {
-    var embed = R.toEmbedUrl(url);
-    if (!embed) {
-      return '<div class="trailer trailer--empty"><p class="font-display">Bande-annonce à venir</p></div>';
-    }
+  /* Une case d'information n'est jamais vide : « — » remplace une donnée manquante. */
+  function celluleInfo(classe, label, valeur) {
     return (
-      '<div class="trailer"><iframe src="' + embed + '" title="Bande-annonce — ' + R.escapeHtml(title) + '" loading="lazy" ' +
-      'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>'
+      '<div class="m-cell ' + classe + '"><p class="m-cell__label">' + label + "</p>" +
+      '<p class="m-cell__value">' + (valeur ? R.escapeHtml(valeur) : "—") + "</p></div>"
     );
   }
 
-  function reviewHTML(review) {
-    if (!review) return "";
-    var content =
-      '<p class="review-quote__text font-display">« ' + R.escapeHtml(review.quote) + ' »</p>' +
-      '<p class="review-quote__source font-display">' + R.escapeHtml([review.author, review.source].filter(Boolean).join(" — ")) + "</p>";
-    var inner = review.url
-      ? '<a href="' + R.escapeHtml(review.url) + '" target="_blank" rel="noopener noreferrer">' + content + "</a>"
-      : content;
-    return '<blockquote class="review-quote">' + inner + "</blockquote>";
+  function seancesAVenir(film) {
+    return (film.screenings || []).filter(function (s) {
+      var date = R.parseISODate(s.date);
+      var aujourdhui = new Date();
+      aujourdhui.setHours(0, 0, 0, 0);
+      return date >= aujourdhui;
+    });
   }
 
-  function renderFilm(film) {
-    document.title = film.title + " — Zinéma";
-    var nextAvailable = (film.screenings || []).filter(function (s) { return s.status === "disponible"; })[0];
+  function chipHTML(seance, film) {
+    var note = seance.versionNote || seance.room || "";
+    if (seance.status !== "disponible") {
+      return (
+        '<span class="m-seances__chip m-seances__chip--off">' + R.escapeHtml(seance.time) +
+        '<span class="m-seances__chip-note">' + statusSeance[seance.status] + "</span></span>"
+      );
+    }
+    var contenu =
+      R.escapeHtml(seance.time) +
+      (note ? '<span class="m-seances__chip-note">' + R.escapeHtml(note) + "</span>" : "");
+    var url = seance.sumupCheckoutUrl || film.sumupCheckoutUrl;
+    if (url) {
+      return (
+        '<a class="m-seances__chip" href="' + R.escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" ' +
+        'aria-label="Réserver la séance de ' + R.escapeHtml(seance.time) + '">' + contenu + "</a>"
+      );
+    }
+    return '<span class="m-seances__chip">' + contenu + "</span>";
+  }
 
-    var nextHTML = nextAvailable
-      ? '<div class="film-detail__next"><div><p class="film-detail__next-label font-display">Prochaine séance</p>' +
-        '<p class="film-detail__next-time font-display">' + nextAvailable.time + " — " + R.escapeHtml(nextAvailable.room || "") + "</p></div>" +
-        R.buyButtonHTML(nextAvailable.sumupCheckoutUrl || film.sumupCheckoutUrl, nextAvailable.price || film.price, "Billet") +
-        "</div>"
+  function seancesHTML(film) {
+    var seances = seancesAVenir(film);
+    if (seances.length === 0) {
+      return '<p class="m-seances__vide">Aucune séance pour le moment.</p>';
+    }
+    var jours = [];
+    var index = {};
+    seances.forEach(function (s) {
+      if (!(s.date in index)) {
+        index[s.date] = jours.length;
+        jours.push({ date: s.date, liste: [] });
+      }
+      jours[index[s.date]].liste.push(s);
+    });
+    var blocs = jours
+      .map(function (jour) {
+        var chips = jour.liste.map(function (s) { return chipHTML(s, film); }).join("");
+        return (
+          '<div class="m-seances__bloc"><p class="m-seances__jour">' + R.formatDayHeading(jour.date) + "</p>" +
+          '<div class="m-seances__chips">' + chips + "</div></div>"
+        );
+      })
+      .join("");
+    return '<div class="m-seances__jours">' + blocs + "</div>";
+  }
+
+  function reserverHTML(film) {
+    var prochaine = seancesAVenir(film).filter(function (s) {
+      return s.status === "disponible";
+    })[0];
+    var url = (prochaine && prochaine.sumupCheckoutUrl) || film.sumupCheckoutUrl;
+    var prix = (prochaine && prochaine.price) || film.price;
+    if (!url) {
+      return (
+        '<div class="m-cell m-action m-reserver m-reserver--indisponible">' +
+        "<span>Billets en caisse</span></div>"
+      );
+    }
+    return (
+      '<a class="m-cell m-action m-reserver" href="' + R.escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' +
+      "<span>Réserver" + (prix ? ' <span class="m-reserver__prix">' + R.escapeHtml(prix) + "</span>" : "") + "</span></a>"
+    );
+  }
+
+  /* La bande-annonce vit dans la case Synopsis : une vignette sobre,
+     la vidéo YouTube ne se charge qu'au clic (rapide et discret). */
+  function baHTML(embed, titre) {
+    if (!embed) return "";
+    var idYoutube = /\/embed\/([\w-]+)/.exec(embed);
+    var lecteur =
+      '<iframe src="' + R.escapeHtml(embed) + '" title="Bande-annonce — ' + R.escapeHtml(titre) + '" ' +
+      'loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+    var contenu = idYoutube
+      ? '<button type="button" class="m-ba__facade" data-embed="' + R.escapeHtml(embed) + '" aria-label="Lire la bande-annonce">' +
+        '<img src="https://i.ytimg.com/vi/' + idYoutube[1] + '/hqdefault.jpg" alt="" loading="lazy">' +
+        '<span class="m-ba__play" aria-hidden="true">▶</span></button>'
+      : '<div class="m-ba__cadre">' + lecteur + "</div>";
+    return '<div class="m-ba"><p class="m-cell__label m-ba__label">Bande-annonce</p>' + contenu + "</div>";
+  }
+
+  function brancherBandeAnnonce() {
+    var facade = app.querySelector(".m-ba__facade");
+    if (!facade) return;
+    facade.addEventListener("click", function () {
+      var cadre = document.createElement("div");
+      cadre.className = "m-ba__cadre";
+      cadre.innerHTML =
+        '<iframe src="' + facade.dataset.embed + '?autoplay=1&rel=0" title="Bande-annonce" ' +
+        'allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+      facade.replaceWith(cadre);
+    });
+  }
+
+  function piedHTML(settings) {
+    settings = settings || {};
+    var tel = settings.phone
+      ? '<a class="m-cell m-pied m-pied--tel" href="tel:' + R.escapeHtml(String(settings.phone).replace(/\s/g, "")) + '">' +
+        R.escapeHtml(settings.phone) + "</a>"
+      : '<div class="m-cell m-pied m-pied--tel" aria-hidden="true"></div>';
+    var email = settings.email
+      ? '<a class="m-cell m-pied m-pied--email" href="mailto:' + R.escapeHtml(settings.email) + '">' +
+        R.escapeHtml(settings.email) + "</a>"
+      : '<div class="m-cell m-pied m-pied--email" aria-hidden="true"></div>';
+    return (
+      '<a class="m-cell m-pied m-pied--nom" href="' + root + '"><span class="m-pied__nom">Zinéma</span></a>' +
+      '<div class="m-cell m-pied m-pied--adresse">' +
+      R.escapeHtml(settings.address || "Cinéma indépendant à Lausanne") + "</div>" +
+      tel + email
+    );
+  }
+
+  function langueLigne(film) {
+    return [
+      [film.language, film.subtitles].filter(Boolean).join(" "),
+      film.ageRating,
+      film.country,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+  }
+
+  function renderFilm(film, settings) {
+    document.title = film.title + " — Zinéma";
+    var embed = R.toEmbedUrl(film.trailerUrl);
+
+    var original =
+      film.originalTitle && film.originalTitle !== film.title
+        ? '<p class="m-titre__original">' + R.escapeHtml(film.originalTitle) + "</p>"
+        : "";
+
+    var realisation = film.director
+      ? '<p class="m-titre__realisation">Un film de ' + R.escapeHtml(film.director) + "</p>"
       : "";
 
-    var originalTitleHTML =
-      film.originalTitle && film.originalTitle !== film.title
-        ? '<p class="film-detail__original">' + R.escapeHtml(film.originalTitle) + "</p>"
-        : "";
-
-    var genresHTML =
-      film.genres && film.genres.length
-        ? '<div class="film-detail__genres">' +
-          film.genres.map(function (g) { return '<span class="film-detail__genre">' + R.escapeHtml(g) + "</span>"; }).join("") +
-          "</div>"
-        : "";
-
-    var synopsisHTML = film.synopsis ? '<p class="film-detail__synopsis">' + R.escapeHtml(film.synopsis) + "</p>" : "";
-    var reviewSection = film.review ? '<section class="film-detail__section">' + reviewHTML(film.review) + "</section>" : "";
-
     app.innerHTML =
-      '<article class="film-detail">' +
-      '<div class="film-detail__poster-col"><div class="film-detail__poster">' + R.posterHTML(film, { priority: true }) + "</div>" + nextHTML + "</div>" +
-      '<div class="film-detail__main">' +
-      '<p class="film-detail__status font-display">' + R.statusLabel(film.status) + "</p>" +
-      '<h1 class="film-detail__title font-display">' + R.escapeHtml(film.title) + "</h1>" +
-      originalTitleHTML +
-      '<div class="film-detail__meta-row"><span>' + R.escapeHtml(film.director) + "</span><span>" + R.escapeHtml(R.filmMetaLine(film)) + "</span></div>" +
-      genresHTML +
-      synopsisHTML +
-      '<section class="film-detail__section"><p class="film-detail__section-label font-display">Séances</p>' + screeningsHTML(film) + "</section>" +
-      '<section class="film-detail__section"><p class="film-detail__section-label font-display" style="margin-bottom:0.75rem">Bande-annonce</p>' + trailerHTML(film.trailerUrl, film.title) + "</section>" +
-      reviewSection +
-      "</div></article>";
+      '<article class="mondrian">' +
+      '<div class="m-affiche">' + R.posterHTML(film, { priority: true }) + "</div>" +
+      '<header class="m-cell m-titre">' +
+      '<p class="m-titre__statut">' + R.statusLabel(film.status) + "</p>" +
+      "<h1>" + R.escapeHtml(film.title) + "</h1>" + original + realisation + "</header>" +
+      celluleInfo("m-annee", "Année", film.year ? String(film.year) : "") +
+      celluleInfo("m-duree", "Durée", film.duration ? film.duration + " min" : "") +
+      celluleInfo("m-langue", "Version", langueLigne(film)) +
+      '<div class="m-cell m-synopsis"><p class="m-cell__label">Synopsis</p>' +
+      '<p class="m-synopsis__texte">' + R.escapeHtml(film.synopsis || "Synopsis à venir.") + "</p>" +
+      baHTML(embed, film.title) + "</div>" +
+      '<div class="m-cell m-seances"><p class="m-cell__label">Séances</p>' + seancesHTML(film) +
+      '<a href="' + root + 'agenda/" class="m-seances__agenda">Agenda complet</a></div>' +
+      '<a href="' + root + 'films/" class="m-cell m-action m-retour"><span>← Tous les films</span></a>' +
+      reserverHTML(film) +
+      piedHTML(settings) +
+      "</article>";
 
-    window.ZinemaReveal.observe(app);
+    brancherBandeAnnonce();
   }
 
   function renderNotFound() {
     app.innerHTML =
-      '<div class="film-not-found"><p class="film-not-found__eyebrow font-display">Film introuvable</p>' +
-      '<p class="film-not-found__title font-display">Ce film n\'existe pas ou plus.</p>' +
-      '<a href="' + root + 'films/" class="film-not-found__link underline-hover">← Retour aux films</a></div>';
+      '<article class="mondrian">' +
+      '<a href="' + root + 'films/" class="m-cell m-action m-retour"><span>← Tous les films</span></a>' +
+      '<div class="m-cell m-introuvable"><p class="m-cell__label">Film introuvable</p>' +
+      '<p class="m-cell__value">Ce film n\'existe pas ou plus.</p></div>' +
+      "</article>";
   }
 
   var slug = new URLSearchParams(window.location.search).get("s") || "";
-  window.ZinemaData.getFilmBySlug(slug).then(function (film) {
+  Promise.all([
+    window.ZinemaData.getFilmBySlug(slug),
+    window.ZinemaData.getSiteSettings(),
+  ]).then(function (resultats) {
+    var film = resultats[0];
     if (!film) {
       renderNotFound();
     } else {
-      renderFilm(film);
+      renderFilm(film, resultats[1]);
     }
   });
 })();

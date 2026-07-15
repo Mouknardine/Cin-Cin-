@@ -3,6 +3,7 @@ import { structureTool } from "sanity/structure";
 import { visionTool } from "@sanity/vision";
 import { schemaTypes } from "./sanity/schemaTypes";
 import { deskStructure } from "./sanity/deskStructure";
+import { planification } from "./sanity/plugins/planification";
 
 // Ce fichier est chargé par la CLI Sanity ("npm run studio:dev" /
 // "studio:deploy"), un outil séparé (Vite) du site Next.js exporté en
@@ -21,6 +22,7 @@ export default defineConfig({
   schema: { types: schemaTypes },
   plugins: [
     structureTool({ structure: deskStructure }),
+    planification(),
     visionTool({ defaultApiVersion: apiVersion }),
   ],
 });

@@ -1,0 +1,337 @@
+/* ============================================================
+   Zinéma — fiche film « Mondrian ».
+   Un quadrillage de cases blanches séparées par des traits noirs
+   continus (fond noir + gap), sans espace blanc ni case vide.
+   La page défile : toutes les séances sont visibles et la
+   bande-annonce est intégrée en bas de page.
+
+   Code couleur du site, discret — une pastille carrée devant
+   l'étiquette :
+     · jaune = les infos du film (année, durée, version)
+     · bleu  = ce qui se réserve / se navigue (séances, réserver)
+     · rouge = la mise en avant (statut « À l'affiche »…)
+     · noir  = le contenu (synopsis, pied de page)
+
+   Deux tailles de texte seulement (--taille-titre, --taille-texte),
+   la hiérarchie se fait par les graisses.
+   ============================================================ */
+
+:root {
+  --ligne: 4px;
+  --jaune: #f7c600;
+}
+
+/* ---------- Le tableau : traits noirs continus ---------- */
+
+.mondrian {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ligne);
+  background: var(--ink);
+  border: var(--ligne) solid var(--ink);
+}
+
+.mondrian > * {
+  background: var(--paper);
+  min-width: 0;
+}
+
+/* ---------- Les cases ---------- */
+
+.m-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  padding: 1rem;
+  font-size: var(--taille-texte);
+  line-height: 1.35;
+}
+
+.m-cell__label {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  opacity: 0.7;
+}
+
+.m-cell__value {
+  font-weight: 700;
+}
+
+/* Le code couleur : chaque case se remplit de sa couleur au survol.
+   jaune = infos du film · bleu = réservation & navigation · rouge = mise en avant. */
+.m-annee,
+.m-duree,
+.m-langue {
+  transition: background 0.2s ease-out;
+}
+.m-annee:hover,
+.m-duree:hover,
+.m-langue:hover { background: var(--jaune); }
+
+.m-titre {
+  transition: background 0.2s ease-out, color 0.2s ease-out;
+}
+.m-titre:hover {
+  background: var(--red);
+  color: #fff;
+}
+.m-titre:hover .m-titre__statut { color: #fff; }
+
+/* Case titre : statut, titre géant, réalisation. */
+.m-titre {
+  grid-column: 1 / -1;
+  padding: 1.25rem 1rem;
+}
+.m-titre__statut {
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: var(--taille-texte);
+  color: var(--red);
+}
+.m-titre h1 {
+  margin-top: 0.5rem;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  font-size: var(--taille-titre);
+  line-height: 0.92;
+  overflow-wrap: anywhere;
+}
+.m-titre__original {
+  margin-top: 0.5rem;
+  font-size: var(--taille-texte);
+  font-weight: 400;
+  opacity: 0.6;
+}
+.m-titre__realisation {
+  margin-top: 0.75rem;
+  font-size: var(--taille-texte);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+/* Case affiche */
+.m-affiche {
+  grid-column: 1 / -1;
+  padding: 0;
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+}
+.m-affiche .poster,
+.m-affiche .poster img,
+.m-affiche .generated-poster {
+  width: 100%;
+  height: 100%;
+}
+.m-affiche .poster img {
+  object-fit: cover;
+  display: block;
+}
+
+/* Liens-cases : se remplissent de noir au survol. */
+.m-action {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.25rem 0.75rem;
+  flex-wrap: wrap;
+  line-height: 1.2;
+  font-weight: 800;
+  text-transform: uppercase;
+  transition: background 0.2s ease-out, color 0.2s ease-out;
+}
+a.m-action:hover,
+a.m-action:focus-visible {
+  background: var(--blue);
+  color: #fff;
+}
+
+.m-reserver--indisponible { cursor: default; }
+.m-reserver--indisponible:hover { background: var(--paper); color: var(--ink); }
+.m-reserver__prix { font-weight: 400; opacity: 0.85; }
+
+/* Synopsis : texte complet, sans coupe. */
+.m-synopsis__texte { font-weight: 400; }
+
+/* Bande-annonce, dans la case Synopsis : vignette sobre,
+   la vidéo se charge au clic sur le bouton lecture. */
+.m-ba {
+  margin-top: auto;
+  padding-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.m-ba__facade,
+.m-ba__cadre {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--ink);
+  overflow: hidden;
+  padding: 0;
+}
+.m-ba__facade { cursor: pointer; display: block; }
+.m-ba__facade img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.m-ba__play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6em;
+  height: 2.6em;
+  font-size: var(--taille-texte);
+  background: var(--paper);
+  color: var(--ink);
+  border: 3px solid var(--ink);
+  transition: background 0.2s ease-out, color 0.2s ease-out;
+}
+.m-ba__facade:hover .m-ba__play,
+.m-ba__facade:focus-visible .m-ba__play {
+  background: var(--ink);
+  color: #fff;
+  border-color: #fff;
+}
+.m-ba__cadre iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Séances : groupées par jour, horaires en pastilles cliquables. */
+.m-seances__bloc { margin-top: 0.25rem; }
+.m-seances__jour {
+  font-weight: 400;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.m-seances__chips {
+  margin-top: 0.35rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.m-seances__chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.3rem 0.75rem;
+  border: 2px solid var(--ink);
+  font-weight: 800;
+  transition: background 0.2s ease-out, color 0.2s ease-out;
+}
+.m-seances__chip-note { font-weight: 400; }
+a.m-seances__chip:hover,
+a.m-seances__chip:focus-visible {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+.m-seances__chip--off {
+  border-color: var(--line);
+  opacity: 0.6;
+}
+.m-seances__chip--off .m-seances__chip-note { color: var(--red); opacity: 1; }
+.m-seances__vide { font-weight: 400; opacity: 0.6; }
+.m-seances__agenda {
+  font-weight: 800;
+  text-transform: uppercase;
+  align-self: flex-start;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-bottom: 3px solid var(--ink);
+  transition: background 0.2s ease-out, color 0.2s ease-out;
+}
+.m-seances__agenda:hover,
+.m-seances__agenda:focus-visible {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+/* Pied de page : des cases du tableau, comme le reste. */
+.m-pied {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  padding: 0.75rem 1rem;
+}
+.m-pied__nom {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+a.m-pied {
+  font-weight: 700;
+  transition: background 0.2s ease-out, color 0.2s ease-out;
+}
+a.m-pied:hover,
+a.m-pied:focus-visible {
+  background: var(--ink);
+  color: #fff;
+}
+
+/* Film introuvable */
+.m-introuvable {
+  grid-column: 1 / -1;
+  min-height: 50dvh;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+/* ---------- Mobile : ordre de lecture ---------- */
+
+.m-retour { order: -2; grid-column: 1 / -1; }
+.m-titre { order: -1; }
+.m-langue,
+.m-synopsis,
+.m-seances,
+.m-reserver { grid-column: 1 / -1; }
+
+/* ---------- Ordinateur : le quadrillage s'organise en colonnes.
+   Les traits verticaux se prolongent d'une rangée à l'autre
+   (colonne 5 : bord de l'affiche · colonne 9 : contenu / séances). */
+
+@media (min-width: 1080px) {
+  .mondrian {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: auto auto 1fr auto auto;
+  }
+
+  /* Les cases sont dimensionnées au plus juste par leur contenu ;
+     l'affiche remplit toute la hauteur de la colonne (recadrée, jamais
+     déformée) : sa largeur et sa position sont identiques sur chaque film. */
+  .m-affiche { grid-area: 1 / 1 / 4 / 5; aspect-ratio: auto; }
+  .m-titre { order: 0; grid-area: 1 / 5 / 2 / 13; }
+  .m-annee { grid-area: 2 / 5 / 3 / 7; }
+  .m-duree { grid-area: 2 / 7 / 3 / 9; }
+  .m-langue { grid-area: 2 / 9 / 3 / 13; }
+  .m-synopsis { grid-area: 3 / 5 / 4 / 9; }
+  .m-seances { grid-area: 3 / 9 / 4 / 13; }
+  .m-retour { order: 0; grid-area: 4 / 1 / 5 / 5; }
+  .m-reserver { grid-area: 4 / 5 / 5 / 13; }
+
+  .m-pied--nom { grid-area: 5 / 1 / 6 / 5; }
+  .m-pied--adresse { grid-area: 5 / 5 / 6 / 8; }
+  .m-pied--tel { grid-area: 5 / 8 / 6 / 10; }
+  .m-pied--email { grid-area: 5 / 10 / 6 / 13; }
+
+  .m-introuvable { grid-area: 1 / 5 / 4 / 13; }
+}
