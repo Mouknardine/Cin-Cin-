@@ -4,13 +4,31 @@
 (function () {
   "use strict";
 
+  /* `page` correspond au data-page du <body> (pour marquer la page courante),
+     `color` est la couleur primaire de la case au survol sur ordinateur. */
   var navLinks = [
-    { href: "films/", label: "Films", num: "01" },
-    { href: "agenda/", label: "Agenda", num: "02" },
-    { href: "histoire/", label: "Histoire", num: "03" },
-    { href: "annonces/", label: "Annonces", num: "04" },
-    { href: "infos-pratiques/", label: "Infos pratiques", num: "05" },
+    { href: "films/", label: "Films", num: "01", page: "films", color: "blue" },
+    { href: "agenda/", label: "Agenda", num: "02", page: "agenda", color: "red" },
+    { href: "histoire/", label: "Histoire", num: "03", page: "histoire", color: "jaune" },
+    { href: "annonces/", label: "Annonces", num: "04", page: "annonces", color: "blue" },
+    { href: "infos-pratiques/", label: "Infos pratiques", num: "05", page: "infos-pratiques", color: "red" },
   ];
+
+  /* Barre de navigation en cases (ordinateur uniquement, cachée en CSS
+     sur mobile où le menu plein écran prend le relais). */
+  function navBarHTML(root, currentPage) {
+    var items = navLinks
+      .map(function (link) {
+        return (
+          '<li class="nav-bar__item">' +
+          '<a href="' + root + link.href + '" class="nav-bar__link nav-bar__link--' + link.color + '"' +
+          (link.page === currentPage ? ' aria-current="page"' : "") +
+          ">" + link.label + "</a></li>"
+        );
+      })
+      .join("");
+    return '<nav class="nav-bar" aria-label="Navigation principale"><ul class="nav-bar__list">' + items + "</ul></nav>";
+  }
 
   function init() {
     var root = document.body.dataset.root || "";
@@ -22,6 +40,7 @@
       '<a href="' + root + '" class="site-header__logo" aria-label="Zinéma — accueil">' +
       '<img src="' + root + 'assets/img/zinema-logo.png" alt="Zinéma" width="220" height="54">' +
       "</a>" +
+      navBarHTML(root, document.body.dataset.page) +
       '<button type="button" class="menu-toggle" aria-expanded="false" aria-label="Ouvrir le menu">' +
       '<span class="menu-toggle__label">Menu</span>' +
       '<span class="menu-toggle__box">' +

@@ -1,5 +1,5 @@
 /* ============================================================
-   Zinéma — page Films : grille asymétrique + filtres par statut
+   Zinéma — page Films : tableau « Mondrian » + filtres par statut
    ============================================================ */
 (function () {
   "use strict";
@@ -8,25 +8,45 @@
   var app = document.getElementById("films-app");
   var R = window.ZinemaRender;
 
-  var spanClass = { large: "film-card--large", medium: "film-card--medium", small: "film-card--small" };
-  var offsetClass = ["", "film-card--offset-1", "", "film-card--offset-2", "film-card--offset-3", ""];
-
   var allFilms = [];
   var activeFilter = "tous";
 
-  function filmCardHTML(film, i) {
-    var classes = ["film-card", spanClass[film.posterSize] || "", offsetClass[i % offsetClass.length]].filter(Boolean).join(" ");
-    var arrow = R.hasRealImage(film.poster) ? '<span class="film-card__arrow">→</span>' : "";
+  function filmHTML(film) {
+    /* Vraie affiche = image Sanity OU image locale (assets/img/affiches),
+       même critère que la fiche film. */
+    var vraieAffiche = Boolean(R.sanityImageUrl(film.poster, 1200) || R.localImageUrl(film.poster));
+    var realisation = film.director
+      ? '<p class="m-film__real">' + R.escapeHtml(film.director) + "</p>"
+      : "";
+    /* Deux lignes courtes plutôt qu'un seul bloc : les repères
+       (année, pays, durée), puis la version et l'âge — l'info
+       décisive pour choisir sa séance, en gras. */
+    var reperes = [
+      film.year ? String(film.year) : null,
+      film.country || null,
+      film.duration ? film.duration + " min" : null,
+    ].filter(Boolean).join(" · ");
+    var version = [
+      [film.language, film.subtitles].filter(Boolean).join(" ") || null,
+      film.ageRating || null,
+    ].filter(Boolean).join(" · ");
     return (
-      '<div class="' + classes + ' reveal" data-delay="' + (i % 6) * 0.06 + '">' +
-      '<a href="' + root + "film/?s=" + encodeURIComponent(film.slug) + '" class="film-card__link">' +
-      '<div class="film-card__frame">' + R.posterHTML(film) + arrow + "</div>" +
-      '<div class="film-meta">' +
-      '<p class="film-meta__status font-display">' + R.statusLabel(film.status) + "</p>" +
-      '<p class="film-meta__title font-display">' + R.escapeHtml(film.title) + "</p>" +
-      '<p class="film-meta__director">' + R.escapeHtml(film.director) + "</p>" +
-      '<p class="film-meta__line">' + R.escapeHtml(R.filmMetaLine(film)) + "</p>" +
-      "</div></a></div>"
+      '<a href="' + root + "film/?s=" + encodeURIComponent(film.slug) + '" class="m-film">' +
+      '<div class="m-affiche' + (vraieAffiche ? "" : " m-affiche--generee") + '">' + R.posterHTML(film) + "</div>" +
+      '<div class="m-cell m-film__meta">' +
+      '<p class="m-film__statut">' + R.statusLabel(film.status) + "</p>" +
+      '<p class="m-film__titre">' + R.escapeHtml(film.title) + "</p>" +
+      realisation +
+      (reperes ? '<p class="m-film__ligne">' + R.escapeHtml(reperes) + "</p>" : "") +
+      (version ? '<p class="m-film__version">' + R.escapeHtml(version) + "</p>" : "") +
+      "</div></a>"
+    );
+  }
+
+  function filtreHTML(filtre, label) {
+    return (
+      '<button type="button" class="m-filtre' + (activeFilter === filtre ? " is-active" : "") + '" data-filter="' + filtre + '">' +
+      label + "</button>"
     );
   }
 
@@ -34,28 +54,33 @@
     var visible = activeFilter === "tous" ? allFilms : allFilms.filter(function (f) { return f.status === activeFilter; });
     var statuses = Array.from(new Set(allFilms.map(function (f) { return f.status; })));
 
-    var chipsHTML =
-      '<button type="button" class="chip' + (activeFilter === "tous" ? " is-active" : "") + '" data-filter="tous">Tous</button>' +
-      statuses
-        .map(function (s) {
-          return '<button type="button" class="chip' + (activeFilter === s ? " is-active" : "") + '" data-filter="' + s + '">' + R.statusLabel(s) + "</button>";
-        })
-        .join("");
+    var filtresHTML =
+      filtreHTML("tous", "Tous") +
+      statuses.map(function (s) { return filtreHTML(s, R.statusLabel(s)); }).join("");
 
-    var gridHTML = visible.map(filmCardHTML).join("");
-    var emptyHTML = visible.length === 0 ? '<p class="empty-state font-display">Aucun film dans cette catégorie pour le moment.</p>' : "";
+    var agendaHTML =
+      '<a href="' + root + 'agenda/" class="m-cell m-action m-films-agenda"><span>Agenda complet →</span></a>';
+
+    var filmsHTML = visible.length
+      ? '<div class="m-films">' + visible.map(filmHTML).join("") + agendaHTML + "</div>"
+      : '<div class="m-cell m-vide"><p class="m-cell__label">Aucun film</p>' +
+        '<p class="m-cell__value">Aucun film dans cette catégorie pour le moment.</p></div>';
 
     app.innerHTML =
-      '<div class="films-toolbar">' + chipsHTML + "</div>" +
-      '<div class="films-grid">' + gridHTML + "</div>" + emptyHTML;
+      '<article class="mondrian">' +
+      '<header class="m-cell m-entete">' +
+      '<p class="m-cell__label">01 — Films</p>' +
+      "<h1>À l'affiche</h1></header>" +
+      '<nav class="m-filtres" aria-label="Filtrer les films">' + filtresHTML + "</nav>" +
+      filmsHTML +
+      "</article>";
 
-    app.querySelectorAll(".chip").forEach(function (btn) {
+    app.querySelectorAll(".m-filtre").forEach(function (btn) {
       btn.addEventListener("click", function () {
         activeFilter = btn.dataset.filter;
         render();
       });
     });
-    window.ZinemaReveal.observe(app);
   }
 
   window.ZinemaData.getFilms().then(function (films) {

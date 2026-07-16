@@ -166,8 +166,8 @@
         (signature ? '<p class="m-presse__signature">— ' + R.escapeHtml(signature) + "</p>" : "");
       if (review.url) {
         return (
-          '<a class="m-cell m-presse" href="' + R.escapeHtml(review.url) + '" target="_blank" rel="noopener noreferrer">' +
-          contenu + '<span class="m-presse__lien">Lire l\'article</span></a>'
+          '<a class="m-cell m-presse" href="' + R.escapeHtml(review.url) + '" target="_blank" rel="noopener noreferrer" aria-label="Lire l\'article complet">' +
+          contenu + "</a>"
         );
       }
       return '<div class="m-cell m-presse">' + contenu + "</div>";

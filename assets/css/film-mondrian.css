@@ -18,7 +18,6 @@
 
 :root {
   --ligne: 4px;
-  --jaune: #f7c600;
 }
 
 /* ---------- Le tableau : traits noirs continus ---------- */
@@ -174,13 +173,6 @@
   font-weight: 800;
   text-transform: uppercase;
 }
-.m-presse__lien {
-  font-weight: 800;
-  text-transform: uppercase;
-  align-self: flex-start;
-  margin-top: 0.5rem;
-  border-bottom: 3px solid var(--ink);
-}
 a.m-presse {
   transition: background 0.2s ease-out, color 0.2s ease-out;
 }
@@ -188,10 +180,6 @@ a.m-presse:hover,
 a.m-presse:focus-visible {
   background: var(--blue);
   color: #fff;
-}
-a.m-presse:hover .m-presse__lien,
-a.m-presse:focus-visible .m-presse__lien {
-  border-bottom-color: #fff;
 }
 
 /* Liens-cases : se remplissent de noir au survol. */
