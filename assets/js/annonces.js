@@ -19,12 +19,17 @@
     var linkHTML = a.linkUrl
       ? '<a href="' + R.escapeHtml(a.linkUrl) + '" target="_blank" rel="noopener noreferrer" class="announcement-highlight__link underline-hover">En savoir plus →</a>'
       : "";
+    var imgSrc = R.sanityImageUrl(a.image, 900) || R.localImageUrl(a.image);
+    var imageHTML = imgSrc
+      ? '<div class="announcement-highlight__image"><img src="' + R.escapeHtml(imgSrc) + '" alt="Affiche — ' + R.escapeHtml(a.title) + '" loading="lazy"></div>'
+      : "";
     return (
-      '<div class="announcement-highlight reveal"><p class="announcement-highlight__cat font-display">' +
+      '<div class="announcement-highlight' + (imageHTML ? " announcement-highlight--with-image" : "") + ' reveal">' +
+      '<div class="announcement-highlight__body"><p class="announcement-highlight__cat font-display">' +
       (categoryLabels[a.category] || "Annonce") + " — " + R.formatLongDate(a.date) + "</p>" +
       '<h2 class="announcement-highlight__title font-display">' + R.escapeHtml(a.title) + "</h2>" +
       (a.excerpt ? '<p class="announcement-highlight__excerpt">' + R.escapeHtml(a.excerpt) + "</p>" : "") +
-      linkHTML + "</div>"
+      linkHTML + "</div>" + imageHTML + "</div>"
     );
   }
 

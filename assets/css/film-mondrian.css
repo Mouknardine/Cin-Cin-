@@ -57,17 +57,24 @@
 
 .m-cell__value {
   font-weight: 700;
+  /* Les mots trop longs pour la case (« Documentaire »,
+     « anglais/allemand ») sont coupés avec un trait d'union,
+     comme dans un journal — jamais de débordement. */
+  hyphens: auto;
+  overflow-wrap: break-word;
 }
 
 /* Le code couleur : chaque case se remplit de sa couleur au survol.
    jaune = infos du film · bleu = réservation & navigation · rouge = mise en avant. */
 .m-annee,
 .m-duree,
+.m-genre,
 .m-langue {
   transition: background 0.2s ease-out;
 }
 .m-annee:hover,
 .m-duree:hover,
+.m-genre:hover,
 .m-langue:hover { background: var(--jaune); }
 
 .m-titre {
@@ -93,6 +100,7 @@
 .m-titre h1 {
   margin-top: 0.5rem;
   font-family: var(--font-display);
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -0.01em;
   font-size: var(--taille-titre);
@@ -112,23 +120,78 @@
   text-transform: uppercase;
 }
 
-/* Case affiche */
-.m-affiche {
+/* Colonne affiche : l'affiche est montrée ENTIÈRE, jamais recadrée,
+   et sa case épouse exactement ses proportions (aucune bande noire).
+   La case « presse » en dessous absorbe la hauteur restante de la
+   colonne — jamais de trou, jamais de case vide. */
+.m-colonne-affiche {
   grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ligne);
+  background: var(--ink);
+  min-width: 0;
+}
+.m-colonne-affiche > * {
+  background: var(--paper);
+}
+.m-affiche {
   padding: 0;
   position: relative;
-  aspect-ratio: 3 / 4;
   overflow: hidden;
 }
-.m-affiche .poster,
-.m-affiche .poster img,
-.m-affiche .generated-poster {
+/* L'image reprend le flux normal (la règle globale .poster img la met
+   en absolu) : c'est elle qui donne sa hauteur exacte à la case. */
+.m-affiche .poster {
+  height: auto;
+}
+.m-affiche .poster img {
+  position: static;
+  display: block;
+  width: 100%;
+  height: auto;
+}
+/* Sans vraie affiche : l'affiche générée garde un format d'affiche. */
+.m-affiche--generee {
+  aspect-ratio: 3 / 4;
+}
+.m-affiche--generee .generated-poster {
   width: 100%;
   height: 100%;
 }
-.m-affiche .poster img {
-  object-fit: cover;
-  display: block;
+/* Case presse : citation en toutes lettres, signature en gras.
+   Toute la case est cliquable et ouvre l'article complet —
+   survol bleu, comme tout ce qui se navigue. */
+.m-presse {
+  flex: 1 0 auto;
+  justify-content: center;
+}
+.m-presse__citation {
+  font-weight: 400;
+  line-height: 1.35;
+}
+.m-presse__signature {
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.m-presse__lien {
+  font-weight: 800;
+  text-transform: uppercase;
+  align-self: flex-start;
+  margin-top: 0.5rem;
+  border-bottom: 3px solid var(--ink);
+}
+a.m-presse {
+  transition: background 0.2s ease-out, color 0.2s ease-out;
+}
+a.m-presse:hover,
+a.m-presse:focus-visible {
+  background: var(--blue);
+  color: #fff;
+}
+a.m-presse:hover .m-presse__lien,
+a.m-presse:focus-visible .m-presse__lien {
+  border-bottom-color: #fff;
 }
 
 /* Liens-cases : se remplissent de noir au survol. */
@@ -150,6 +213,19 @@ a.m-action:focus-visible {
   color: #fff;
 }
 
+/* Case Réserver : le bleu (= réservation dans le code couleur du site)
+   est affiché en permanence — c'est LE geste principal de la page.
+   Au survol : noir, comme les autres liens-cases. */
+a.m-reserver {
+  background: var(--blue);
+  color: #fff;
+  padding: 1.25rem 1rem;
+}
+a.m-reserver:hover,
+a.m-reserver:focus-visible {
+  background: var(--ink);
+  color: #fff;
+}
 .m-reserver--indisponible { cursor: default; }
 .m-reserver--indisponible:hover { background: var(--paper); color: var(--ink); }
 .m-reserver__prix { font-weight: 400; opacity: 0.85; }
@@ -275,6 +351,7 @@ a.m-seances__chip:focus-visible {
 }
 .m-pied__nom {
   font-family: var(--font-display);
+  font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -0.01em;
 }
@@ -298,8 +375,14 @@ a.m-pied:focus-visible {
 
 /* ---------- Mobile : ordre de lecture ---------- */
 
-.m-retour { order: -2; grid-column: 1 / -1; }
+/* Sur mobile, pas de case « Tous les films » : le menu suffit pour
+   naviguer, et la fiche commence directement par le titre. */
+.m-retour { display: none; }
 .m-titre { order: -1; }
+/* Sur mobile, la case Réserver remonte juste sous le titre :
+   acheter un billet ne demande aucun défilement. */
+.m-reserver { order: -1; }
+.m-genre,
 .m-langue,
 .m-synopsis,
 .m-seances,
@@ -316,16 +399,17 @@ a.m-pied:focus-visible {
   }
 
   /* Les cases sont dimensionnées au plus juste par leur contenu ;
-     l'affiche remplit toute la hauteur de la colonne (recadrée, jamais
-     déformée) : sa largeur et sa position sont identiques sur chaque film. */
-  .m-affiche { grid-area: 1 / 1 / 4 / 5; aspect-ratio: auto; }
+     l'affiche garde ses proportions exactes et la case presse
+     absorbe la hauteur restante de la colonne. */
+  .m-colonne-affiche { grid-area: 1 / 1 / 4 / 5; }
   .m-titre { order: 0; grid-area: 1 / 5 / 2 / 13; }
   .m-annee { grid-area: 2 / 5 / 3 / 7; }
   .m-duree { grid-area: 2 / 7 / 3 / 9; }
-  .m-langue { grid-area: 2 / 9 / 3 / 13; }
+  .m-genre { grid-area: 2 / 9 / 3 / 11; }
+  .m-langue { grid-area: 2 / 11 / 3 / 13; }
   .m-synopsis { grid-area: 3 / 5 / 4 / 9; }
   .m-seances { grid-area: 3 / 9 / 4 / 13; }
-  .m-retour { order: 0; grid-area: 4 / 1 / 5 / 5; }
+  .m-retour { display: flex; order: 0; grid-area: 4 / 1 / 5 / 5; }
   .m-reserver { grid-area: 4 / 5 / 5 / 13; }
 
   .m-pied--nom { grid-area: 5 / 1 / 6 / 5; }

@@ -87,7 +87,7 @@
     if (!url) {
       return (
         '<div class="m-cell m-action m-reserver m-reserver--indisponible">' +
-        "<span>Billets en caisse</span></div>"
+        "<span>Billetterie bientôt disponible</span></div>"
       );
     }
     return (
@@ -153,6 +153,31 @@
       .join(" · ");
   }
 
+  /* Sous l'affiche : la citation presse du film — toute la case est
+     cliquable et ouvre l'article complet quand son lien existe.
+     Sans citation : la carte de visite du cinéma (jamais de case vide). */
+  function presseHTML(film, settings) {
+    var review = film.review;
+    if (review && review.quote) {
+      var signature = [review.author, review.source].filter(Boolean).join(", ");
+      var contenu =
+        '<p class="m-cell__label">La presse</p>' +
+        '<p class="m-presse__citation">« ' + R.escapeHtml(review.quote) + " »</p>" +
+        (signature ? '<p class="m-presse__signature">— ' + R.escapeHtml(signature) + "</p>" : "");
+      if (review.url) {
+        return (
+          '<a class="m-cell m-presse" href="' + R.escapeHtml(review.url) + '" target="_blank" rel="noopener noreferrer">' +
+          contenu + '<span class="m-presse__lien">Lire l\'article</span></a>'
+        );
+      }
+      return '<div class="m-cell m-presse">' + contenu + "</div>";
+    }
+    return (
+      '<div class="m-cell m-presse"><p class="m-cell__label">Le Zinéma</p>' +
+      '<p class="m-cell__value">' + R.escapeHtml((settings && settings.tagline) || "Cinéma indépendant à Lausanne") + "</p></div>"
+    );
+  }
+
   function renderFilm(film, settings) {
     document.title = film.title + " — Zinéma";
     var embed = R.toEmbedUrl(film.trailerUrl);
@@ -166,14 +191,20 @@
       ? '<p class="m-titre__realisation">Un film de ' + R.escapeHtml(film.director) + "</p>"
       : "";
 
+    var vraieAffiche = Boolean(R.sanityImageUrl(film.poster, 1200) || R.localImageUrl(film.poster));
+
     app.innerHTML =
       '<article class="mondrian">' +
-      '<div class="m-affiche">' + R.posterHTML(film, { priority: true }) + "</div>" +
+      '<div class="m-colonne-affiche">' +
+      '<div class="m-affiche' + (vraieAffiche ? "" : " m-affiche--generee") + '">' +
+      R.posterHTML(film, { priority: true }) + "</div>" +
+      presseHTML(film, settings) + "</div>" +
       '<header class="m-cell m-titre">' +
       '<p class="m-titre__statut">' + R.statusLabel(film.status) + "</p>" +
       "<h1>" + R.escapeHtml(film.title) + "</h1>" + original + realisation + "</header>" +
       celluleInfo("m-annee", "Année", film.year ? String(film.year) : "") +
       celluleInfo("m-duree", "Durée", film.duration ? film.duration + " min" : "") +
+      celluleInfo("m-genre", "Genre", (film.genres || []).join(" · ")) +
       celluleInfo("m-langue", "Version", langueLigne(film)) +
       '<div class="m-cell m-synopsis"><p class="m-cell__label">Synopsis</p>' +
       '<p class="m-synopsis__texte">' + R.escapeHtml(film.synopsis || "Synopsis à venir.") + "</p>" +

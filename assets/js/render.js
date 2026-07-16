@@ -115,6 +115,14 @@
   function hasRealImage(img) {
     return Boolean(img && img.asset && (img.asset._ref || img.asset._id));
   }
+  /* Affiche hébergée dans le site (assets/img/affiches). Le chemin est
+     relatif à la racine du site : on le préfixe avec le data-root de la
+     page (« ../ » sur les sous-pages, vide sur l'accueil). */
+  function localImageUrl(img) {
+    if (!img || !img.localUrl) return null;
+    var root = (document.body && document.body.getAttribute("data-root")) || "";
+    return root + img.localUrl;
+  }
   function sanityImageUrl(img, width) {
     if (!hasRealImage(img) || !global.ZinemaData.projectId) return null;
     var ref = img.asset._ref || img.asset._id || "";
@@ -169,7 +177,7 @@
 
   function posterHTML(film, opts) {
     opts = opts || {};
-    var src = sanityImageUrl(film.poster, 1200);
+    var src = sanityImageUrl(film.poster, 1200) || localImageUrl(film.poster);
     if (src) {
       var loading = opts.priority ? "eager" : "lazy";
       return '<div class="poster"><img src="' + src + '" alt="' + escapeHtml(film.title) + '" loading="' + loading + '"></div>';
@@ -206,6 +214,7 @@
     toEmbedUrl: toEmbedUrl,
     hasRealImage: hasRealImage,
     sanityImageUrl: sanityImageUrl,
+    localImageUrl: localImageUrl,
     posterHTML: posterHTML,
     generatedPosterHTML: generatedPosterHTML,
     buyButtonHTML: buyButtonHTML,
