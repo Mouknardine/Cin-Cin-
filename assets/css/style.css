@@ -220,11 +220,6 @@ body:not([data-page="home"]) .site-header__logo { display: flex; }
   letter-spacing: -0.01em;
   font-size: var(--taille-texte);
 }
-body[data-page="home"] .menu-toggle {
-  background: var(--paper);
-  padding: 0.5rem 0.75rem;
-  box-shadow: 0 1px 6px rgba(16, 15, 12, 0.15);
-}
 .menu-toggle__box {
   display: flex;
   height: 2.25rem;
@@ -577,29 +572,15 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
 /* ------------------------------------------------------------
    Accueil — canevas d'affiches
    ------------------------------------------------------------ */
+/* Le canevas est un tableau Mondrian : fond noir, les cases pleines
+   laissent apparaître des traits noirs continus de 4 px entre elles. */
 .home-canvas {
   position: fixed;
   inset: 0;
   z-index: 0;
   overflow: hidden;
-  background: var(--paper);
+  background: var(--ink);
 }
-.home-canvas__logo {
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.home-canvas__logo img {
-  height: auto;
-  width: 26vw;
-  max-width: 320px;
-}
-@media (min-width: 768px) { .home-canvas__logo img { width: 30vw; } }
-
 .home-canvas__scroll {
   position: absolute;
   inset: 0;
@@ -619,11 +600,16 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
   height: 100%;
   width: 100%;
   overflow: hidden;
-  transition: transform 0.3s var(--ease-editorial);
+  background: var(--paper);
 }
-/* Les affiches du collage gardent leurs proportions d'origine. */
-.canvas-poster .poster img { object-fit: contain; }
-.canvas-poster:hover { transform: translateY(-4px); }
+/* Les cases sont taillées au ratio des affiches ; `cover` garantit
+   zéro liséré blanc, même si une affiche dévie un peu. Au survol,
+   l'affiche grossit dans sa case — la grille, elle, ne bouge pas. */
+.canvas-poster .poster img {
+  object-fit: cover;
+  transition: transform 0.4s var(--ease-editorial);
+}
+.canvas-poster:hover .poster img { transform: scale(1.04); }
 .canvas-poster__plus {
   pointer-events: none;
   position: absolute;
@@ -643,6 +629,77 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
   transition: opacity 0.2s;
 }
 .canvas-poster:hover .canvas-poster__plus { opacity: 1; }
+
+/* Cases de navigation du tableau : des aplats pleins aux couleurs
+   du Zinéma — le quadrillage noir fait office de cadre, comme sur
+   les pages Films. Au survol, la case s'inverse en noir (le même
+   langage que les filtres et la barre de navigation). Les tailles
+   sont en pixels de la grille de référence : elles suivent la mise
+   à l'échelle du canevas, la coupure à 768px correspondant pile au
+   changement de grille mobile/ordinateur dans home.js. */
+.canvas-tile {
+  position: relative;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  padding: 8px 10px;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  transition: background 0.2s ease-out, color 0.2s ease-out;
+}
+.canvas-tile:hover,
+.canvas-tile:focus-visible {
+  background: var(--ink);
+  color: var(--paper);
+}
+.canvas-tile--blue { background: var(--blue); color: var(--paper); }
+.canvas-tile--red { background: var(--red); color: var(--paper); }
+/* Sur le jaune, le texte reste noir : le blanc n'y serait pas lisible. */
+.canvas-tile--jaune { background: var(--jaune); color: var(--ink); }
+
+/* Case blanche de secours (aucun film avec affiche) : le tableau
+   reste plein. */
+.canvas-block { height: 100%; width: 100%; background: var(--paper); }
+
+.canvas-tile__num {
+  margin-right: 0.35em;
+  font-weight: 400;
+  font-size: 0.5em;
+  opacity: 0.75;
+}
+.canvas-tile__label {
+  font-weight: 900;
+  font-size: 21px;
+  line-height: 1;
+}
+/* Titres longs (deux mots) : corps réduit, retour à la ligne
+   uniquement entre les mots, jamais au milieu d'un mot. */
+.canvas-tile--compact .canvas-tile__label { font-size: 17px; }
+
+/* Le logo occupe une case blanche du tableau, comme une signature
+   au milieu des aplats — pas de cadre ajouté, le quadrillage suffit. */
+.canvas-tile--logo {
+  justify-content: center;
+  background: var(--paper);
+}
+.canvas-tile--logo:hover,
+.canvas-tile--logo:focus-visible {
+  background: var(--paper);
+}
+.canvas-tile--logo img {
+  width: 82%;
+  height: auto;
+  max-height: 78%;
+  object-fit: contain;
+}
+
+@media (min-width: 768px) {
+  .canvas-tile { padding: 12px 16px; }
+  .canvas-tile__label { font-size: 42px; }
+  .canvas-tile--compact .canvas-tile__label { font-size: 36px; }
+}
 
 .empty-state {
   padding: 4rem 1rem;

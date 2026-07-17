@@ -69,7 +69,7 @@
     app.innerHTML =
       '<article class="mondrian">' +
       '<header class="m-cell m-entete">' +
-      '<p class="m-cell__label">01 — Films</p>' +
+      '<p class="m-cell__label">Films</p>' +
       "<h1>À l'affiche</h1></header>" +
       '<nav class="m-filtres" aria-label="Filtrer les films">' + filtresHTML + "</nav>" +
       filmsHTML +

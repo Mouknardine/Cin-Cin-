@@ -5,7 +5,8 @@
   "use strict";
 
   /* `page` correspond au data-page du <body> (pour marquer la page courante),
-     `color` est la couleur primaire de la case au survol sur ordinateur. */
+     `color` est la couleur primaire de la case (survol sur ordinateur, et
+     fond des cases de navigation du scroll de l'accueil). */
   var navLinks = [
     { href: "films/", label: "Films", num: "01", page: "films", color: "blue" },
     { href: "agenda/", label: "Agenda", num: "02", page: "agenda", color: "red" },
@@ -13,6 +14,9 @@
     { href: "annonces/", label: "Annonces", num: "04", page: "annonces", color: "blue" },
     { href: "infos-pratiques/", label: "Infos pratiques", num: "05", page: "infos-pratiques", color: "red" },
   ];
+
+  /* Liste partagée avec l'accueil, qui en fait ses cases de scroll. */
+  window.ZinemaNavLinks = navLinks;
 
   /* Barre de navigation en cases (ordinateur uniquement, cachée en CSS
      sur mobile où le menu plein écran prend le relais). */
@@ -32,7 +36,10 @@
 
   function init() {
     var root = document.body.dataset.root || "";
-    var isHome = document.body.dataset.page === "home";
+
+    /* Sur l'accueil, aucune barre en haut : la navigation passe
+       entièrement par les cases colorées du scroll infini. */
+    if (document.body.dataset.page === "home") return;
 
     var header = document.createElement("header");
     header.className = "site-header";
@@ -89,10 +96,6 @@
         setOpen(false);
       });
     });
-
-    if (isHome) {
-      header.classList.remove("site-header--inner");
-    }
   }
 
   if (document.readyState === "loading") {
