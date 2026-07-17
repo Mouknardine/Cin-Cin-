@@ -30,11 +30,17 @@
       [film.language, film.subtitles].filter(Boolean).join(" ") || null,
       film.ageRating || null,
     ].filter(Boolean).join(" · ");
+    /* « À l'affiche » est déjà le titre de la page : on ne répète
+       pas ce statut sur chaque carte. Les autres statuts, eux,
+       distinguent utilement les films (avant-première, cycle…). */
+    var statut = film.status === "a-laffiche"
+      ? ""
+      : '<p class="m-film__statut">' + R.statusLabel(film.status) + "</p>";
     return (
       '<a href="' + root + "film/?s=" + encodeURIComponent(film.slug) + '" class="m-film">' +
       '<div class="m-affiche' + (vraieAffiche ? "" : " m-affiche--generee") + '">' + R.posterHTML(film) + "</div>" +
       '<div class="m-cell m-film__meta">' +
-      '<p class="m-film__statut">' + R.statusLabel(film.status) + "</p>" +
+      statut +
       '<p class="m-film__titre">' + R.escapeHtml(film.title) + "</p>" +
       realisation +
       (reperes ? '<p class="m-film__ligne">' + R.escapeHtml(reperes) + "</p>" : "") +

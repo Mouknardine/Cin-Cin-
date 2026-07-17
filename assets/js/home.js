@@ -16,7 +16,7 @@
      référence (designWidth), mise à l'échelle de l'écran ensuite. */
   /* Tableau « Mondrian » comme les pages Films : uniquement des
      cases utiles — affiches et boutons de navigation — séparées
-     par des traits noirs continus de 4 px, jamais de vide.
+     par des traits noirs continus fins (LINE), jamais de vide.
      Les boutons de navigation ont TOUS exactement la même taille.
      Pour le garantir dans une grille pleine, les colonnes sont de
      largeur égale ; le quinconce vient du rythme décalé : une
@@ -27,16 +27,16 @@
      toujours à la même place.
      Pour aérer l'écran, le tableau est une bande centrée qui
      flotte sur fond blanc (gridLeft/gridWidth), avec des traits
-     épais — comme une toile accrochée à un mur. */
-  var LINE = 8;
+     fins — comme une toile accrochée à un mur. */
+  var LINE = 4;
 
   var desktopConfig = {
     designWidth: 1200,
-    cycleHeight: 1260,
-    gridLeft: 98,
-    gridWidth: 1004,
+    cycleHeight: 1244,
+    gridLeft: 106,
+    gridWidth: 988,
     columns: [
-      { left: 106, width: 324, cells: [
+      { left: 110, width: 324, cells: [
         { type: "poster", height: 464 },
         { type: "tile", height: 150 },
         { type: "poster", height: 464 },
@@ -48,7 +48,7 @@
         { type: "tile", height: 150 },
         { type: "poster", height: 464 },
       ] },
-      { left: 770, width: 324, cells: [
+      { left: 766, width: 324, cells: [
         { type: "poster", height: 464 },
         { type: "tile", height: 150 },
         { type: "poster", height: 464 },
@@ -61,11 +61,11 @@
      les marges blanches n'existent que sur ordinateur. */
   var mobileConfig = {
     designWidth: 400,
-    cycleHeight: 1155,
+    cycleHeight: 1131,
     gridLeft: 0,
     gridWidth: 400,
     columns: [
-      { left: 8, width: 188, cells: [
+      { left: 4, width: 194, cells: [
         { type: "poster", height: 269 },
         { type: "tile", height: 100 },
         { type: "poster", height: 269 },
@@ -73,7 +73,7 @@
         { type: "poster", height: 269 },
         { type: "tile", height: 100 },
       ] },
-      { left: 204, width: 188, cells: [
+      { left: 202, width: 194, cells: [
         { type: "tile", height: 100 },
         { type: "poster", height: 269 },
         { type: "tile", height: 100 },
@@ -113,7 +113,21 @@
      Elles tournent de copie en copie, comme les affiches, pour
      que toutes les options reviennent régulièrement au fil du
      scroll (le cycle complet des 6 cases s'étale sur 2 copies). */
-  var navTiles = (window.ZinemaNavLinks || []).concat([{ logo: true }]);
+  var navTiles = (window.ZinemaNavLinks || []).slice().concat([{ logo: true }]);
+
+  /* Sur l'écran d'arrivée, la case qui traverse le centre (et s'y
+     allume) est celle d'index 2 dans l'ordre des cases. On y place
+     « Films » : c'est ce que les visiteurs cherchent en premier. */
+  var CENTER_TILE_INDEX = 2;
+  var filmsIndex = -1;
+  navTiles.forEach(function (tile, i) {
+    if (tile.page === "films") filmsIndex = i;
+  });
+  if (filmsIndex > -1 && filmsIndex !== CENTER_TILE_INDEX) {
+    var swapped = navTiles[CENTER_TILE_INDEX];
+    navTiles[CENTER_TILE_INDEX] = navTiles[filmsIndex];
+    navTiles[filmsIndex] = swapped;
+  }
 
   function filmForSlot(films, copyIndex, posterIndex, perCycle) {
     var globalIndex = copyIndex * perCycle + posterIndex;
@@ -125,11 +139,14 @@
     return navTiles[globalIndex % navTiles.length];
   }
 
+  /* Chaque affiche porte le titre du film : toujours visible sur
+     mobile (pas de survol possible), au survol sur ordinateur. */
   function canvasPosterHTML(item, priority) {
     return (
       '<a href="' + root + item.href + '" class="canvas-poster">' +
       window.ZinemaRender.posterHTML(item, { priority: priority }) +
-      '<span class="canvas-poster__plus">+</span></a>'
+      '<span class="canvas-poster__plus">+</span>' +
+      '<span class="canvas-poster__title">' + window.ZinemaRender.escapeHtml(item.title) + "</span></a>"
     );
   }
 
@@ -137,7 +154,8 @@
     if (tile.logo) {
       return (
         '<a href="' + root + '" class="canvas-tile canvas-tile--logo" aria-label="Zinéma — accueil">' +
-        '<img src="' + root + 'assets/img/zinema-logo.png" alt="Zinéma"></a>'
+        '<img src="' + root + 'assets/img/zinema-logo.png" alt="Zinéma">' +
+        '<span class="canvas-tile__tagline">Cinéma indépendant — Lausanne</span></a>'
       );
     }
     /* Les titres longs (« Infos pratiques ») réduisent leur corps
@@ -149,20 +167,31 @@
     );
   }
 
-  /* Le rectangle reste affiché en permanence : il accompagne le
-     visiteur pendant toute la navigation dans le tableau. */
-  var HINT_HTML = '<p class="home-hint">Cliquez sur une case pour naviguer</p>';
-
   function buildCanvas(items) {
     app.innerHTML =
       '<div class="home-canvas">' +
       '<div class="home-canvas__scroll"><div class="home-canvas__track"><div class="home-canvas__stage"></div></div></div>' +
-      HINT_HTML +
+      '<div class="home-scroll-cue" aria-hidden="true">↓</div>' +
       "</div>";
 
     var scrollEl = app.querySelector(".home-canvas__scroll");
     var trackEl = app.querySelector(".home-canvas__track");
     var stageEl = app.querySelector(".home-canvas__stage");
+
+    /* La flèche invite à faire défiler le tableau ; elle disparaît
+       dès que le visiteur a compris (premier vrai défilement). Le
+       calage initial déclenche aussi un événement scroll : on ne
+       masque qu'à partir d'un écart net avec la position de départ. */
+    var cueEl = app.querySelector(".home-scroll-cue");
+    var cueOrigin = null;
+
+    function hideCueIfScrolled() {
+      if (!cueEl || cueOrigin === null) return;
+      if (Math.abs(scrollEl.scrollTop - cueOrigin) > 40) {
+        cueEl.classList.add("is-hidden");
+        cueEl = null;
+      }
+    }
 
     /* Les cases de navigation s'allument de leur couleur quand
        elles traversent le milieu de l'écran pendant le scroll. */
@@ -171,7 +200,7 @@
     function updateLitTiles() {
       var s = scale();
       var middle = scrollEl.scrollTop + scrollEl.clientHeight / 2;
-      var band = scrollEl.clientHeight * 0.18;
+      var band = scrollEl.clientHeight * 0.22;
       litTiles.forEach(function (tile) {
         tile.el.classList.toggle("is-lit", Math.abs(tile.center * s - middle) < band);
       });
@@ -185,6 +214,23 @@
     }
     function cyclePx() {
       return config().cycleHeight * scale();
+    }
+
+    /* Écran d'arrivée : le tableau s'ouvre sur la rangée dont la
+       case en haut à droite est le logo Zinéma. On cherche la case
+       logo dans la copie centrale et on cale le haut de l'écran
+       juste au-dessus, sur son trait noir. */
+    function startTop() {
+      var c = config();
+      var tilesPerCycle = countType(c.slots, "tile");
+      var logoTop = 0;
+      var tileIdx = 0;
+      c.slots.forEach(function (slot) {
+        if (slot.type !== "tile") return;
+        if (tileForSlot(JUMP, tileIdx, tilesPerCycle).logo) logoTop = slot.top;
+        tileIdx += 1;
+      });
+      return (JUMP * c.cycleHeight + logoTop - LINE) * scale();
     }
 
     function layout() {
@@ -248,7 +294,8 @@
 
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
-        scrollEl.scrollTo({ top: JUMP * cyclePx(), left: 0, behavior: "instant" });
+        scrollEl.scrollTo({ top: startTop(), left: 0, behavior: "instant" });
+        cueOrigin = scrollEl.scrollTop;
       });
     });
 
@@ -269,6 +316,7 @@
       function () {
         if (settleTimer) clearTimeout(settleTimer);
         settleTimer = setTimeout(recentre, 120);
+        hideCueIfScrolled();
 
         if (ticking) return;
         ticking = true;
@@ -289,7 +337,8 @@
       if (resizeTimer) clearTimeout(resizeTimer);
       resizeTimer = setTimeout(function () {
         layout();
-        scrollEl.scrollTo({ top: JUMP * cyclePx(), left: 0, behavior: "instant" });
+        scrollEl.scrollTo({ top: startTop(), left: 0, behavior: "instant" });
+        if (cueEl) cueOrigin = scrollEl.scrollTop;
       }, 150);
     });
   }

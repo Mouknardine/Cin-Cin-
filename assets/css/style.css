@@ -587,31 +587,37 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
   position: absolute;
   background: var(--ink);
 }
-/* Petit rectangle flottant, centré en haut, affiché en permanence :
-   il invite à cliquer sur les cases du tableau et laisse passer les
-   clics. Blanc, ombre légère — une case de plus dans le langage du
-   tableau. */
-.home-hint {
+/* Flèche d'invitation au défilement : une petite case blanche qui
+   rebondit doucement en bas de l'écran, dans le langage du tableau.
+   Elle disparaît au premier défilement (classe posée par home.js). */
+.home-scroll-cue {
   pointer-events: none;
   position: absolute;
-  top: 1.25rem;
+  bottom: 1.25rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 20;
-  max-width: calc(100% - 2rem);
+  display: flex;
+  height: 3rem;
+  width: 3rem;
+  align-items: center;
+  justify-content: center;
   background: var(--paper);
   box-shadow: 0 1px 4px rgba(16, 15, 12, 0.25);
-  padding: 0.75rem 1.75rem;
   font-family: var(--font-display);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  font-size: 1.1rem;
-  text-align: center;
+  font-weight: 900;
+  font-size: 1.5rem;
   color: var(--ink);
+  animation: scroll-cue-bounce 2s ease-in-out infinite;
+  transition: opacity 0.4s ease-out;
 }
-@media (min-width: 768px) {
-  .home-hint { top: 1.75rem; font-size: 1.25rem; }
+.home-scroll-cue.is-hidden { opacity: 0; }
+@keyframes scroll-cue-bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-0.5rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-scroll-cue { animation: none; }
 }
 
 .home-canvas__scroll {
@@ -663,6 +669,41 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
 }
 .canvas-poster:hover .canvas-poster__plus { opacity: 1; }
 
+/* Bandeau de titre en bas de chaque affiche, révélé au survol sur
+   ordinateur uniquement. Sur mobile il reste masqué : les affiches
+   portent déjà leur titre, et un bandeau permanent surchargerait
+   le tableau. */
+.canvas-poster__title {
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  padding: 10px 14px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 18px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+@media (min-width: 768px) {
+  .canvas-poster__title {
+    display: block;
+    opacity: 0;
+    transform: translateY(100%);
+    transition: opacity 0.25s ease-out, transform 0.3s var(--ease-editorial);
+  }
+  .canvas-poster:hover .canvas-poster__title,
+  .canvas-poster:focus-visible .canvas-poster__title {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Cases de navigation du tableau : blanches, texte noir — le même
    langage que la barre de navigation des autres pages. Chaque case
    se remplit de sa couleur Zinéma au survol seulement. Les tailles
@@ -682,7 +723,7 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
   color: var(--ink);
   font-family: var(--font-display);
   text-transform: uppercase;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.02em;
   transition: background 0.2s ease-out, color 0.2s ease-out;
 }
 /* Au survol, la case se remplit de sa couleur (action volontaire).
@@ -718,16 +759,19 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
 
 .canvas-tile__label {
   font-weight: 900;
-  font-size: 21px;
-  line-height: 1;
+  font-size: 24px;
+  line-height: 1.1;
 }
 /* Titres longs (deux mots) : corps réduit, retour à la ligne
    uniquement entre les mots, jamais au milieu d'un mot. */
-.canvas-tile--compact .canvas-tile__label { font-size: 17px; }
+.canvas-tile--compact .canvas-tile__label { font-size: 19px; }
 
 /* Le logo occupe une case blanche du tableau, comme une signature
-   au milieu des aplats — pas de cadre ajouté, le quadrillage suffit. */
+   au milieu des aplats — pas de cadre ajouté, le quadrillage suffit.
+   Sous le logo, une devise situe le lieu et l'activité d'un coup
+   d'œil pour qui découvre le site. */
 .canvas-tile--logo {
+  flex-direction: column;
   justify-content: center;
   background: var(--paper);
 }
@@ -736,10 +780,20 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
   background: var(--paper);
 }
 .canvas-tile--logo img {
-  width: 82%;
+  width: 78%;
   height: auto;
-  max-height: 78%;
+  max-height: 58%;
   object-fit: contain;
+}
+.canvas-tile__tagline {
+  margin-top: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
+}
+@media (min-width: 768px) {
+  .canvas-tile__tagline { margin-top: 10px; font-size: 15px; }
 }
 
 @media (min-width: 768px) {
