@@ -572,15 +572,48 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
 /* ------------------------------------------------------------
    Accueil — canevas d'affiches
    ------------------------------------------------------------ */
-/* Le canevas est un tableau Mondrian : fond noir, les cases pleines
-   laissent apparaître des traits noirs continus de 4 px entre elles. */
+/* Le canevas : une bande « tableau Mondrian » centrée, qui flotte
+   sur fond blanc. Le fond noir du quadrillage est peint par
+   .home-canvas__grid, limité à la bande — les cases pleines y
+   laissent apparaître des traits noirs continus entre elles. */
 .home-canvas {
   position: fixed;
   inset: 0;
   z-index: 0;
   overflow: hidden;
+  background: var(--paper);
+}
+.home-canvas__grid {
+  position: absolute;
   background: var(--ink);
 }
+/* Petit rectangle flottant, centré en haut, affiché en permanence :
+   il invite à cliquer sur les cases du tableau et laisse passer les
+   clics. Blanc, ombre légère — une case de plus dans le langage du
+   tableau. */
+.home-hint {
+  pointer-events: none;
+  position: absolute;
+  top: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  max-width: calc(100% - 2rem);
+  background: var(--paper);
+  box-shadow: 0 1px 4px rgba(16, 15, 12, 0.25);
+  padding: 0.75rem 1.75rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 1.1rem;
+  text-align: center;
+  color: var(--ink);
+}
+@media (min-width: 768px) {
+  .home-hint { top: 1.75rem; font-size: 1.25rem; }
+}
+
 .home-canvas__scroll {
   position: absolute;
   inset: 0;
@@ -630,10 +663,9 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
 }
 .canvas-poster:hover .canvas-poster__plus { opacity: 1; }
 
-/* Cases de navigation du tableau : des aplats pleins aux couleurs
-   du Zinéma — le quadrillage noir fait office de cadre, comme sur
-   les pages Films. Au survol, la case s'inverse en noir (le même
-   langage que les filtres et la barre de navigation). Les tailles
+/* Cases de navigation du tableau : blanches, texte noir — le même
+   langage que la barre de navigation des autres pages. Chaque case
+   se remplit de sa couleur Zinéma au survol seulement. Les tailles
    sont en pixels de la grille de référence : elles suivent la mise
    à l'échelle du canevas, la coupure à 768px correspondant pile au
    changement de grille mobile/ordinateur dans home.js. */
@@ -643,32 +675,47 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
   height: 100%;
   width: 100%;
   align-items: center;
+  justify-content: center;
+  text-align: center;
   padding: 8px 10px;
+  background: var(--paper);
+  color: var(--ink);
   font-family: var(--font-display);
   text-transform: uppercase;
   letter-spacing: -0.01em;
   transition: background 0.2s ease-out, color 0.2s ease-out;
 }
-.canvas-tile:hover,
-.canvas-tile:focus-visible {
-  background: var(--ink);
+/* Au survol, la case se remplit de sa couleur (action volontaire).
+   Pendant le scroll (classe is-lit posée par home.js), l'effet est
+   plus subtil : seul le titre prend sa couleur, le fond reste
+   blanc — les boutons s'illuminent un par un au fil du défilement. */
+.canvas-tile--blue.is-lit { color: var(--blue); }
+.canvas-tile--red.is-lit { color: var(--red); }
+/* Le jaune sur fond blanc n'est pas assez lisible en texte seul :
+   la case jaune s'allume en remplissage doux, texte noir. */
+.canvas-tile--jaune.is-lit { background: var(--jaune); color: var(--ink); }
+
+.canvas-tile--blue:hover,
+.canvas-tile--blue:focus-visible {
+  background: var(--blue);
   color: var(--paper);
 }
-.canvas-tile--blue { background: var(--blue); color: var(--paper); }
-.canvas-tile--red { background: var(--red); color: var(--paper); }
+.canvas-tile--red:hover,
+.canvas-tile--red:focus-visible {
+  background: var(--red);
+  color: var(--paper);
+}
 /* Sur le jaune, le texte reste noir : le blanc n'y serait pas lisible. */
-.canvas-tile--jaune { background: var(--jaune); color: var(--ink); }
+.canvas-tile--jaune:hover,
+.canvas-tile--jaune:focus-visible {
+  background: var(--jaune);
+  color: var(--ink);
+}
 
 /* Case blanche de secours (aucun film avec affiche) : le tableau
    reste plein. */
 .canvas-block { height: 100%; width: 100%; background: var(--paper); }
 
-.canvas-tile__num {
-  margin-right: 0.35em;
-  font-weight: 400;
-  font-size: 0.5em;
-  opacity: 0.75;
-}
 .canvas-tile__label {
   font-weight: 900;
   font-size: 21px;
@@ -952,33 +999,38 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
 /* ------------------------------------------------------------
    Pied de page
    ------------------------------------------------------------ */
+/* Pied de page minimaliste : le logo en grand, une ligne de petits
+   liens, une ligne légale — le tout centré. */
 .site-footer {
-  border-top: 1px solid var(--line);
-  background: var(--paper);
-  padding: 2.5rem 1rem;
-}
-@media (min-width: 768px) { .site-footer { padding: 3.5rem 2rem; } }
-.site-footer__inner {
-  margin: 0 auto;
   display: flex;
-  max-width: 1720px;
   flex-direction: column;
-  gap: 2.5rem;
+  align-items: center;
+  gap: 2rem;
+  border-top: 2px solid var(--ink);
+  background: var(--paper);
+  padding: 3.5rem 1rem 2.5rem;
+  text-align: center;
 }
-@media (min-width: 768px) { .site-footer__inner { flex-direction: row; justify-content: space-between; } }
-.site-footer__name { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; font-size: var(--taille-texte); line-height: 0.9; }
-.site-footer__tagline { margin-top: 0.5rem; max-width: 24rem; font-weight: 400; font-size: var(--taille-texte); color: rgba(16, 15, 12, 0.7); }
-.site-footer__nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem 2.5rem; font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: var(--taille-texte); letter-spacing: -0.01em; }
-@media (min-width: 768px) { .site-footer__nav { display: flex; gap: 2rem; } }
-.site-footer__contact { font-family: var(--font-display); font-weight: 400; text-transform: uppercase; font-size: var(--taille-texte); letter-spacing: -0.01em; color: rgba(16, 15, 12, 0.7); }
-.site-footer__contact p + p { margin-top: 0.25rem; }
+@media (min-width: 768px) { .site-footer { padding: 5rem 2rem 3rem; gap: 2.5rem; } }
+.site-footer__logo {
+  display: block;
+  width: min(70%, 30rem);
+}
+.site-footer__logo img { width: 100%; height: auto; }
+.site-footer__links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem 2rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 1rem;
+}
 .site-footer__legal {
-  margin: 2.5rem auto 0;
-  max-width: 1720px;
-  border-top: 1px solid rgba(16, 15, 12, 0.1);
-  padding-top: 1rem;
   font-weight: 400;
-  font-size: var(--taille-texte);
+  font-size: 1rem;
   letter-spacing: -0.01em;
-  color: rgba(16, 15, 12, 0.6);
+  color: rgba(16, 15, 12, 0.55);
 }
