@@ -1,6 +1,7 @@
 /* ============================================================
-   Zinéma — accueil : canevas à deux colonnes d'affiches en
-   boucle infinie, ponctué de cases de navigation colorées.
+   Zinéma — accueil : canevas d'affiches en boucle infinie
+   (3 colonnes sur ordinateur, 2 sur mobile), ponctué de
+   cases de navigation.
    La navigation du site se fait uniquement par ces cases :
    il n'y a ni barre en haut ni logo central sur l'accueil.
    ============================================================ */
@@ -14,85 +15,82 @@
      toutes rangées dans les deux mêmes colonnes (gauche/droite),
      en quinconce. Les positions sont en pixels de la grille de
      référence (designWidth), mise à l'échelle de l'écran ensuite. */
-  /* Tableau « Mondrian » comme les pages Films : uniquement des
-     cases utiles — affiches et boutons de navigation — séparées
-     par des traits noirs continus fins (LINE), jamais de vide.
+  /* Grille aérée : uniquement des cases utiles — affiches et
+     boutons de navigation — séparées par de larges espaces blancs
+     (gap), pour que chaque case respire et se lise d'un coup d'œil.
      Les boutons de navigation ont TOUS exactement la même taille.
-     Pour le garantir dans une grille pleine, les colonnes sont de
-     largeur égale ; le quinconce vient du rythme décalé : une
-     colonne commence par une affiche, la suivante par un bouton —
-     deux boutons ne se touchent donc jamais, ni dans une colonne,
-     ni entre colonnes voisines, ni au raccord de la boucle.
+     Les colonnes sont de largeur égale ; le quinconce vient du
+     rythme décalé : une colonne commence par une affiche, la
+     suivante par un bouton — deux boutons ne se côtoient donc
+     jamais, ni dans une colonne, ni entre colonnes voisines,
+     ni au raccord de la boucle.
      Les 6 boutons (5 pages + logo) reviennent à chaque cycle,
-     toujours à la même place.
-     Pour aérer l'écran, le tableau est une bande centrée qui
-     flotte sur fond blanc (gridLeft/gridWidth), avec des traits
-     fins — comme une toile accrochée à un mur. */
-  var LINE = 4;
+     toujours à la même place. */
 
+  /* Trois colonnes espacées, en bande centrée sur fond blanc. */
   var desktopConfig = {
     designWidth: 1200,
-    cycleHeight: 1244,
-    gridLeft: 106,
-    gridWidth: 988,
+    cycleHeight: 1230,
+    gap: 32,
     columns: [
-      { left: 110, width: 324, cells: [
-        { type: "poster", height: 464 },
-        { type: "tile", height: 150 },
-        { type: "poster", height: 464 },
-        { type: "tile", height: 150 },
+      { left: 106, width: 308, cells: [
+        { type: "poster", height: 441 },
+        { type: "tile", height: 110 },
+        { type: "poster", height: 441 },
+        { type: "tile", height: 110 },
       ] },
-      { left: 438, width: 324, cells: [
-        { type: "tile", height: 150 },
-        { type: "poster", height: 464 },
-        { type: "tile", height: 150 },
-        { type: "poster", height: 464 },
+      { left: 446, width: 308, cells: [
+        { type: "tile", height: 110 },
+        { type: "poster", height: 441 },
+        { type: "tile", height: 110 },
+        { type: "poster", height: 441 },
       ] },
-      { left: 766, width: 324, cells: [
-        { type: "poster", height: 464 },
-        { type: "tile", height: 150 },
-        { type: "poster", height: 464 },
-        { type: "tile", height: 150 },
+      { left: 786, width: 308, cells: [
+        { type: "poster", height: 441 },
+        { type: "tile", height: 110 },
+        { type: "poster", height: 441 },
+        { type: "tile", height: 110 },
       ] },
     ],
   };
 
-  /* Sur mobile, le tableau occupe toute la largeur de l'écran :
-     les marges blanches n'existent que sur ordinateur. */
+  /* Sur mobile : deux colonnes espacées, avec une marge blanche
+     de chaque côté de l'écran. */
   var mobileConfig = {
     designWidth: 400,
-    cycleHeight: 1131,
-    gridLeft: 0,
-    gridWidth: 400,
+    cycleHeight: 1056,
+    gap: 16,
     columns: [
-      { left: 4, width: 194, cells: [
-        { type: "poster", height: 269 },
-        { type: "tile", height: 100 },
-        { type: "poster", height: 269 },
-        { type: "tile", height: 100 },
-        { type: "poster", height: 269 },
-        { type: "tile", height: 100 },
+      { left: 16, width: 176, cells: [
+        { type: "poster", height: 244 },
+        { type: "tile", height: 76 },
+        { type: "poster", height: 244 },
+        { type: "tile", height: 76 },
+        { type: "poster", height: 244 },
+        { type: "tile", height: 76 },
       ] },
-      { left: 202, width: 194, cells: [
-        { type: "tile", height: 100 },
-        { type: "poster", height: 269 },
-        { type: "tile", height: 100 },
-        { type: "poster", height: 269 },
-        { type: "tile", height: 100 },
-        { type: "poster", height: 269 },
+      { left: 208, width: 176, cells: [
+        { type: "tile", height: 76 },
+        { type: "poster", height: 244 },
+        { type: "tile", height: 76 },
+        { type: "poster", height: 244 },
+        { type: "tile", height: 76 },
+        { type: "poster", height: 244 },
       ] },
     ],
   };
 
   /* Colonnes → cases positionnées : chaque case est suivie d'un
-     trait de 4 px, le dernier trait faisant le raccord de boucle. */
+     espace blanc (gap), le dernier faisant le raccord de boucle.
+     La somme des hauteurs + espaces de chaque colonne doit donc
+     valoir exactement cycleHeight. */
   function buildSlots(config) {
     var slots = [];
     config.columns.forEach(function (column) {
       var y = 0;
       column.cells.forEach(function (cell) {
         slots.push({ type: cell.type, left: column.left, top: y, width: column.width, height: cell.height });
-        y += cell.height + LINE;
+        y += cell.height + config.gap;
       });
     });
     return slots;
@@ -115,8 +113,8 @@
      scroll (le cycle complet des 6 cases s'étale sur 2 copies). */
   var navTiles = (window.ZinemaNavLinks || []).slice().concat([{ logo: true }]);
 
-  /* Sur l'écran d'arrivée, la case qui traverse le centre (et s'y
-     allume) est celle d'index 2 dans l'ordre des cases. On y place
+  /* Sur l'écran d'arrivée, la case qui traverse le centre est
+     celle d'index 2 dans l'ordre des cases. On y place
      « Films » : c'est ce que les visiteurs cherchent en premier. */
   var CENTER_TILE_INDEX = 2;
   var filmsIndex = -1;
@@ -193,19 +191,6 @@
       }
     }
 
-    /* Les cases de navigation s'allument de leur couleur quand
-       elles traversent le milieu de l'écran pendant le scroll. */
-    var litTiles = [];
-
-    function updateLitTiles() {
-      var s = scale();
-      var middle = scrollEl.scrollTop + scrollEl.clientHeight / 2;
-      var band = scrollEl.clientHeight * 0.22;
-      litTiles.forEach(function (tile) {
-        tile.el.classList.toggle("is-lit", Math.abs(tile.center * s - middle) < band);
-      });
-    }
-
     function config() {
       return window.innerWidth < 768 ? mobileConfig : desktopConfig;
     }
@@ -219,7 +204,7 @@
     /* Écran d'arrivée : le tableau s'ouvre sur la rangée dont la
        case en haut à droite est le logo Zinéma. On cherche la case
        logo dans la copie centrale et on cale le haut de l'écran
-       juste au-dessus, sur son trait noir. */
+       juste au-dessus, au début de son espace blanc. */
     function startTop() {
       var c = config();
       var tilesPerCycle = countType(c.slots, "tile");
@@ -230,7 +215,7 @@
         if (tileForSlot(JUMP, tileIdx, tilesPerCycle).logo) logoTop = slot.top;
         tileIdx += 1;
       });
-      return (JUMP * c.cycleHeight + logoTop - LINE) * scale();
+      return (JUMP * c.cycleHeight + logoTop - c.gap) * scale();
     }
 
     function layout() {
@@ -247,9 +232,6 @@
       var html = "";
       for (var copyIdx = 0; copyIdx < COPIES; copyIdx++) {
         html += '<div class="home-canvas__copy" style="top:' + copyIdx * c.cycleHeight + "px;width:" + c.designWidth + "px;height:" + c.cycleHeight + 'px">';
-        /* Le fond noir du quadrillage, limité à la bande du tableau :
-           tout autour, la page reste blanche. */
-        html += '<div class="home-canvas__grid" style="left:' + c.gridLeft + "px;top:0;width:" + c.gridWidth + "px;height:" + c.cycleHeight + 'px"></div>';
         var posterIdx = 0;
         var tileIdx = 0;
         c.slots.forEach(function (slot) {
@@ -274,20 +256,6 @@
         html += "</div>";
       }
       stageEl.innerHTML = html;
-
-      /* Position (en pixels de la grille) du centre de chaque case
-         de navigation, pour l'allumage au passage du milieu. */
-      litTiles = [];
-      var tileEls = stageEl.querySelectorAll(".canvas-tile");
-      var k = 0;
-      for (var copy = 0; copy < COPIES; copy++) {
-        c.slots.forEach(function (slot) {
-          if (slot.type !== "tile") return;
-          litTiles.push({ el: tileEls[k], center: copy * c.cycleHeight + slot.top + slot.height / 2 });
-          k += 1;
-        });
-      }
-      updateLitTiles();
     }
 
     layout();
@@ -325,7 +293,6 @@
           var y = scrollEl.scrollTop;
           var max = scrollEl.scrollHeight - scrollEl.clientHeight;
           if (y < c * 2 || y > max - c * 2) recentre();
-          updateLitTiles();
           ticking = false;
         });
       },

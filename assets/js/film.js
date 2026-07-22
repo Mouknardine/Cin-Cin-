@@ -3,7 +3,8 @@
    (film/index.html) qui lit le film demandé dans l'URL (?s=le-slug)
    et construit un quadrillage : une case = une information.
    La page défile : synopsis complet, toutes les séances à venir,
-   bande-annonce intégrée, pied de page dans le quadrillage.
+   bande-annonce intégrée ; le pied de page commun au site
+   (footer.js) s'affiche sous le tableau.
    ============================================================ */
 (function () {
   "use strict";
@@ -125,24 +126,6 @@
     });
   }
 
-  function piedHTML(settings) {
-    settings = settings || {};
-    var tel = settings.phone
-      ? '<a class="m-cell m-pied m-pied--tel" href="tel:' + R.escapeHtml(String(settings.phone).replace(/\s/g, "")) + '">' +
-        R.escapeHtml(settings.phone) + "</a>"
-      : '<div class="m-cell m-pied m-pied--tel" aria-hidden="true"></div>';
-    var email = settings.email
-      ? '<a class="m-cell m-pied m-pied--email" href="mailto:' + R.escapeHtml(settings.email) + '">' +
-        R.escapeHtml(settings.email) + "</a>"
-      : '<div class="m-cell m-pied m-pied--email" aria-hidden="true"></div>';
-    return (
-      '<a class="m-cell m-pied m-pied--nom" href="' + root + '"><span class="m-pied__nom">Zinéma</span></a>' +
-      '<div class="m-cell m-pied m-pied--adresse">' +
-      R.escapeHtml(settings.address || "Cinéma indépendant à Lausanne") + "</div>" +
-      tel + email
-    );
-  }
-
   function langueLigne(film) {
     return [
       [film.language, film.subtitles].filter(Boolean).join(" "),
@@ -213,7 +196,6 @@
       '<a href="' + root + 'agenda/" class="m-seances__agenda">Agenda complet</a></div>' +
       '<a href="' + root + 'films/" class="m-cell m-action m-retour"><span>← Tous les films</span></a>' +
       reserverHTML(film) +
-      piedHTML(settings) +
       "</article>";
 
     brancherBandeAnnonce();

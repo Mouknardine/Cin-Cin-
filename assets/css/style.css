@@ -41,7 +41,9 @@
   --font-display: "Aileron", "Helvetica Neue", Arial, sans-serif;
   --font-body: "Aileron", "Helvetica Neue", Arial, sans-serif;
   --ink: #100f0c;
-  --paper: #ffffff;
+  /* Le « papier » du site : un gris clair neutre (référence
+     publicrecords.nyc) — toute la surface du site, cases comprises. */
+  --paper: #ededed;
   --red: #c22a1d;
   --blue: #2f49c2;
   --jaune: #f7c600;
@@ -572,20 +574,15 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
 /* ------------------------------------------------------------
    Accueil — canevas d'affiches
    ------------------------------------------------------------ */
-/* Le canevas : une bande « tableau Mondrian » centrée, qui flotte
-   sur fond blanc. Le fond noir du quadrillage est peint par
-   .home-canvas__grid, limité à la bande — les cases pleines y
-   laissent apparaître des traits noirs continus entre elles. */
+/* Le canevas : des cases (affiches et boutons) qui flottent sur
+   fond blanc, séparées par de larges espaces — comme des cadres
+   accrochés à un mur. Les espaces sont définis dans home.js (gap). */
 .home-canvas {
   position: fixed;
   inset: 0;
   z-index: 0;
   overflow: hidden;
   background: var(--paper);
-}
-.home-canvas__grid {
-  position: absolute;
-  background: var(--ink);
 }
 /* Flèche d'invitation au défilement : une petite case blanche qui
    rebondit doucement en bas de l'écran, dans le langage du tableau.
@@ -720,22 +717,16 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
   text-align: center;
   padding: 8px 10px;
   background: var(--paper);
+  /* Cadre noir : sans lui, une case blanche serait invisible sur
+     le fond blanc de la page. */
+  border: 3px solid var(--ink);
   color: var(--ink);
   font-family: var(--font-display);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   transition: background 0.2s ease-out, color 0.2s ease-out;
 }
-/* Au survol, la case se remplit de sa couleur (action volontaire).
-   Pendant le scroll (classe is-lit posée par home.js), l'effet est
-   plus subtil : seul le titre prend sa couleur, le fond reste
-   blanc — les boutons s'illuminent un par un au fil du défilement. */
-.canvas-tile--blue.is-lit { color: var(--blue); }
-.canvas-tile--red.is-lit { color: var(--red); }
-/* Le jaune sur fond blanc n'est pas assez lisible en texte seul :
-   la case jaune s'allume en remplissage doux, texte noir. */
-.canvas-tile--jaune.is-lit { background: var(--jaune); color: var(--ink); }
-
+/* Au survol, la case se remplit de sa couleur (action volontaire). */
 .canvas-tile--blue:hover,
 .canvas-tile--blue:focus-visible {
   background: var(--blue);
@@ -755,7 +746,7 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
 
 /* Case blanche de secours (aucun film avec affiche) : le tableau
    reste plein. */
-.canvas-block { height: 100%; width: 100%; background: var(--paper); }
+.canvas-block { height: 100%; width: 100%; background: var(--paper); border: 3px solid var(--ink); }
 
 .canvas-tile__label {
   font-weight: 900;

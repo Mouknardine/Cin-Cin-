@@ -10,7 +10,7 @@
      · jaune = les infos du film (année, durée, version)
      · bleu  = ce qui se réserve / se navigue (séances, réserver)
      · rouge = la mise en avant (statut « À l'affiche »…)
-     · noir  = le contenu (synopsis, pied de page)
+     · noir  = le contenu (synopsis)
 
    Deux tailles de texte seulement (--taille-titre, --taille-texte),
    la hiérarchie se fait par les graisses.
@@ -328,31 +328,6 @@ a.m-seances__chip:focus-visible {
   color: #fff;
 }
 
-/* Pied de page : des cases du tableau, comme le reste. */
-.m-pied {
-  grid-column: 1 / -1;
-  flex-direction: row;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.75rem;
-  padding: 0.75rem 1rem;
-}
-.m-pied__nom {
-  font-family: var(--font-display);
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-}
-a.m-pied {
-  font-weight: 700;
-  transition: background 0.2s ease-out, color 0.2s ease-out;
-}
-a.m-pied:hover,
-a.m-pied:focus-visible {
-  background: var(--ink);
-  color: #fff;
-}
-
 /* Film introuvable */
 .m-introuvable {
   grid-column: 1 / -1;
@@ -383,7 +358,7 @@ a.m-pied:focus-visible {
 @media (min-width: 1080px) {
   .mondrian {
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    grid-template-rows: auto auto 1fr auto auto;
+    grid-template-rows: auto auto 1fr auto;
   }
 
   /* Les cases sont dimensionnées au plus juste par leur contenu ;
@@ -399,11 +374,6 @@ a.m-pied:focus-visible {
   .m-seances { grid-area: 3 / 9 / 4 / 13; }
   .m-retour { display: flex; order: 0; grid-area: 4 / 1 / 5 / 5; }
   .m-reserver { grid-area: 4 / 5 / 5 / 13; }
-
-  .m-pied--nom { grid-area: 5 / 1 / 6 / 5; }
-  .m-pied--adresse { grid-area: 5 / 5 / 6 / 8; }
-  .m-pied--tel { grid-area: 5 / 8 / 6 / 10; }
-  .m-pied--email { grid-area: 5 / 10 / 6 / 13; }
 
   .m-introuvable { grid-area: 1 / 5 / 4 / 13; }
 }

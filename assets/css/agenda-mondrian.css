@@ -1,0 +1,158 @@
+/* ============================================================
+   Zinéma — page Agenda en tableau « Mondrian ».
+   S'appuie sur film-mondrian.css (quadrillage, cases) et
+   films-mondrian.css (en-tête .m-entete, filtres .m-filtres) :
+   les trois feuilles sont chargées ensemble sur cette page.
+
+   Le tableau : en-tête, bascule Jour/Semaine, puis
+   · vue Jour : les jours en cases-boutons, la date en toutes
+     lettres, une rangée de cases par séance ;
+   · vue Semaine : une colonne par jour, mêmes rangées.
+   Chaque séance est entièrement cliquable vers la fiche film —
+   survol bleu (bleu = navigation, code couleur du site).
+   ============================================================ */
+
+/* La fiche film fixe des rangées de grille (1fr…) sur ordinateur :
+   l'agenda n'empile que des rangées pleine largeur, toutes en auto. */
+@media (min-width: 1080px) {
+  .mondrian--agenda { grid-template-rows: none; }
+}
+
+/* ---------- Cases-boutons des jours : jour + numéro ---------- */
+
+.m-filtre--jour {
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.6rem 1rem;
+}
+.m-jour__dow { font-weight: 700; }
+.m-jour__num { font-weight: 900; }
+
+/* ---------- La date choisie, en toutes lettres ---------- */
+
+.m-jour-actif {
+  grid-column: 1 / -1;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Une séance = une rangée de cases cliquable ---------- */
+
+.m-seances-liste {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ligne);
+  background: var(--ink);
+}
+.m-seance {
+  display: flex;
+  gap: var(--ligne);
+  background: var(--ink);
+  min-width: 0;
+}
+.m-seance > * {
+  background: var(--paper);
+}
+.m-seance__heure {
+  flex: 0 0 5.5rem;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+}
+.m-seance__infos {
+  flex: 1;
+  min-width: 0;
+  gap: 0.25rem;
+}
+.m-seance__titre {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+.m-seance__salle { font-weight: 400; }
+.m-seance__statut {
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+/* Annulé en rouge (rouge = mise en avant) ; Complet reste noir. */
+.m-seance__statut--annule { color: var(--red); }
+
+/* Toute la rangée se remplit de bleu au survol : une seule surface,
+   comme les autres liens-cases du tableau. */
+a.m-seance {
+  transition: none;
+}
+a.m-seance > * {
+  transition: background 0.2s ease-out, color 0.2s ease-out;
+}
+a.m-seance:hover > *,
+a.m-seance:focus-visible > * {
+  background: var(--blue);
+  color: #fff;
+}
+
+@media (min-width: 1080px) {
+  .m-seance__heure { flex-basis: 7.5rem; }
+  .m-seance__statut { padding-inline: 2rem; }
+}
+
+/* ---------- Vue Semaine : une colonne par jour ---------- */
+
+.m-semaine {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ligne);
+  background: var(--ink);
+}
+.m-semaine__col {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ligne);
+  background: var(--ink);
+  min-width: 0;
+}
+/* Les cases des colonnes ne sont pas des enfants directs du
+   tableau : elles reçoivent leur fond papier ici. */
+.m-semaine__col > * {
+  background: var(--paper);
+}
+.m-semaine__date {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.m-semaine__liste {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ligne);
+  background: var(--ink);
+}
+/* Les colonnes d'une même rangée ont la même hauteur : la dernière
+   séance des colonnes plus courtes absorbe l'espace restant —
+   jamais de trou noir dans le tableau. */
+.m-semaine__liste .m-seance:last-child { flex: 1; }
+
+/* Dans les colonnes plus étroites, la case heure se resserre. */
+.m-semaine .m-seance__heure { flex-basis: 5.5rem; }
+.m-semaine .m-seance__statut { padding-inline: 1rem; }
+
+/* Deux jours par rangée sur tablette, trois sur ordinateur :
+   les colonnes s'élargissent pour toujours remplir la rangée. */
+@media (min-width: 768px) {
+  .m-semaine__col { flex: 1 1 calc((100% - var(--ligne)) / 2); }
+}
+@media (min-width: 1080px) {
+  .m-semaine__col { flex: 1 1 calc((100% - 2 * var(--ligne)) / 3); }
+}

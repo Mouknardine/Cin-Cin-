@@ -1,5 +1,10 @@
 /* ============================================================
-   Zinéma — agenda : vues jour et semaine
+   Zinéma — agenda en tableau « Mondrian », comme la fiche film :
+   uniquement des cases utiles séparées par des traits noirs.
+   Deux vues restent disponibles : Jour (un jour à la fois) et
+   Semaine (tous les jours en colonnes). Chaque séance est une
+   rangée de cases — heure / film & salle / statut — entièrement
+   cliquable vers la fiche du film (bleu = navigation au survol).
    ============================================================ */
 (function () {
   "use strict";
@@ -31,86 +36,102 @@
   var activeDate = null;
   var mode = "jour";
 
+  /* La bascule Jour/Semaine : des cases-boutons comme les filtres
+     de la page Films (noir = actif, bleu au survol). */
+  function modesHTML() {
+    function bouton(m, label) {
+      return (
+        '<button type="button" class="m-filtre' + (mode === m ? " is-active" : "") + '" data-mode="' + m + '">' +
+        label + "</button>"
+      );
+    }
+    return (
+      '<nav class="m-filtres" aria-label="Choisir la vue">' +
+      bouton("jour", "Jour") + bouton("semaine", "Semaine") +
+      "</nav>"
+    );
+  }
+
+  /* Les jours : mêmes cases-boutons, sur deux lignes (jour + date). */
   function dayTabsHTML() {
-    return days
+    var boutons = days
       .map(function (d) {
         var date = R.parseISODate(d.date);
-        var label = R.isToday(date) ? "AUJ." : R.formatDowShort(d.date);
+        var label = R.isToday(date) ? "Auj." : R.formatDowShort(d.date);
         return (
-          '<button type="button" class="agenda-day-btn' + (d.date === activeDate ? " is-active" : "") + '" data-date="' + d.date + '">' +
-          '<span class="agenda-day-btn__dow">' + label + "</span>" +
-          '<span class="agenda-day-btn__num">' + String(date.getDate()).padStart(2, "0") + "</span></button>"
+          '<button type="button" class="m-filtre m-filtre--jour' + (d.date === activeDate ? " is-active" : "") + '" data-date="' + d.date + '">' +
+          '<span class="m-jour__dow">' + label + "</span>" +
+          '<span class="m-jour__num">' + String(date.getDate()).padStart(2, "0") + "</span></button>"
         );
       })
       .join("");
+    return '<nav class="m-filtres" aria-label="Choisir le jour">' + boutons + "</nav>";
   }
 
-  function dayPanelHTML() {
+  /* Une séance = une rangée de cases, toute la rangée est cliquable.
+     La case statut n'existe que si la séance est complète ou annulée
+     (jamais de case vide dans le tableau). */
+  function seanceHTML(s) {
+    var filmHref = s.film ? root + "film/?s=" + encodeURIComponent(s.film.slug) : root + "films/";
+    var sub = [R.escapeHtml(s.room || ""), s.versionNote ? "— " + R.escapeHtml(s.versionNote) : ""]
+      .filter(Boolean)
+      .join(" ");
+    var statut = statusText[s.status]
+      ? '<span class="m-cell m-seance__statut' + (s.status === "annule" ? " m-seance__statut--annule" : "") + '">' +
+        statusText[s.status] + "</span>"
+      : "";
+    return (
+      '<a class="m-seance" href="' + filmHref + '">' +
+      '<span class="m-cell m-seance__heure">' + s.time + "</span>" +
+      '<span class="m-cell m-seance__infos">' +
+      '<span class="m-seance__titre">' + R.escapeHtml(s.film ? s.film.title : "Séance") + "</span>" +
+      (sub ? '<span class="m-seance__salle">' + sub + "</span>" : "") +
+      "</span>" + statut + "</a>"
+    );
+  }
+
+  /* Vue Jour : la date en toutes lettres, puis les séances du jour. */
+  function dayViewHTML() {
     var activeDay = days.filter(function (d) { return d.date === activeDate; })[0] || days[0];
     if (!activeDay) return "";
-    var items = activeDay.screenings
-      .map(function (s) {
-        var filmHref = s.film ? root + "film/?s=" + encodeURIComponent(s.film.slug) : root + "films/";
-        var statusMobile = statusText[s.status]
-          ? '<span class="agenda-item__sub-status' + (s.status === "annule" ? " is-status-red" : "") + '"> · ' + statusText[s.status] + "</span>"
-          : "";
-        var statusDesktop = '<span class="agenda-item__status' + (s.status === "annule" ? " is-status-red" : "") + '">' + statusText[s.status] + "</span>";
-        var sub = [R.escapeHtml(s.room || ""), s.versionNote ? "— " + R.escapeHtml(s.versionNote) : ""].filter(Boolean).join(" ");
-        return (
-          '<li class="agenda-item"><span class="agenda-item__time font-display">' + s.time + "</span>" +
-          "<div><a href=\"" + filmHref + '" class="agenda-item__title underline-hover font-display">' + R.escapeHtml(s.film ? s.film.title : "Séance") + "</a>" +
-          '<p class="agenda-item__sub">' + sub + statusMobile + "</p></div>" +
-          statusDesktop + "</li>"
-        );
-      })
-      .join("");
     return (
-      '<div class="agenda-day-panel"><p class="agenda-day-panel__heading font-display">' + R.formatDayHeading(activeDay.date) + "</p>" +
-      '<ul>' + items + "</ul></div>"
+      dayTabsHTML() +
+      '<p class="m-cell m-jour-actif">' + R.formatDayHeading(activeDay.date) + "</p>" +
+      '<div class="m-seances-liste">' + activeDay.screenings.map(seanceHTML).join("") + "</div>"
     );
   }
 
+  /* Vue Semaine : une colonne par jour, mêmes rangées de séances. */
   function weekViewHTML() {
-    return (
-      '<div class="agenda-week">' +
-      days
-        .map(function (d) {
-          var items = d.screenings
-            .map(function (s) {
-              var filmHref = s.film ? root + "film/?s=" + encodeURIComponent(s.film.slug) : root + "films/";
-              var statusStr = statusText[s.status] ? " · " + statusText[s.status] : "";
-              return (
-                '<li><a href="' + filmHref + '" class="agenda-week__link underline-hover font-display">' + s.time + " — " + R.escapeHtml(s.film ? s.film.title : "") + "</a>" +
-                '<p class="agenda-week__meta">' + R.escapeHtml(s.room || "") + statusStr + "</p></li>"
-              );
-            })
-            .join("");
-          return (
-            '<div class="agenda-week__col"><p class="agenda-week__date font-display">' + R.formatDayHeading(d.date) + "</p>" +
-            '<ul class="agenda-week__list">' + items + "</ul></div>"
-          );
-        })
-        .join("") +
-      "</div>"
-    );
+    var colonnes = days
+      .map(function (d) {
+        return (
+          '<div class="m-semaine__col">' +
+          '<p class="m-cell m-semaine__date">' + R.formatDayHeading(d.date) + "</p>" +
+          '<div class="m-semaine__liste">' + d.screenings.map(seanceHTML).join("") + "</div></div>"
+        );
+      })
+      .join("");
+    return '<div class="m-semaine">' + colonnes + "</div>";
   }
 
   function render() {
     if (days.length === 0) {
-      app.innerHTML = '<p class="empty-state font-display">Aucune séance programmée pour le moment.</p>';
+      app.innerHTML =
+        '<article class="mondrian mondrian--agenda">' +
+        '<header class="m-cell m-entete"><p class="m-cell__label">Agenda</p><h1>Les séances</h1></header>' +
+        '<div class="m-cell m-vide"><p class="m-cell__label">Aucune séance</p>' +
+        '<p class="m-cell__value">Aucune séance programmée pour le moment.</p></div>' +
+        "</article>";
       return;
     }
-    var modesHTML =
-      '<div class="agenda-toolbar__modes">' +
-      '<button type="button" class="chip' + (mode === "jour" ? " is-active" : "") + '" data-mode="jour">Jour</button>' +
-      '<button type="button" class="chip' + (mode === "semaine" ? " is-active" : "") + '" data-mode="semaine">Semaine</button>' +
-      "</div>";
 
-    var body = mode === "jour"
-      ? '<div class="agenda-days">' + dayTabsHTML() + "</div>" + dayPanelHTML()
-      : weekViewHTML();
-
-    app.innerHTML = '<div class="agenda-toolbar">' + modesHTML + "</div>" + body;
+    app.innerHTML =
+      '<article class="mondrian mondrian--agenda">' +
+      '<header class="m-cell m-entete"><p class="m-cell__label">Agenda</p><h1>Les séances</h1></header>' +
+      modesHTML() +
+      (mode === "jour" ? dayViewHTML() : weekViewHTML()) +
+      "</article>";
 
     app.querySelectorAll("[data-mode]").forEach(function (btn) {
       btn.addEventListener("click", function () {
