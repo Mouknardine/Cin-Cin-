@@ -4,7 +4,8 @@
    Deux vues restent disponibles : Jour (un jour à la fois) et
    Semaine (tous les jours en colonnes). Chaque séance est une
    rangée de cases — heure / film & salle / statut — entièrement
-   cliquable vers la fiche du film (bleu = navigation au survol).
+   cliquable vers la fiche du film. Les couleurs des cases sont
+   tirées au hasard à chaque affichage (couleurs.js).
    ============================================================ */
 (function () {
   "use strict";
@@ -12,6 +13,7 @@
   var root = document.body.dataset.root || "";
   var app = document.getElementById("agenda-app");
   var R = window.ZinemaRender;
+  var C = window.ZinemaCouleurs;
 
   var statusText = { disponible: "", complet: "Complet", annule: "Annulé" };
 
@@ -37,11 +39,11 @@
   var mode = "jour";
 
   /* La bascule Jour/Semaine : des cases-boutons comme les filtres
-     de la page Films (noir = actif, bleu au survol). */
+     de la page Films (noir = actif, couleur au hasard au survol). */
   function modesHTML() {
     function bouton(m, label) {
       return (
-        '<button type="button" class="m-filtre' + (mode === m ? " is-active" : "") + '" data-mode="' + m + '">' +
+        '<button type="button" class="m-filtre ' + C.classe() + (mode === m ? " is-active" : "") + '" data-mode="' + m + '">' +
         label + "</button>"
       );
     }
@@ -52,14 +54,18 @@
     );
   }
 
-  /* Les jours : mêmes cases-boutons, sur deux lignes (jour + date). */
+  /* Les jours : mêmes cases-boutons, sur deux lignes (jour + date).
+     Leur couleur est tirée SANS le noir : le jour choisi se peint
+     de sa couleur (voir .m-filtre--jour.is-active), et il est collé
+     à la bascule Jour/Semaine dont la case active est noire. Deux
+     cases noires qui se touchent ne feraient qu'un seul bloc. */
   function dayTabsHTML() {
     var boutons = days
       .map(function (d) {
         var date = R.parseISODate(d.date);
         var label = R.isToday(date) ? "Auj." : R.formatDowShort(d.date);
         return (
-          '<button type="button" class="m-filtre m-filtre--jour' + (d.date === activeDate ? " is-active" : "") + '" data-date="' + d.date + '">' +
+          '<button type="button" class="m-filtre m-filtre--jour ' + C.classeVive() + (d.date === activeDate ? " is-active" : "") + '" data-date="' + d.date + '">' +
           '<span class="m-jour__dow">' + label + "</span>" +
           '<span class="m-jour__num">' + String(date.getDate()).padStart(2, "0") + "</span></button>"
         );
@@ -81,7 +87,7 @@
         statusText[s.status] + "</span>"
       : "";
     return (
-      '<a class="m-seance" href="' + filmHref + '">' +
+      '<a class="m-seance c-' + C.suivante() + '" href="' + filmHref + '">' +
       '<span class="m-cell m-seance__heure">' + s.time + "</span>" +
       '<span class="m-cell m-seance__infos">' +
       '<span class="m-seance__titre">' + R.escapeHtml(s.film ? s.film.title : "Séance") + "</span>" +
@@ -96,7 +102,7 @@
     if (!activeDay) return "";
     return (
       dayTabsHTML() +
-      '<p class="m-cell m-jour-actif">' + R.formatDayHeading(activeDay.date) + "</p>" +
+      '<p class="m-cell m-jour-actif ' + C.classe() + '">' + R.formatDayHeading(activeDay.date) + "</p>" +
       '<div class="m-seances-liste">' + activeDay.screenings.map(seanceHTML).join("") + "</div>"
     );
   }
@@ -107,7 +113,7 @@
       .map(function (d) {
         return (
           '<div class="m-semaine__col">' +
-          '<p class="m-cell m-semaine__date">' + R.formatDayHeading(d.date) + "</p>" +
+          '<p class="m-cell m-semaine__date ' + C.classe() + '">' + R.formatDayHeading(d.date) + "</p>" +
           '<div class="m-semaine__liste">' + d.screenings.map(seanceHTML).join("") + "</div></div>"
         );
       })
@@ -119,8 +125,7 @@
     if (days.length === 0) {
       app.innerHTML =
         '<article class="mondrian mondrian--agenda">' +
-        '<header class="m-cell m-entete"><p class="m-cell__label">Agenda</p><h1>Les séances</h1></header>' +
-        '<div class="m-cell m-vide"><p class="m-cell__label">Aucune séance</p>' +
+        '<div class="m-cell m-vide ' + C.classe() + '"><p class="m-cell__label">Aucune séance</p>' +
         '<p class="m-cell__value">Aucune séance programmée pour le moment.</p></div>' +
         "</article>";
       return;
@@ -128,7 +133,6 @@
 
     app.innerHTML =
       '<article class="mondrian mondrian--agenda">' +
-      '<header class="m-cell m-entete"><p class="m-cell__label">Agenda</p><h1>Les séances</h1></header>' +
       modesHTML() +
       (mode === "jour" ? dayViewHTML() : weekViewHTML()) +
       "</article>";

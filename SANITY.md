@@ -8,7 +8,7 @@
 > qu'à titre de référence. Voir aussi « L'onglet Planification » en fin de document.
 
 Le site est composé de **simples fichiers HTML/CSS/JS** (`index.html`,
-`films/`, `agenda/`, `annonces/`, `histoire/`, `infos-pratiques/`, `film/`,
+`films/`, `agenda/`, `evenements/`, `histoire/`, `membership/`, `contact/`, `film/`,
 `assets/`) — pas de build, pas de framework, hébergeables tels quels
 n'importe où, y compris un hébergement mutualisé sans serveur comme
 Infomaniak. Le contenu Sanity est lu **directement par le navigateur de
@@ -104,8 +104,8 @@ ajouter, sans case « Allow credentials » à cocher :
 ## 7. Mettre le site en ligne
 
 Aucun build n'est nécessaire : il suffit d'envoyer les fichiers du site
-(`index.html`, `films/`, `agenda/`, `annonces/`, `histoire/`,
-`infos-pratiques/`, `film/`, `assets/` — pas `sanity/` ni les autres
+(`index.html`, `films/`, `agenda/`, `evenements/`, `histoire/`,
+`membership/`, `contact/`, `film/`, `assets/` — pas `sanity/` ni les autres
 fichiers du dépôt, qui ne concernent que l'édition de contenu) sur
 l'hébergement :
 

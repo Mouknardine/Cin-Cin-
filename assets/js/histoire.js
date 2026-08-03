@@ -1,47 +1,112 @@
 /* ============================================================
-   Zinéma — histoire : intro + frise chronologique
+   Zinéma — page Histoire, en tableau « Mondrian » comme le reste
+   du site : des cases blanches séparées par des traits noirs,
+   dont la largeur suit la longueur du texte, et dont la couleur
+   est tirée au hasard à chaque affichage.
+
+   La bande d'ouverture pose l'âge du cinéma à côté du texte
+   d'introduction ; chaque étape tient ensuite sur une bande :
+   l'année, son visuel s'il y en a un, le titre, le texte.
    ============================================================ */
 (function () {
   "use strict";
 
   var app = document.getElementById("histoire-app");
   var R = window.ZinemaRender;
+  var C = window.ZinemaCouleurs;
 
-  function renderBody(body) {
-    if (typeof body === "string") return body;
-    if (Array.isArray(body)) {
-      return body
-        .map(function (block) {
-          return ((block && block.children) || []).map(function (c) { return c.text; }).join("");
-        })
-        .join("\n\n");
-    }
-    return "";
+  var INTRO_DEFAUT =
+    "Pendant que les grandes salles rétrécissaient leurs rangées pour multiplier les écrans, le Zinéma a fait le pari inverse : une salle généreuse, pensée pour rassembler un public plutôt que le fragmenter en micro-écrans.";
+
+  function bande(classe, contenu) {
+    return '<div class="m-bande ' + classe + '">' + contenu + "</div>";
   }
 
-  function entryHTML(entry, i) {
-    var bodyText = renderBody(entry.body);
+  /* Le texte d'une étape arrive de Sanity en blocs de texte riche
+     (ou en simple chaîne dans le contenu d'exemple) : on n'en garde
+     que les paragraphes, séparés par une ligne vide. */
+  function texteEtape(body) {
+    if (typeof body === "string") return body;
+    if (!Array.isArray(body)) return "";
+    return body
+      .map(function (bloc) {
+        return ((bloc && bloc.children) || [])
+          .map(function (enfant) { return enfant.text; })
+          .join("");
+      })
+      .filter(Boolean)
+      .join("\n\n");
+  }
+
+  /* La case de l'année : le repère chronologique, en grand. */
+  function anneeHTML(annee, label) {
     return (
-      '<li class="history-entry reveal" data-delay="' + i * 0.06 + '"><span class="history-entry__dot"></span>' +
-      '<p class="history-entry__ghost-year font-display">' + R.escapeHtml(entry.year) + "</p>" +
-      '<div class="history-entry__body"><p class="history-entry__year font-display">' + R.escapeHtml(entry.year) + "</p>" +
-      '<h2 class="history-entry__title font-display">' + R.escapeHtml(entry.title) + "</h2>" +
-      (bodyText ? '<p class="history-entry__text">' + R.escapeHtml(bodyText) + "</p>" : "") +
-      "</div></li>"
+      '<div class="m-cell m-histoire__annee ' + C.classe() + '">' +
+      (label ? '<p class="m-cell__label">' + R.escapeHtml(label) + "</p>" : "") +
+      '<p class="m-histoire__annee-valeur">' + R.escapeHtml(annee) + "</p></div>"
     );
   }
 
-  Promise.all([window.ZinemaData.getHistory(), window.ZinemaData.getSiteSettings()]).then(function (results) {
-    var entries = results[0];
-    var settings = results[1];
-    var intro =
-      settings.historyIntro ||
-      "Pendant que les grandes salles rétrécissaient leurs rangées pour multiplier les écrans, le Zinéma a fait le pari inverse : une salle généreuse, pensée pour rassembler un public plutôt que le fragmenter en micro-écrans.";
+  /* L'âge du cinéma, calculé depuis sa première étape : il ouvre la
+     page et se met à jour tout seul d'une année sur l'autre. La
+     première étape pouvant couvrir une période (« 2001–2003 »), on
+     n'en retient que la première année. */
+  function ageHTML(premiereEtape) {
+    var annee = String(premiereEtape.year || "").match(/\d{4}/);
+    var ans = annee ? new Date().getFullYear() - Number(annee[0]) : 0;
+    if (ans < 1) return anneeHTML(premiereEtape.year, "Depuis");
+    return anneeHTML(ans + (ans > 1 ? " ans" : " an"), "Depuis " + annee[0]);
+  }
+
+  /* Le visuel n'existe que si l'étape en a un : jamais de case
+     vide dans le tableau. */
+  function visuelHTML(entree) {
+    var src = R.sanityImageUrl(entree.image, 900) || R.localImageUrl(entree.image);
+    if (!src) return "";
+    return (
+      '<div class="m-affiche m-histoire__visuel"><div class="poster">' +
+      '<img src="' + R.escapeHtml(src) + '" alt="' + R.escapeHtml(entree.title) + '" loading="lazy"></div></div>'
+    );
+  }
+
+  function etapeHTML(entree) {
+    var texte = texteEtape(entree.body);
+    return bande(
+      "m-bande--etape",
+      anneeHTML(entree.year) +
+        visuelHTML(entree) +
+        '<div class="m-cell m-histoire__titre ' + C.classe() + '">' + R.escapeHtml(entree.title) + "</div>" +
+        (texte ? '<div class="m-cell m-histoire__texte ' + C.classe() + '">' + R.escapeHtml(texte) + "</div>" : "")
+    );
+  }
+
+  Promise.all([window.ZinemaData.getHistory(), window.ZinemaData.getSiteSettings()]).then(function (resultats) {
+    var entrees = resultats[0] || [];
+    var reglages = resultats[1] || {};
+    var intro = reglages.historyIntro || INTRO_DEFAUT;
+
+    if (entrees.length === 0) {
+      app.innerHTML =
+        '<article class="mondrian mondrian--histoire">' +
+        bande(
+          "m-bande--vide",
+          '<div class="m-cell m-vide ' + C.classe() + '"><p class="m-cell__label">Histoire</p>' +
+            '<p class="m-cell__value">' + R.escapeHtml(intro) + "</p></div>"
+        ) +
+        "</article>";
+      return;
+    }
+
+    var ouverture = bande(
+      "m-bande--intro",
+      ageHTML(entrees[0]) +
+        '<div class="m-cell m-histoire__intro ' + C.classe() + '">' + R.escapeHtml(intro) + "</div>"
+    );
 
     app.innerHTML =
-      '<div class="history-intro reveal"><p class="font-display">' + R.escapeHtml(intro) + "</p></div>" +
-      '<ol class="history-timeline">' + entries.map(entryHTML).join("") + "</ol>";
-
-    window.ZinemaReveal.observe(app);
+      '<article class="mondrian mondrian--histoire">' +
+      ouverture +
+      entrees.map(etapeHTML).join("") +
+      "</article>";
   });
 })();

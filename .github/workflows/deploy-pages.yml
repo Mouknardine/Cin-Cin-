@@ -28,10 +28,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Le dossier « api » (billetterie SumUp) n'est PAS publié ici :
+      # GitHub Pages ne sait pas exécuter PHP, il en afficherait le
+      # code source. La billetterie n'existe que sur l'hébergement
+      # Infomaniak — voir BILLETTERIE.md.
       - name: Rassembler les fichiers du site (sans le Studio Sanity ni les scripts)
         run: |
           mkdir site
-          cp -r index.html films agenda annonces histoire infos-pratiques film assets site/
+          cp -r index.html films film agenda evenements histoire membership contact billet assets site/
 
       - uses: actions/configure-pages@v5
 

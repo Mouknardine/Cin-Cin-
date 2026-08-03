@@ -166,7 +166,8 @@ export const film = defineType({
       title: "Prix (CHF)",
       type: "string",
       group: "billetterie",
-      description: "Ex. 16.- / 12.- (réduit). Utilisé si la séance n'a pas de prix propre.",
+      description:
+        "Laisser vide pour les tarifs habituels (16.- / 10.- réduit). À remplir seulement pour un prix particulier — ciné-goûter, soirée spéciale…",
     }),
     defineField({
       name: "sumupCheckoutUrl",

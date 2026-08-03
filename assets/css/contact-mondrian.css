@@ -1,0 +1,90 @@
+/* ============================================================
+   Zinéma — page Contact en tableau « Mondrian ».
+   S'appuie sur film-mondrian.css (quadrillage, cases, repères) :
+   les deux feuilles sont chargées ensemble sur cette page.
+
+   L'adresse ouvre la page en très grand, la carte juste dessous ;
+   viennent ensuite les horaires, les coordonnées, l'accès et les
+   réseaux, chacun dans sa case :
+
+     ┌──────────────────────────────────────────────────────────┐
+     │ ADRESSE                                                  │
+     │ RUE DU MAUPAS 4                                          │
+     │ 1004 LAUSANNE                                            │
+     ├──────────────────────────────────────────────────────────┤
+     │                        la carte                          │
+     ├──────────┬───────────────────────┬───────────────────────┤
+     │ CAISSE   │ BILLETTERIE           │ TARIFS                │
+     ├──────────┴───────┬───────────────┴───────┬───────────────┤
+     │ CINÉMA           │ BUREAU                │ E-MAIL        │
+     └──────────────────┴───────────────────────┴───────────────┘
+   ============================================================ */
+
+/* ---------- Mobile & tablette : chaque case prend toute la
+   largeur. Sans cette règle, une case calée sur son texte
+   laisserait un trait noir à sa droite — un trou dans le
+   tableau. ---------- */
+
+@media (max-width: 899px) {
+  .mondrian--contact .m-bande > * {
+    flex: 1 1 100%;
+  }
+}
+
+/* ---------- L'adresse, en grand ----------
+   C'est le seul texte de la page à la taille des titres : c'est
+   l'information qu'on vient chercher ici. */
+
+.m-contact__adresse-valeur {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  font-size: var(--taille-titre);
+  line-height: 0.95;
+  /* La rue et la ville sont sur deux lignes distinctes (voir
+     contact.js) ; un mot trop long pour la case est coupé plutôt
+     que de déborder. */
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- La carte ----------
+   Une case à part entière : la carte la remplit entièrement, sans
+   marge ni cadre ajouté — le quadrillage du tableau suffit. Elle
+   est en noir et blanc comme le reste du site, et retrouve ses
+   couleurs dès qu'on la survole ou qu'on s'en sert. */
+
+.m-contact__carte {
+  position: relative;
+  padding: 0;
+  min-height: 16rem;
+  overflow: hidden;
+  background: var(--paper);
+  filter: grayscale(1) contrast(1.05);
+  transition: filter 0.4s var(--ease-editorial);
+}
+.m-contact__carte:hover,
+.m-contact__carte:focus-within {
+  filter: none;
+}
+.m-contact__carte iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* ---------- L'accès ---------- */
+
+.m-contact__acces-texte {
+  font-weight: 400;
+  white-space: pre-line;
+}
+
+/* ---------- Ordinateur ---------- */
+
+@media (min-width: 900px) {
+  .m-contact__carte { min-height: 20rem; }
+}

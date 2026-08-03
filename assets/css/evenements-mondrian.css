@@ -1,0 +1,114 @@
+/* ============================================================
+   Zinéma — page Événement en tableau « Mondrian ».
+   S'appuie sur film-mondrian.css (quadrillage, cases, visuels) :
+   les deux feuilles sont chargées ensemble sur cette page.
+
+   L'événement épinglé ouvre la page : son visuel à gauche, son
+   titre en grand à droite, puis une bande d'informations.
+   Les annonces suivantes tiennent chacune sur une bande, dont
+   les cases se partagent la largeur au prorata de leur texte.
+   ============================================================ */
+
+/* ---------- Mobile : chaque case prend toute la largeur ----------
+   Sans cette règle, une case calée sur son texte laisserait un
+   trait noir à sa droite — un trou dans le tableau.
+
+   Elle est enfermée dans une requête « jusqu'à 899px » : écrite
+   sans requête, elle l'emportait sur toutes les règles ordinateur
+   plus bas (elle vise deux classes, elles une seule) et la page
+   restait en version mobile sur grand écran — l'affiche de
+   l'événement épinglé y prenait toute la largeur. */
+
+@media (max-width: 899px) {
+  .mondrian--evenements .m-bande > * {
+    flex: 1 1 100%;
+  }
+}
+
+/* ---------- L'événement épinglé ----------
+   Le visuel est montré ENTIER, jamais recadré — c'est une affiche.
+   Sur mobile il occupe toute la largeur ; sur ordinateur il tient
+   la gauche et le titre s'installe à côté. */
+.m-annonce__une-titre {
+  justify-content: center;
+  padding: 1.25rem 1rem;
+}
+.m-annonce__une-titre h2 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  font-size: var(--taille-titre);
+  line-height: 0.92;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Les cases communes à toutes les annonces ---------- */
+
+.m-annonce__titre {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.m-annonce__texte {
+  font-weight: 400;
+}
+
+.m-annonce__lien {
+  flex-direction: row;
+  align-items: center;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+/* ---------- Aucun événement ---------- */
+
+.mondrian--evenements .m-vide {
+  min-height: 30dvh;
+  justify-content: center;
+}
+
+/* ---------- Ordinateur ---------- */
+
+@media (min-width: 900px) {
+  /* Le visuel tient un tiers de la bande, le titre prend le reste
+     et se cale exactement sur sa hauteur. */
+  .m-annonce__visuel {
+    flex: 0 0 34%;
+    display: flex;
+    align-items: center;
+  }
+  .m-annonce__visuel .poster { width: 100%; height: auto; }
+  .m-annonce__une-titre { flex: 1 1 0; }
+
+  /* La date et la catégorie : une case étroite, calée sur son
+     texte. Les cases de texte se partagent la largeur restante
+     plutôt que de réclamer celle de leur plus longue ligne — le
+     texte de l'annonce en prend deux fois plus que son titre. */
+  .m-annonce__quand {
+    flex: 0 1 auto;
+    min-width: 12rem;
+  }
+  .m-annonce__titre { flex: 1 1 0; }
+  .m-annonce__texte { flex: 2 1 0; }
+  .m-annonce__lien {
+    flex: 0 1 auto;
+    white-space: nowrap;
+  }
+}
+
+/* ---------- Grand écran ----------
+   Le visuel garde ses proportions : plus l'écran est large, plus
+   il serait haut. On lui reprend un peu de largeur pour que la
+   première bande tienne dans l'écran, titre compris. */
+
+@media (min-width: 1440px) {
+  .m-annonce__visuel {
+    flex-basis: 28%;
+  }
+}

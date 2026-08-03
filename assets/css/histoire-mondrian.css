@@ -1,0 +1,118 @@
+/* ============================================================
+   Zinéma — page Histoire en tableau « Mondrian ».
+   S'appuie sur film-mondrian.css (quadrillage, cases, visuels) :
+   les deux feuilles sont chargées ensemble sur cette page.
+
+   La page s'ouvre sur l'année d'ouverture posée en grand à côté
+   du texte d'introduction, puis chaque étape tient sur une bande :
+
+     ┌────────┬──────────────────────────────────────────────┐
+     │ DEPUIS │  Pendant que les grandes salles…             │
+     │ 2001   │                                              │
+     ├────────┼───────────────────┬──────────────────────────┤
+     │ 2001   │ OUVERTURE, CONTRE │ Le Zinéma ouvre ses…     │
+     │        │ LE COURANT        │                          │
+     └────────┴───────────────────┴──────────────────────────┘
+
+   Comme partout sur le site : aucun bandeau de titre, des cases
+   dont la largeur suit la longueur du texte, et une couleur
+   tirée au hasard sur chacune au survol.
+   ============================================================ */
+
+/* ---------- Mobile & tablette : chaque case prend toute la
+   largeur. Sans cette règle, une case calée sur son texte
+   laisserait un trait noir à sa droite — un trou dans le
+   tableau. ---------- */
+
+@media (max-width: 899px) {
+  .mondrian--histoire .m-bande > * {
+    flex: 1 1 100%;
+  }
+
+  /* Sauf l'année et le titre d'une étape, qui restent côte à côte :
+     l'année se cale sur ses quatre chiffres et le titre prend le
+     reste. Empilées, les cinq étapes faisaient quinze grandes
+     cases à faire défiler. */
+  .mondrian--histoire .m-bande--etape > .m-histoire__annee {
+    flex: 0 0 auto;
+  }
+  .mondrian--histoire .m-bande--etape > .m-histoire__titre {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+}
+
+/* ---------- L'année, en grand ----------
+   Le seul texte de la page à la taille des titres : c'est le
+   repère chronologique, il doit se lire d'un coup d'œil en
+   parcourant la page du regard. */
+
+.m-histoire__annee {
+  flex: 0 0 auto;
+  min-width: min(100%, 9rem);
+}
+.m-histoire__annee-valeur {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  font-size: var(--taille-titre);
+  line-height: 0.9;
+}
+
+/* ---------- L'introduction ----------
+   Le texte d'ouverture, en gras : c'est la profession de foi du
+   cinéma, pas un paragraphe courant. */
+
+.m-histoire__intro {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  font-size: var(--taille-texte);
+  line-height: 1.2;
+  justify-content: center;
+}
+
+/* ---------- Les cases d'une étape ---------- */
+
+.m-histoire__titre {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.m-histoire__texte {
+  font-weight: 400;
+  white-space: pre-line;
+}
+
+/* ---------- Aucune étape renseignée ---------- */
+
+.mondrian--histoire .m-vide {
+  min-height: 30dvh;
+  justify-content: center;
+}
+
+/* ---------- Ordinateur ----------
+   Le titre de l'étape et son texte se partagent la largeur
+   restante : le texte, toujours plus long, en prend deux fois
+   plus que le titre. */
+
+@media (min-width: 900px) {
+  .m-histoire__intro { flex: 1 1 0; }
+  .m-histoire__titre { flex: 1 1 0; }
+  .m-histoire__texte { flex: 2 1 0; }
+
+  /* Le visuel d'une étape, quand il y en a un : montré entier,
+     jamais recadré, sur un cinquième de la bande. */
+  .m-histoire__visuel {
+    flex: 0 0 20%;
+    display: flex;
+    align-items: center;
+  }
+  .m-histoire__visuel .poster { width: 100%; height: auto; }
+}

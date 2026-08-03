@@ -1,10 +1,33 @@
 /* ============================================================
    Zinéma — fiche film « Mondrian ». Une seule page réelle
    (film/index.html) qui lit le film demandé dans l'URL (?s=le-slug)
-   et construit un quadrillage : une case = une information.
-   La page défile : synopsis complet, toutes les séances à venir,
-   bande-annonce intégrée ; le pied de page commun au site
-   (footer.js) s'affiche sous le tableau.
+   et pose une case par information.
+
+   Les cases sont écrites À PLAT, dans l'ordre de lecture du
+   mobile : titre, acheter, affiche, informations, bande-annonce,
+   séances, puis la rangée du bas (synopsis, presse, retour aux
+   films). Aucune case n'est imbriquée dans une autre — c'est ce
+   qui permet à la grille ordinateur de les replacer librement
+   (voir .mondrian--film dans film-mondrian.css) :
+
+     ┌──────────────────────────────────┬───────────┐
+     │ TITRE                            │  ACHETER  │
+     ├──────────┬───────────────────────┴───────────┤
+     │ année · pays · durée · genre · version · âge │
+     ├──────────┼───────────────────────┬───────────┤
+     │ AFFICHE  │ BANDE-ANNONCE         │ SÉANCES   │
+     ├────────────┬────────────────────┬───────────┤
+     │ ← LES FILMS│ SYNOPSIS           │ LA PRESSE │
+     └────────────┴────────────────────┴───────────┘
+
+   L'affiche tient le tiers gauche, sur la seule rangée de la
+   bande-annonce : elle est grande sans faire descendre le reste
+   de la page. On voit ainsi le titre, les informations, la
+   bande-annonce, les séances et le bouton d'achat sans défiler.
+
+   Sur mobile, l'ordre change sur un point : le synopsis remonte
+   entre les informations et la bande-annonce (voir la règle
+   display: contents dans film-mondrian.css).
    ============================================================ */
 (function () {
   "use strict";
@@ -12,14 +35,19 @@
   var root = document.body.dataset.root || "";
   var app = document.getElementById("film-app");
   var R = window.ZinemaRender;
+  var C = window.ZinemaCouleurs;
 
   var statusSeance = { disponible: "Places disponibles", complet: "Complet", annule: "Annulé" };
 
-  /* Une case d'information n'est jamais vide : « — » remplace une donnée manquante. */
-  function celluleInfo(classe, label, valeur) {
+  /* Une case d'information : elle n'existe que si la donnée existe —
+     pas de case « — » qui ne dit rien. C'est ce qui fait que deux
+     films n'ont jamais exactement la même page. */
+  function celluleInfo(label, valeur) {
+    if (!valeur) return "";
     return (
-      '<div class="m-cell ' + classe + '"><p class="m-cell__label">' + label + "</p>" +
-      '<p class="m-cell__value">' + (valeur ? R.escapeHtml(valeur) : "—") + "</p></div>"
+      '<div class="m-cell m-info m-cell--ligne ' + C.classe() + '">' +
+      '<p class="m-cell__label">' + label + "</p>" +
+      '<p class="m-cell__value">' + R.escapeHtml(valeur) + "</p></div>"
     );
   }
 
@@ -43,11 +71,22 @@
     var contenu =
       R.escapeHtml(seance.time) +
       (note ? '<span class="m-seances__chip-note">' + R.escapeHtml(note) + "</span>" : "");
+    var etiquette = 'aria-label="Acheter un billet pour la séance de ' + R.escapeHtml(seance.time) + '"';
+
+    /* Caisse en ligne : la pastille ouvre le panneau d'achat. */
+    if (window.ZinemaData.billetterieEnLigne) {
+      return (
+        '<button type="button" class="m-seances__chip" data-achat="' +
+        R.escapeHtml(seance._id) + '" ' + etiquette + ">" + contenu + "</button>"
+      );
+    }
+
+    /* Sinon : le lien de paiement collé à la main dans Sanity. */
     var url = seance.sumupCheckoutUrl || film.sumupCheckoutUrl;
     if (url) {
       return (
         '<a class="m-seances__chip" href="' + R.escapeHtml(url) + '" target="_blank" rel="noopener noreferrer" ' +
-        'aria-label="Réserver la séance de ' + R.escapeHtml(seance.time) + '">' + contenu + "</a>"
+        etiquette + ">" + contenu + "</a>"
       );
     }
     return '<span class="m-seances__chip">' + contenu + "</span>";
@@ -79,66 +118,78 @@
     return '<div class="m-seances__jours">' + blocs + "</div>";
   }
 
-  function reserverHTML(film) {
+  /* Le geste principal de la page : acheter un billet. Toujours vert,
+     avec les deux tarifs du cinéma. */
+  function acheterHTML(film) {
     var prochaine = seancesAVenir(film).filter(function (s) {
       return s.status === "disponible";
     })[0];
-    var url = (prochaine && prochaine.sumupCheckoutUrl) || film.sumupCheckoutUrl;
-    var prix = (prochaine && prochaine.price) || film.price;
-    if (!url) {
+    var indisponible =
+      '<div class="m-cell m-action m-acheter m-acheter--indisponible">' +
+      "<span>Billetterie bientôt disponible</span></div>";
+
+    /* Caisse en ligne : le bouton ouvre le panneau d'achat sur la
+       prochaine séance disponible. */
+    if (window.ZinemaData.billetterieEnLigne) {
+      if (!prochaine) return indisponible;
       return (
-        '<div class="m-cell m-action m-reserver m-reserver--indisponible">' +
-        "<span>Billetterie bientôt disponible</span></div>"
+        '<button type="button" class="m-cell m-action m-acheter" data-achat="' +
+        R.escapeHtml(prochaine._id) + '">' +
+        "<span>Acheter</span>" +
+        '<span class="m-acheter__prix">' + R.escapeHtml(R.prixLabel(film, prochaine)) + "</span></button>"
       );
     }
+
+    var url = (prochaine && prochaine.sumupCheckoutUrl) || film.sumupCheckoutUrl;
+    if (!url) return indisponible;
+    var prix = R.prixLabel(film, prochaine);
     return (
-      '<a class="m-cell m-action m-reserver" href="' + R.escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' +
-      "<span>Réserver" + (prix ? ' <span class="m-reserver__prix">' + R.escapeHtml(prix) + "</span>" : "") + "</span></a>"
+      '<a class="m-cell m-action m-acheter" href="' + R.escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' +
+      "<span>Acheter</span>" +
+      '<span class="m-acheter__prix">' + R.escapeHtml(prix) + "</span></a>"
     );
   }
 
-  /* La bande-annonce vit dans la case Synopsis : une vignette sobre,
-     la vidéo YouTube ne se charge qu'au clic (rapide et discret). */
+  /* La bande-annonce occupe sa propre case, à côté de l'affiche :
+     une vignette sobre, la vidéo YouTube ne se charge qu'au clic
+     (rapide et discret). */
   function baHTML(embed, titre) {
-    if (!embed) return "";
-    var idYoutube = /\/embed\/([\w-]+)/.exec(embed);
-    var lecteur =
-      '<iframe src="' + R.escapeHtml(embed) + '" title="Bande-annonce — ' + R.escapeHtml(titre) + '" ' +
-      'loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
-    var contenu = idYoutube
-      ? '<button type="button" class="m-ba__facade" data-embed="' + R.escapeHtml(embed) + '" aria-label="Lire la bande-annonce">' +
-        '<img src="https://i.ytimg.com/vi/' + idYoutube[1] + '/hqdefault.jpg" alt="" loading="lazy">' +
-        '<span class="m-ba__play" aria-hidden="true">▶</span></button>'
-      : '<div class="m-ba__cadre">' + lecteur + "</div>";
-    return '<div class="m-ba"><p class="m-cell__label m-ba__label">Bande-annonce</p>' + contenu + "</div>";
+    var idYoutube = embed ? /\/embed\/([\w-]+)/.exec(embed) : null;
+    var media;
+    if (idYoutube) {
+      media =
+        '<button type="button" class="m-ba__media m-ba__media--bouton" data-embed="' + R.escapeHtml(embed) + '" aria-label="Lire la bande-annonce">' +
+        '<img src="https://i.ytimg.com/vi/' + idYoutube[1] + '/hqdefault.jpg" alt="" loading="lazy" width="480" height="360">' +
+        '<span class="m-ba__play" aria-hidden="true">▶</span></button>';
+    } else if (embed) {
+      media =
+        '<div class="m-ba__media"><iframe src="' + R.escapeHtml(embed) + '" title="Bande-annonce — ' + R.escapeHtml(titre) + '" ' +
+        'loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe></div>';
+    } else {
+      return "";
+    }
+    return (
+      '<div class="m-cell m-ba ' + C.classe() + '">' +
+      '<p class="m-cell__label">Bande-annonce</p>' + media + "</div>"
+    );
   }
 
   function brancherBandeAnnonce() {
-    var facade = app.querySelector(".m-ba__facade");
-    if (!facade) return;
-    facade.addEventListener("click", function () {
+    var bouton = app.querySelector(".m-ba__media--bouton");
+    if (!bouton) return;
+    bouton.addEventListener("click", function () {
       var cadre = document.createElement("div");
-      cadre.className = "m-ba__cadre";
+      cadre.className = "m-ba__media";
       cadre.innerHTML =
-        '<iframe src="' + facade.dataset.embed + '?autoplay=1&rel=0" title="Bande-annonce" ' +
+        '<iframe src="' + bouton.dataset.embed + '?autoplay=1&rel=0" title="Bande-annonce" ' +
         'allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
-      facade.replaceWith(cadre);
+      bouton.replaceWith(cadre);
     });
   }
 
-  function langueLigne(film) {
-    return [
-      [film.language, film.subtitles].filter(Boolean).join(" "),
-      film.ageRating,
-      film.country,
-    ]
-      .filter(Boolean)
-      .join(" · ");
-  }
-
-  /* Sous l'affiche : la citation presse du film — toute la case est
-     cliquable et ouvre l'article complet quand son lien existe.
-     Sans citation : la carte de visite du cinéma (jamais de case vide). */
+  /* La citation presse ferme la fiche : toute la case est cliquable
+     et ouvre l'article complet quand son lien existe. Sans citation :
+     la carte de visite du cinéma (jamais de case vide). */
   function presseHTML(film, settings) {
     var review = film.review;
     if (review && review.quote) {
@@ -149,16 +200,25 @@
         (signature ? '<p class="m-presse__signature">— ' + R.escapeHtml(signature) + "</p>" : "");
       if (review.url) {
         return (
-          '<a class="m-cell m-presse" href="' + R.escapeHtml(review.url) + '" target="_blank" rel="noopener noreferrer" aria-label="Lire l\'article complet">' +
+          '<a class="m-cell m-presse ' + C.classe() + '" href="' + R.escapeHtml(review.url) + '" target="_blank" rel="noopener noreferrer" aria-label="Lire l\'article complet">' +
           contenu + "</a>"
         );
       }
-      return '<div class="m-cell m-presse">' + contenu + "</div>";
+      return '<div class="m-cell m-presse ' + C.classe() + '">' + contenu + "</div>";
     }
     return (
-      '<div class="m-cell m-presse"><p class="m-cell__label">Le Zinéma</p>' +
+      '<div class="m-cell m-presse ' + C.classe() + '"><p class="m-cell__label">Le Zinéma</p>' +
       '<p class="m-cell__value">' + R.escapeHtml((settings && settings.tagline) || "Cinéma indépendant à Lausanne") + "</p></div>"
     );
+  }
+
+  /* Une bande : une rangée de cases qui traverse le tableau.
+     Seules les six informations générales en ont besoin, parce
+     qu'elles se partagent une même ligne. Toutes les autres cases
+     sont posées à plat dans le tableau, pour que la grille
+     ordinateur puisse les replacer une par une. */
+  function bande(classe, contenu) {
+    return '<div class="m-bande ' + classe + '">' + contenu + "</div>";
   }
 
   function renderFilm(film, settings) {
@@ -176,37 +236,90 @@
 
     var vraieAffiche = Boolean(R.sanityImageUrl(film.poster, 1200) || R.localImageUrl(film.poster));
 
-    app.innerHTML =
-      '<article class="mondrian">' +
-      '<div class="m-colonne-affiche">' +
+    var titreHTML =
+      '<header class="m-cell m-titre ' + C.classe() + '">' +
+      "<h1>" + R.escapeHtml(film.title) + "</h1>" + original + realisation + "</header>";
+
+    var afficheHTML =
       '<div class="m-affiche' + (vraieAffiche ? "" : " m-affiche--generee") + '">' +
-      R.posterHTML(film, { priority: true }) + "</div>" +
-      presseHTML(film, settings) + "</div>" +
-      '<header class="m-cell m-titre">' +
-      '<p class="m-titre__statut">' + R.statusLabel(film.status) + "</p>" +
-      "<h1>" + R.escapeHtml(film.title) + "</h1>" + original + realisation + "</header>" +
-      celluleInfo("m-annee", "Année", film.year ? String(film.year) : "") +
-      celluleInfo("m-duree", "Durée", film.duration ? film.duration + " min" : "") +
-      celluleInfo("m-genre", "Genre", (film.genres || []).join(" · ")) +
-      celluleInfo("m-langue", "Version", langueLigne(film)) +
-      '<div class="m-cell m-synopsis"><p class="m-cell__label">Synopsis</p>' +
-      '<p class="m-synopsis__texte">' + R.escapeHtml(film.synopsis || "Synopsis à venir.") + "</p>" +
-      baHTML(embed, film.title) + "</div>" +
-      '<div class="m-cell m-seances"><p class="m-cell__label">Séances</p>' + seancesHTML(film) +
-      '<a href="' + root + 'agenda/" class="m-seances__agenda">Agenda complet</a></div>' +
-      '<a href="' + root + 'films/" class="m-cell m-action m-retour"><span>← Tous les films</span></a>' +
-      reserverHTML(film) +
+      R.posterHTML(film, { priority: true }) + "</div>";
+
+    var infosHTML =
+      celluleInfo("Année", film.year ? String(film.year) : "") +
+      celluleInfo("Pays", film.country) +
+      celluleInfo("Durée", film.duration ? film.duration + " min" : "") +
+      celluleInfo("Genre", (film.genres || []).join(" · ")) +
+      celluleInfo("Version", [film.language, film.subtitles].filter(Boolean).join(" ")) +
+      celluleInfo("Âge", film.ageRating);
+
+    var synopsisHTML =
+      '<div class="m-cell m-synopsis ' + C.classe() + '"><p class="m-cell__label">Synopsis</p>' +
+      '<p class="m-synopsis__texte">' + R.escapeHtml(film.synopsis || "Synopsis à venir.") + "</p></div>";
+
+    var seancesCellHTML =
+      '<div class="m-cell m-seances ' + C.classe() + '"><p class="m-cell__label">Séances</p>' + seancesHTML(film) +
+      '<a href="' + root + 'agenda/" class="m-seances__agenda">Agenda complet</a></div>';
+
+    /* La rangée du bas : synopsis, presse et retour aux films.
+       Ses trois cases se partagent la largeur au prorata de leur
+       texte — le synopsis prend donc l'essentiel, le lien de
+       retour juste ce qu'il lui faut. */
+    var basHTML = bande(
+      "m-bande--bas",
+      synopsisHTML +
+        presseHTML(film, settings) +
+        '<a href="' + root + 'films/" class="m-cell m-action m-lien-retour ' + C.classe() + '">' +
+        "<span>← Tous les films</span></a>"
+    );
+
+    /* Sans bande-annonce, la grille ordinateur laisserait un trou
+       noir à sa place : on prévient la feuille de style, qui
+       redistribue alors la case aux séances. */
+    var baCellHTML = baHTML(embed, film.title);
+    var classes = "mondrian mondrian--film" + (baCellHTML ? "" : " mondrian--film-sans-ba");
+
+    app.innerHTML =
+      '<article class="' + classes + '">' +
+      titreHTML +
+      acheterHTML(film) +
+      afficheHTML +
+      (infosHTML ? bande("m-bande--reperes", infosHTML) : "") +
+      baCellHTML +
+      seancesCellHTML +
+      basHTML +
       "</article>";
 
     brancherBandeAnnonce();
+    brancherAchat(film);
+  }
+
+  /* Un seul écouteur pour toutes les pastilles d'horaire et le
+     bouton d'achat : ils portent l'identifiant de leur séance. */
+  function brancherAchat(film) {
+    if (!window.ZinemaData.billetterieEnLigne) return;
+    app.addEventListener("click", function (evenement) {
+      var bouton = evenement.target.closest("[data-achat]");
+      if (!bouton) return;
+      var id = bouton.getAttribute("data-achat");
+      var seance = (film.screenings || []).filter(function (s) {
+        return s._id === id;
+      })[0];
+      if (seance) window.ZinemaAchat.ouvrir(seance, film);
+    });
   }
 
   function renderNotFound() {
     app.innerHTML =
       '<article class="mondrian">' +
-      '<a href="' + root + 'films/" class="m-cell m-action m-retour"><span>← Tous les films</span></a>' +
-      '<div class="m-cell m-introuvable"><p class="m-cell__label">Film introuvable</p>' +
-      '<p class="m-cell__value">Ce film n\'existe pas ou plus.</p></div>' +
+      bande(
+        "m-bande--introuvable",
+        '<div class="m-cell m-introuvable ' + C.classe() + '"><p class="m-cell__label">Film introuvable</p>' +
+          '<p class="m-cell__value">Ce film n\'existe pas ou plus.</p></div>'
+      ) +
+      bande(
+        "m-bande--retour",
+        '<a href="' + root + 'films/" class="m-cell m-action m-lien-retour ' + C.classe() + '"><span>← Tous les films</span></a>'
+      ) +
       "</article>";
   }
 

@@ -3,30 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Infos pratiques — Zinéma</title>
-<meta name="description" content="Adresse, horaires et accès du Zinéma à Lausanne.">
+<title>Votre billet — Zinéma</title>
+<meta name="description" content="Votre billet pour une séance au Zinéma, à Lausanne.">
+<!-- Un billet n'a rien à faire dans les résultats de recherche. -->
+<meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="../assets/img/zinema-logo.png">
 <link rel="preload" href="../assets/fonts/Aileron-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../assets/fonts/Aileron-Black.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/css/film-mondrian.css">
+<link rel="stylesheet" href="../assets/css/billet.css">
 </head>
-<body data-page="infos-pratiques" data-root="../">
+<body data-page="billet" data-root="../">
 <main class="main-area">
-  <div class="page-body">
-    <div class="page-header">
-      <p class="page-header__eyebrow font-display">INFOS PRATIQUES</p>
-      <h1 class="page-header__title font-display">Nous trouver</h1>
-    </div>
-    <div id="infos-app"></div>
-  </div>
+  <div id="billet-app"></div>
 </main>
 <div id="footer-root"></div>
 
+<script src="../assets/js/couleurs.js"></script>
 <script src="../assets/js/data.js"></script>
 <script src="../assets/js/render.js"></script>
-<script src="../assets/js/reveal.js"></script>
 <script src="../assets/js/nav.js"></script>
 <script src="../assets/js/footer.js"></script>
-<script src="../assets/js/infos-pratiques.js"></script>
+<script src="../assets/js/billetterie.js"></script>
+<script src="../assets/js/billet.js"></script>
 </body>
 </html>

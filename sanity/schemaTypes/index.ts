@@ -4,6 +4,7 @@ import { announcement } from "./announcement";
 import { review } from "./review";
 import { historyEntry } from "./historyEntry";
 import { siteSettings } from "./siteSettings";
+import { commande } from "./commande";
 
 export const schemaTypes = [
   film,
@@ -12,4 +13,5 @@ export const schemaTypes = [
   review,
   historyEntry,
   siteSettings,
+  commande,
 ];

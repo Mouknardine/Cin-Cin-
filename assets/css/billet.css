@@ -1,0 +1,49 @@
+/* ============================================================
+   Zinéma — la page du billet.
+   S'appuie sur film-mondrian.css : un tableau comme les autres,
+   dont la référence occupe la case d'ouverture, en très grand —
+   c'est elle qu'on montre à l'entrée de la salle.
+   ============================================================ */
+
+@media (max-width: 899px) {
+  .mondrian--billet .m-bande > * {
+    flex: 1 1 100%;
+  }
+}
+
+/* ---------- La référence, lisible à bout de bras ---------- */
+
+.m-billet__code {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: var(--taille-titre);
+  line-height: 1;
+  /* Un code se lit caractère par caractère : on l'espace un peu,
+     contrairement au reste du site qui est toujours resserré. */
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Le film ---------- */
+
+.m-billet__titre {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Messages (attente, échec) ---------- */
+
+.m-billet__message,
+.m-billet__rappel {
+  min-height: 20dvh;
+  justify-content: center;
+  font-weight: 400;
+}
+.m-billet__rappel {
+  min-height: 0;
+}

@@ -1,42 +1,57 @@
 /* ============================================================
-   Zinéma — pied de page (absent de l'accueil, comme avant) :
-   le logo en grand, une ligne de petits liens, une ligne légale.
+   Zinéma — pied de page (absent de l'accueil, comme avant).
+
+   Il reprend le langage du site : un petit tableau de cases
+   blanches séparées par des traits noirs, dont la largeur suit la
+   longueur du texte. Une seule suite de cases, qui se replient
+   toutes seules en autant de rangées que l'écran le demande —
+   une seule ligne sur ordinateur, trois ou quatre sur mobile.
+
+   Il ne reprend AUCUNE rubrique du site : la barre de navigation
+   (ordinateur) et le menu plein écran (mobile) les portent déjà
+   toutes les six. Il ne garde que ce qu'on ne trouve nulle part
+   ailleurs — suivre le cinéma, s'y rendre, l'appeler.
+
+   Comme partout ailleurs, la couleur de chaque case est tirée au
+   hasard (couleurs.js) et n'apparaît qu'au survol.
    ============================================================ */
 (function () {
   "use strict";
-  var root = document.body.dataset.root || "";
   var mount = document.getElementById("footer-root");
   if (!mount) return;
 
   window.ZinemaData.getSiteSettings().then(function (settings) {
     var esc = window.ZinemaRender.escapeHtml;
+    var C = window.ZinemaCouleurs;
 
-    var links = [{ href: root + "infos-pratiques/", label: "Conditions & tarifs" }];
-    if (settings.email) {
-      links.push({ href: "mailto:" + settings.email, label: "Contact" });
-    }
-    (settings.socialLinks || []).forEach(function (social) {
-      if (social && social.url && social.label) {
-        links.push({ href: social.url, label: social.label, external: true });
-      }
-    });
-
-    var linksHTML = links
-      .map(function (l) {
+    var reseauxHTML = (settings.socialLinks || [])
+      .filter(function (reseau) {
+        return reseau && reseau.url && reseau.label;
+      })
+      .map(function (reseau) {
         return (
-          '<a href="' + esc(l.href) + '" class="underline-hover"' +
-          (l.external ? ' target="_blank" rel="noopener noreferrer"' : "") +
-          ">" + esc(l.label) + "</a>"
+          '<a href="' + esc(reseau.url) + '" class="site-footer__lien ' + C.classe() + '" ' +
+          'target="_blank" rel="noopener noreferrer">' + esc(reseau.label) + "</a>"
         );
       })
       .join("");
 
+    var telephoneHTML = settings.phone
+      ? '<a class="site-footer__case ' + C.classe() + '" href="tel:' +
+        esc(settings.phone.replace(/\s/g, "")) + '">' + esc(settings.phone) + "</a>"
+      : "";
+
     mount.innerHTML =
       '<footer class="site-footer">' +
-      '<a href="' + root + '" class="site-footer__logo" aria-label="Zinéma — accueil">' +
-      '<img src="' + root + 'assets/img/zinema-logo.png" alt="Zinéma"></a>' +
-      '<nav class="site-footer__links" aria-label="Liens du pied de page">' + linksHTML + "</nav>" +
-      '<p class="site-footer__legal">© ' + new Date().getFullYear() + " Zinéma — " + esc(settings.address || "Lausanne") + "</p>" +
+      reseauxHTML +
+      '<p class="site-footer__case ' + C.classe() + '">' + esc(settings.address || "Lausanne") + "</p>" +
+      telephoneHTML +
+      /* La signature de l'agence ferme le tableau. Seule case du
+         site à ne pas participer au tirage des couleurs : elle est
+         rose au survol, la couleur de We Are Brothers. */
+      '<a class="site-footer__case site-footer__signature" ' +
+      'href="https://wearebrothers.ch" target="_blank" rel="noopener noreferrer">' +
+      "Site par We Are Brothers</a>" +
       "</footer>";
   });
 })();

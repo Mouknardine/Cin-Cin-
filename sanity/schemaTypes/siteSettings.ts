@@ -7,8 +7,58 @@ export const siteSettings = defineType({
   groups: [
     { name: "general", title: "Général" },
     { name: "pratique", title: "Infos pratiques" },
+    { name: "billetterie", title: "Billetterie" },
   ],
   fields: [
+    /* ---------------- Billetterie ----------------
+       Ces trois réglages sont lus par le serveur au moment de
+       l'achat (dossier /api). C'est LUI qui calcule le montant à
+       payer et le nombre de places restantes — jamais le navigateur
+       du client, qui pourrait être trafiqué. Modifier un prix ici
+       le change donc réellement à la caisse en ligne. */
+    defineField({
+      name: "tarifPlein",
+      title: "Plein tarif (CHF)",
+      type: "number",
+      group: "billetterie",
+      initialValue: 16,
+      validation: (Rule) => Rule.required().positive(),
+    }),
+    defineField({
+      name: "tarifReduit",
+      title: "Tarif réduit (CHF)",
+      type: "number",
+      group: "billetterie",
+      initialValue: 10,
+      validation: (Rule) => Rule.required().positive(),
+    }),
+    defineField({
+      name: "salles",
+      title: "Salles et nombre de places",
+      description:
+        "Sert à ne jamais vendre plus de billets qu'il n'y a de sièges. Le nom doit être écrit exactement comme dans les séances (« Salle 1 », « Salle 2 »).",
+      type: "array",
+      group: "billetterie",
+      of: [
+        {
+          type: "object",
+          fields: [
+            { name: "nom", title: "Nom de la salle", type: "string" },
+            { name: "places", title: "Nombre de places", type: "number" },
+          ],
+          preview: {
+            select: { title: "nom", subtitle: "places" },
+            prepare({ title, subtitle }) {
+              return { title: title || "Salle", subtitle: `${subtitle || 0} places` };
+            },
+          },
+        },
+      ],
+      initialValue: [
+        { nom: "Salle 1", places: 18 },
+        { nom: "Salle 2", places: 14 },
+      ],
+    }),
     defineField({
       name: "tagline",
       title: "Accroche (accueil)",

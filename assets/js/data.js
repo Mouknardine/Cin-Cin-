@@ -16,6 +16,33 @@
 
   var isSanityConfigured = Boolean(SANITY_PROJECT_ID);
 
+  /* ---------------- Billetterie en ligne ----------------
+     false = comportement actuel : les boutons d'achat ouvrent le
+             lien de paiement SumUp collé à la main dans Sanity.
+     true  = nouvelle caisse : le site ouvre son panneau d'achat,
+             le serveur crée le paiement et délivre le billet.
+
+     À passer à true UNE FOIS que le site tourne sur un hébergement
+     capable d'exécuter le dossier /api (Infomaniak) et que
+     config.php y est rempli — voir BILLETTERIE.md. Avant ça, le
+     panneau s'ouvrirait pour rien : il n'aurait personne à qui
+     parler. */
+  var BILLETTERIE_EN_LIGNE = false;
+
+  /* ---------------- Tarifs ----------------
+     Les deux seuls prix du cinéma, définis à un seul endroit et
+     réutilisés partout (bouton d'achat, page Membership, contact).
+     Un film ou une séance peut toujours indiquer son propre prix
+     dans Sanity (soirée spéciale, ciné-goûter…) : il prend alors
+     le pas sur ces tarifs. */
+  var TARIFS = {
+    plein: "16.-",
+    reduit: "10.-",
+    conditionsReduit: "AVS, AI, étudiant·e·s, apprenti·e·s, chômage",
+    /* La ligne affichée sur le bouton d'achat. */
+    resume: "16.- / 10.- réduit",
+  };
+
   function sanityFetch(query, params) {
     if (!isSanityConfigured) return Promise.resolve(null);
     var base = "https://" + SANITY_PROJECT_ID + ".api.sanity.io/v" + SANITY_API_VERSION + "/data/query/" + SANITY_DATASET;
@@ -84,14 +111,14 @@
   }
 
   var mockFilms = [
-    { _id: "film-1", title: "Cinque Secondi", slug: "cinque-secondi", director: "Paolo Virzì", year: 2025, country: "Italie", duration: 100, language: "VO italien", subtitles: "st fr", ageRating: "12 ans", genres: ["Comédie dramatique"], status: "a-laffiche", synopsis: "Un homme bourru retiré dans la campagne toscane voit sa tranquillité bousculée par une joyeuse communauté venue reprendre le vignoble voisin. Paolo Virzì réunit Valerio Mastandrea et Valeria Bruni Tedeschi dans une comédie humaine, tendre et mordante.", posterSize: "large", featuredHome: true, poster: { localUrl: "assets/img/affiches/cinque-secondi.jpg" }, trailerUrl: "https://www.youtube.com/watch?v=aqz-KE-bpKQ", price: "16.- / 12.- (réduit)", sumupCheckoutUrl: "#" },
-    { _id: "film-2", title: "Wolves", slug: "wolves", director: "Jonas Ulrich", year: 2025, country: "Suisse", duration: 94, language: "VO suisse-allemand", subtitles: "st fr", ageRating: "14 ans", genres: ["Drame"], status: "a-laffiche", synopsis: "Deux êtres que tout rapproche et que tout menace, filmés au plus près des visages. Présenté au Zurich Film Festival, un premier long métrage suisse d'une intensité rare, porté par Selma Kopp et Bartosz Bielenia.", posterSize: "medium", featuredHome: true, poster: { localUrl: "assets/img/affiches/wolves.jpg" }, trailerUrl: "https://www.youtube.com/watch?v=eRsGyueVLvQ", sumupCheckoutUrl: "#", price: "16.- / 12.- (réduit)" },
-    { _id: "film-3", title: "Siri Hustvedt — Dance Around the Self", slug: "siri-hustvedt-dance-around-the-self", director: "Sabine Lidl", year: 2025, country: "Allemagne", duration: 90, language: "VO anglais/allemand", subtitles: "st fr", ageRating: "Tous publics", genres: ["Documentaire", "Portrait"], status: "a-laffiche", synopsis: "Un portrait intime de l'écrivaine Siri Hustvedt, entre New York et l'écriture, la mémoire et le deuil, avec la présence de Paul Auster. Présenté à la Berlinale (Panorama).", posterSize: "medium", featuredHome: true, poster: { localUrl: "assets/img/affiches/siri-hustvedt.jpg" }, trailerUrl: "https://www.youtube.com/watch?v=R6MlUcmOul8", sumupCheckoutUrl: "#", price: "16.- / 12.- (réduit)" },
-    { _id: "film-4", title: "La Vénus Électrique", slug: "la-venus-electrique", director: "Pierre Salvadori", year: 2026, country: "France", duration: 105, language: "VO français", subtitles: "st all", ageRating: "12 ans", genres: ["Comédie", "Music-hall"], status: "avant-premiere", synopsis: "Avant-première — film d'ouverture du Festival de Cannes 2026. Dans le Paris des années folles, une artiste de music-hall au numéro électrisant affole les scènes et les cœurs. Avec Pio Marmaï, Anaïs Demoustier, Gilles Lellouche et Vimala Pons.", posterSize: "small", poster: { localUrl: "assets/img/affiches/la-venus-electrique.jpg" }, trailerUrl: "https://www.youtube.com/watch?v=WhWc3b3KhnY", sumupCheckoutUrl: "#", price: "16.- / 12.- (réduit)" },
-    { _id: "film-5", title: "être paysan·ne", slug: "etre-paysan-ne", director: "Frédéric Gonseth & Catherine Azad", year: 2025, country: "Suisse", duration: 92, language: "VO français", subtitles: "st all", ageRating: "Tous publics", genres: ["Documentaire", "Local"], status: "a-laffiche", synopsis: "Des paysannes et paysans suisses racontent un métier en pleine mutation, entre attachement à la terre et mobilisation pour survivre. Un documentaire au plus près d'un monde qui lance son SOS.", posterSize: "medium", poster: { localUrl: "assets/img/affiches/etre-paysan-ne.jpg" }, trailerUrl: "https://www.youtube.com/watch?v=aqz-KE-bpKQ", sumupCheckoutUrl: "#", price: "16.- / 12.- (réduit)" },
-    { _id: "film-6", title: "Rouge Cadmium", slug: "rouge-cadmium", director: "Ester Bregman", year: 1974, country: "Suisse", duration: 88, language: "VO français", subtitles: "", ageRating: "16 ans", genres: ["Ciné-club", "Rétrospective"], status: "cycle", synopsis: "Cycle « Cinéastes suisses oubliées » — copie restaurée. Une peintre lausannoise règle ses comptes avec le milieu de l'art dans ce film rare, présenté avec une introduction du Zinéma.", posterSize: "small", poster: {}, trailerUrl: "https://www.youtube.com/watch?v=eRsGyueVLvQ", sumupCheckoutUrl: "#", price: "16.- / 12.- (réduit)" },
+    { _id: "film-1", title: "Cinque Secondi", slug: "cinque-secondi", director: "Paolo Virzì", year: 2025, country: "Italie", duration: 100, language: "VO italien", subtitles: "st fr", ageRating: "12 ans", genres: ["Comédie dramatique"], status: "a-laffiche", synopsis: "Un homme bourru retiré dans la campagne toscane voit sa tranquillité bousculée par une joyeuse communauté venue reprendre le vignoble voisin. Paolo Virzì réunit Valerio Mastandrea et Valeria Bruni Tedeschi dans une comédie humaine, tendre et mordante.", posterSize: "large", featuredHome: true, poster: { localUrl: "assets/img/affiches/cinque-secondi.jpg" }, trailerUrl: "https://www.youtube.com/watch?v=aqz-KE-bpKQ", price: TARIFS.resume, sumupCheckoutUrl: "#" },
+    { _id: "film-2", title: "Wolves", slug: "wolves", director: "Jonas Ulrich", year: 2025, country: "Suisse", duration: 94, language: "VO suisse-allemand", subtitles: "st fr", ageRating: "14 ans", genres: ["Drame"], status: "a-laffiche", synopsis: "Deux êtres que tout rapproche et que tout menace, filmés au plus près des visages. Présenté au Zurich Film Festival, un premier long métrage suisse d'une intensité rare, porté par Selma Kopp et Bartosz Bielenia.", posterSize: "medium", featuredHome: true, poster: { localUrl: "assets/img/affiches/wolves.jpg" }, trailerUrl: "https://www.youtube.com/watch?v=eRsGyueVLvQ", sumupCheckoutUrl: "#", price: TARIFS.resume },
+    { _id: "film-3", title: "Siri Hustvedt — Dance Around the Self", slug: "siri-hustvedt-dance-around-the-self", director: "Sabine Lidl", year: 2025, country: "Allemagne", duration: 90, language: "VO anglais/allemand", subtitles: "st fr", ageRating: "Tous publics", genres: ["Documentaire", "Portrait"], status: "a-laffiche", synopsis: "Un portrait intime de l'écrivaine Siri Hustvedt, entre New York et l'écriture, la mémoire et le deuil, avec la présence de Paul Auster. Présenté à la Berlinale (Panorama).", posterSize: "medium", featuredHome: true, poster: { localUrl: "assets/img/affiches/siri-hustvedt.jpg" }, trailerUrl: "https://www.youtube.com/watch?v=R6MlUcmOul8", sumupCheckoutUrl: "#", price: TARIFS.resume },
+    { _id: "film-4", title: "La Vénus Électrique", slug: "la-venus-electrique", director: "Pierre Salvadori", year: 2026, country: "France", duration: 105, language: "VO français", subtitles: "st all", ageRating: "12 ans", genres: ["Comédie", "Music-hall"], status: "avant-premiere", synopsis: "Avant-première — film d'ouverture du Festival de Cannes 2026. Dans le Paris des années folles, une artiste de music-hall au numéro électrisant affole les scènes et les cœurs. Avec Pio Marmaï, Anaïs Demoustier, Gilles Lellouche et Vimala Pons.", posterSize: "small", poster: { localUrl: "assets/img/affiches/la-venus-electrique.jpg" }, trailerUrl: "https://www.youtube.com/watch?v=WhWc3b3KhnY", sumupCheckoutUrl: "#", price: TARIFS.resume },
+    { _id: "film-5", title: "être paysan·ne", slug: "etre-paysan-ne", director: "Frédéric Gonseth & Catherine Azad", year: 2025, country: "Suisse", duration: 92, language: "VO français", subtitles: "st all", ageRating: "Tous publics", genres: ["Documentaire", "Local"], status: "a-laffiche", synopsis: "Des paysannes et paysans suisses racontent un métier en pleine mutation, entre attachement à la terre et mobilisation pour survivre. Un documentaire au plus près d'un monde qui lance son SOS.", posterSize: "medium", poster: { localUrl: "assets/img/affiches/etre-paysan-ne.jpg" }, trailerUrl: "https://www.youtube.com/watch?v=aqz-KE-bpKQ", sumupCheckoutUrl: "#", price: TARIFS.resume },
+    { _id: "film-6", title: "Rouge Cadmium", slug: "rouge-cadmium", director: "Ester Bregman", year: 1974, country: "Suisse", duration: 88, language: "VO français", subtitles: "", ageRating: "16 ans", genres: ["Ciné-club", "Rétrospective"], status: "cycle", synopsis: "Cycle « Cinéastes suisses oubliées » — copie restaurée. Une peintre lausannoise règle ses comptes avec le milieu de l'art dans ce film rare, présenté avec une introduction du Zinéma.", posterSize: "small", poster: {}, trailerUrl: "https://www.youtube.com/watch?v=eRsGyueVLvQ", sumupCheckoutUrl: "#", price: TARIFS.resume },
     { _id: "film-7", title: "Grand Bal", slug: "grand-bal", director: "Miloud Kessi", year: 2026, country: "France", duration: 76, language: "Sans dialogue", subtitles: "", ageRating: "Tous publics", genres: ["Jeune public", "Animation"], status: "prochainement", synopsis: "Un bal de village où chaque danseur devient, le temps d'une valse, une créature différente. Ciné-goûter dès 6 ans, à partir du 14 juillet.", posterSize: "small", poster: {}, trailerUrl: "https://www.youtube.com/watch?v=R6MlUcmOul8", sumupCheckoutUrl: "#", price: "10.- (ciné-goûter)" },
-    { _id: "film-8", title: "Devenir Paysan", slug: "devenir-paysan", director: "Alexia Tissières", year: 2025, country: "Suisse", duration: 85, language: "VO français", subtitles: "st all", ageRating: "Tous publics", genres: ["Documentaire", "Portrait"], status: "a-laffiche", synopsis: "Le chemin d'un jeune homme qui choisit la terre : apprendre le métier, tenir une ferme, trouver sa place. Sélectionné aux Journées de Soleure, un documentaire lumineux sur une vocation à contre-courant.", posterSize: "large", featuredHome: true, poster: { localUrl: "assets/img/affiches/devenir-paysan.jpg" }, trailerUrl: "https://www.youtube.com/watch?v=WhWc3b3KhnY", sumupCheckoutUrl: "#", price: "16.- / 12.- (réduit)" },
+    { _id: "film-8", title: "Devenir Paysan", slug: "devenir-paysan", director: "Alexia Tissières", year: 2025, country: "Suisse", duration: 85, language: "VO français", subtitles: "st all", ageRating: "Tous publics", genres: ["Documentaire", "Portrait"], status: "a-laffiche", synopsis: "Le chemin d'un jeune homme qui choisit la terre : apprendre le métier, tenir une ferme, trouver sa place. Sélectionné aux Journées de Soleure, un documentaire lumineux sur une vocation à contre-courant.", posterSize: "large", featuredHome: true, poster: { localUrl: "assets/img/affiches/devenir-paysan.jpg" }, trailerUrl: "https://www.youtube.com/watch?v=WhWc3b3KhnY", sumupCheckoutUrl: "#", price: TARIFS.resume },
   ];
 
   var mockScreenings = [
@@ -153,8 +180,8 @@
     email: "admin@zinema.ch",
     openingHours: [
       { label: "Caisse", value: "15 min avant chaque séance" },
-      { label: "Réservation", value: "Non — billets vendus sur place" },
-      { label: "Paiement", value: "Cash ou Twint (pas de carte)" },
+      { label: "Billetterie", value: "En ligne ou sur place" },
+      { label: "Tarifs", value: TARIFS.plein + " / " + TARIFS.reduit + " réduit" },
     ],
     socialLinks: [
       { label: "Instagram", url: "https://instagram.com" },
@@ -165,8 +192,10 @@
   /* ---------------- API publique ---------------- */
   var ZinemaData = {
     isSanityConfigured: isSanityConfigured,
+    billetterieEnLigne: BILLETTERIE_EN_LIGNE,
     projectId: SANITY_PROJECT_ID,
     dataset: SANITY_DATASET,
+    tarifs: TARIFS,
     getFilms: function () {
       return withFallback(queries.films, {}, mockFilms);
     },

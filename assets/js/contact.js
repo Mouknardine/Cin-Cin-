@@ -1,0 +1,143 @@
+/* ============================================================
+   Zinéma — page Contact, en tableau « Mondrian » comme le reste
+   du site : des cases blanches séparées par des traits noirs,
+   dont la largeur suit la longueur du texte, et dont la couleur
+   est tirée au hasard à chaque affichage.
+
+   L'adresse ouvre la page, la carte à côté ; viennent ensuite les
+   horaires, les coordonnées, l'accès et les réseaux — une
+   information par case. Tout vient de Sanity : une case qui n'a
+   rien à dire n'est pas affichée, jamais de case vide.
+   ============================================================ */
+(function () {
+  "use strict";
+
+  var app = document.getElementById("contact-app");
+  var R = window.ZinemaRender;
+  var C = window.ZinemaCouleurs;
+
+  var ACCES_DEFAUT = "Bus et métro m2, arrêt à quelques minutes.";
+
+  /* Une bande vide laisserait un trait noir en travers du tableau :
+     on ne l'écrit que si elle a au moins une case. */
+  function bande(classe, cases) {
+    var contenu = cases.filter(Boolean).join("");
+    return contenu ? '<div class="m-bande ' + classe + '">' + contenu + "</div>" : "";
+  }
+
+  /* Une case d'information : un intitulé, une valeur — le même
+     gabarit que les repères de la fiche film. Sur mobile, les deux
+     tiennent sur une seule ligne (voir .m-cell--ligne). */
+  function caseInfo(label, valeur) {
+    if (!valeur) return "";
+    return (
+      '<div class="m-cell m-info m-cell--ligne ' + C.classe() + '">' +
+      '<p class="m-cell__label">' + R.escapeHtml(label) + "</p>" +
+      '<p class="m-cell__value">' + R.escapeHtml(valeur) + "</p></div>"
+    );
+  }
+
+  /* La même case, mais cliquable : téléphone, e-mail. */
+  function caseLien(label, valeur, href) {
+    if (!valeur) return "";
+    return (
+      '<a class="m-cell m-info m-cell--ligne ' + C.classe() + '" href="' + R.escapeHtml(href) + '">' +
+      '<p class="m-cell__label">' + R.escapeHtml(label) + "</p>" +
+      '<p class="m-cell__value">' + R.escapeHtml(valeur) + "</p></a>"
+    );
+  }
+
+  /* Une case-lien qui sort du site. */
+  function caseAction(libelle, href) {
+    return (
+      '<a class="m-cell m-action ' + C.classe() + '" href="' +
+      R.escapeHtml(href) + '" target="_blank" rel="noopener noreferrer">' +
+      "<span>" + R.escapeHtml(libelle) + " →</span></a>"
+    );
+  }
+
+  /* Le texte d'accès arrive de Sanity en blocs de texte riche (ou en
+     simple chaîne dans le contenu d'exemple). */
+  function texteAcces(access) {
+    if (typeof access === "string") return access;
+    if (!Array.isArray(access)) return "";
+    return access
+      .map(function (bloc) {
+        return ((bloc && bloc.children) || [])
+          .map(function (enfant) { return enfant.text; })
+          .join("");
+      })
+      .filter(Boolean)
+      .join("\n");
+  }
+
+  function numeroVersLien(numero) {
+    return "tel:" + String(numero).replace(/\s/g, "");
+  }
+
+  /* L'adresse est écrite comme sur une enveloppe : la rue, puis le
+     code postal et la ville sur la ligne suivante — la virgule de
+     Sanity marque le passage à la ligne. Le numéro de rue est
+     rattaché au nom de la rue par une espace insécable : écrit en
+     très gros, il ne se retrouve jamais seul en début de ligne. */
+  function adresseEnLignes(adresse) {
+    return adresse
+      .split(/,\s*/)
+      .map(function (ligne) {
+        return ligne.replace(/\s+(\d+[a-z]?)$/i, " $1");
+      })
+      .join("\n");
+  }
+
+  window.ZinemaData.getSiteSettings().then(function (reglages) {
+    var adresse = reglages.address || "Lausanne, Suisse";
+
+    /* La carte est construite à partir de l'adresse renseignée dans
+       Sanity (cet embed en lecture seule ne demande aucune clé API) :
+       elle suit l'adresse toute seule, sans champ à maintenir en
+       double. « Lien carte » dans Sanity reste disponible pour
+       pointer vers une fiche Google Maps précise (avis, photos…). */
+    var requeteCarte = encodeURIComponent(adresse);
+    var lienCarte = reglages.mapUrl || "https://www.google.com/maps/search/?api=1&query=" + requeteCarte;
+    var sourceCarte = "https://www.google.com/maps?q=" + requeteCarte + "&output=embed";
+
+    var caseAdresse =
+      '<div class="m-cell m-contact__adresse ' + C.classe() + '">' +
+      '<p class="m-cell__label">Adresse</p>' +
+      '<p class="m-contact__adresse-valeur">' + R.escapeHtml(adresseEnLignes(adresse)) + "</p></div>";
+
+    var caseCarte =
+      '<div class="m-contact__carte"><iframe src="' + R.escapeHtml(sourceCarte) +
+      '" title="Le Zinéma sur Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>';
+
+    var caseAcces =
+      '<div class="m-cell m-contact__acces ' + C.classe() + '">' +
+      '<p class="m-cell__label">Accès</p>' +
+      '<p class="m-contact__acces-texte">' + R.escapeHtml(texteAcces(reglages.accessInfo) || ACCES_DEFAUT) +
+      "</p></div>";
+
+    app.innerHTML =
+      '<article class="mondrian mondrian--contact">' +
+      bande("m-bande--adresse", [caseAdresse]) +
+      bande("m-bande--carte", [caseCarte]) +
+      bande(
+        "m-bande--horaires",
+        (reglages.openingHours || []).map(function (horaire) {
+          return caseInfo(horaire.label, horaire.value);
+        })
+      ) +
+      bande("m-bande--coordonnees", [
+        caseLien("Cinéma", reglages.phone, numeroVersLien(reglages.phone || "")),
+        caseLien("Bureau", reglages.phoneSecondary, numeroVersLien(reglages.phoneSecondary || "")),
+        caseLien("E-mail", reglages.email, "mailto:" + (reglages.email || "")),
+      ]) +
+      bande("m-bande--acces", [caseAcces]) +
+      /* Les réseaux sociaux, « nous écrire » et le retour vers
+         l'agenda ne sont pas repris ici : le pied de page les porte
+         déjà, sur toutes les pages du site, et il s'affiche juste
+         en dessous. Les répéter allongeait la page d'un écran
+         entier sur mobile, avec Instagram et Facebook deux fois. */
+      bande("m-bande--actions", [caseAction("Voir sur Google Maps", lienCarte)]) +
+      "</article>";
+  });
+})();

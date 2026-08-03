@@ -1,22 +1,17 @@
 /* ============================================================
    Zinéma — page Agenda en tableau « Mondrian ».
    S'appuie sur film-mondrian.css (quadrillage, cases) et
-   films-mondrian.css (en-tête .m-entete, filtres .m-filtres) :
+   films-mondrian.css (filtres .m-filtres) :
    les trois feuilles sont chargées ensemble sur cette page.
 
-   Le tableau : en-tête, bascule Jour/Semaine, puis
+   Le tableau s'ouvre directement sur la bascule Jour/Semaine,
+   sans bandeau de titre, puis
    · vue Jour : les jours en cases-boutons, la date en toutes
      lettres, une rangée de cases par séance ;
    · vue Semaine : une colonne par jour, mêmes rangées.
    Chaque séance est entièrement cliquable vers la fiche film —
    survol bleu (bleu = navigation, code couleur du site).
    ============================================================ */
-
-/* La fiche film fixe des rangées de grille (1fr…) sur ordinateur :
-   l'agenda n'empile que des rangées pleine largeur, toutes en auto. */
-@media (min-width: 1080px) {
-  .mondrian--agenda { grid-template-rows: none; }
-}
 
 /* ---------- Cases-boutons des jours : jour + numéro ---------- */
 
@@ -27,6 +22,19 @@
 }
 .m-jour__dow { font-weight: 700; }
 .m-jour__num { font-weight: 900; }
+
+/* Le jour choisi ne se peint pas en noir, contrairement aux autres
+   cases actives du site : juste au-dessus, la bascule Jour/Semaine
+   marque déjà en noir la vue où l'on se trouve, et deux cases
+   noires qui se touchent se confondent en un seul bloc. Le jour
+   prend donc sa couleur Mondrian — tirée au hasard comme partout
+   ailleurs, mais jamais le noir (voir classeVive dans couleurs.js).
+   Les deux repères restent ainsi toujours de couleurs différentes. */
+.m-filtre--jour.is-active,
+.m-filtre--jour.is-active:hover {
+  background: var(--case-fond);
+  color: var(--case-texte);
+}
 
 /* ---------- La date choisie, en toutes lettres ---------- */
 
@@ -83,21 +91,19 @@
   font-weight: 800;
   text-transform: uppercase;
 }
-/* Annulé en rouge (rouge = mise en avant) ; Complet reste noir. */
+/* Annulé en rouge : c'est un avertissement, pas une décoration —
+   il échappe donc au tirage au sort des couleurs. */
 .m-seance__statut--annule { color: var(--red); }
 
-/* Toute la rangée se remplit de bleu au survol : une seule surface,
-   comme les autres liens-cases du tableau. */
-a.m-seance {
-  transition: none;
-}
+/* Toute la rangée se remplit au survol : une seule surface, chaque
+   case prenant la couleur tirée au hasard pour elle. */
 a.m-seance > * {
   transition: background 0.2s ease-out, color 0.2s ease-out;
 }
 a.m-seance:hover > *,
 a.m-seance:focus-visible > * {
-  background: var(--blue);
-  color: #fff;
+  background: var(--case-fond);
+  color: var(--case-texte);
 }
 
 @media (min-width: 1080px) {

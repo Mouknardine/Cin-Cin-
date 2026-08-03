@@ -1,0 +1,22 @@
+# ============================================================
+# Zinéma — protection du dossier de la billetterie.
+#
+# Les fichiers qui commencent par un souligné (_socle.php,
+# _sumup.php…) sont des briques internes : elles ne répondent à
+# personne, mais on interdit quand même qu'on puisse les ouvrir
+# depuis un navigateur. Seuls creer-paiement.php et
+# statut-paiement.php sont des portes d'entrée.
+# ============================================================
+
+<FilesMatch "^_">
+    Require all denied
+</FilesMatch>
+
+# Par sécurité : si un fichier de configuration se retrouvait un
+# jour ici par erreur, il resterait inaccessible.
+<FilesMatch "^config\.php$">
+    Require all denied
+</FilesMatch>
+
+# Pas d'index de dossier : on ne montre pas la liste des fichiers.
+Options -Indexes

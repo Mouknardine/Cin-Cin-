@@ -1,18 +1,22 @@
 /* ============================================================
    Zinéma — en-tête + menu plein écran (identique sur chaque page)
+
+   Le logo reste toujours tout à gauche et ramène à l'accueil ;
+   les six rubriques suivent, dans l'ordre du menu.
+   Les couleurs des cases sont tirées au hasard (couleurs.js) :
+   aucune rubrique n'a « sa » couleur attitrée.
    ============================================================ */
 (function () {
   "use strict";
 
-  /* `page` correspond au data-page du <body> (pour marquer la page courante),
-     `color` est la couleur primaire de la case (survol sur ordinateur, et
-     fond des cases de navigation du scroll de l'accueil). */
+  /* `page` correspond au data-page du <body> (pour marquer la page courante). */
   var navLinks = [
-    { href: "films/", label: "Films", num: "01", page: "films", color: "blue" },
-    { href: "agenda/", label: "Agenda", num: "02", page: "agenda", color: "red" },
-    { href: "histoire/", label: "Histoire", num: "03", page: "histoire", color: "jaune" },
-    { href: "annonces/", label: "Annonces", num: "04", page: "annonces", color: "blue" },
-    { href: "infos-pratiques/", label: "Infos pratiques", num: "05", page: "infos-pratiques", color: "red" },
+    { href: "films/", label: "Films", num: "01", page: "films" },
+    { href: "agenda/", label: "Agenda", num: "02", page: "agenda" },
+    { href: "evenements/", label: "Événement", num: "03", page: "evenements" },
+    { href: "histoire/", label: "Histoire", num: "04", page: "histoire" },
+    { href: "membership/", label: "Membership", num: "05", page: "membership" },
+    { href: "contact/", label: "Contact", num: "06", page: "contact" },
   ];
 
   /* Liste partagée avec l'accueil, qui en fait ses cases de scroll. */
@@ -25,7 +29,7 @@
       .map(function (link) {
         return (
           '<li class="nav-bar__item">' +
-          '<a href="' + root + link.href + '" class="nav-bar__link nav-bar__link--' + link.color + '"' +
+          '<a href="' + root + link.href + '" class="nav-bar__link ' + window.ZinemaCouleurs.classe() + '"' +
           (link.page === currentPage ? ' aria-current="page"' : "") +
           ">" + link.label + "</a></li>"
         );
@@ -48,8 +52,10 @@
       '<img src="' + root + 'assets/img/zinema-logo.png" alt="Zinéma" width="220" height="54">' +
       "</a>" +
       navBarHTML(root, document.body.dataset.page) +
+      /* Pas de mot « Menu » à côté du bouton : le carré et ses deux
+         barres suffisent. L'intitulé reste porté par aria-label,
+         pour les lecteurs d'écran. */
       '<button type="button" class="menu-toggle" aria-expanded="false" aria-label="Ouvrir le menu">' +
-      '<span class="menu-toggle__label">Menu</span>' +
       '<span class="menu-toggle__box">' +
       '<span class="menu-toggle__bar menu-toggle__bar--1"></span>' +
       '<span class="menu-toggle__bar menu-toggle__bar--2"></span>' +
@@ -84,7 +90,6 @@
       open = next;
       toggle.setAttribute("aria-expanded", String(open));
       toggle.setAttribute("aria-label", open ? "Fermer le menu" : "Ouvrir le menu");
-      toggle.querySelector(".menu-toggle__label").textContent = open ? "Fermer" : "Menu";
       nav.classList.toggle("is-open", open);
       document.documentElement.style.overflow = open ? "hidden" : "";
     }

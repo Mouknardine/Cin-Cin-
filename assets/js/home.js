@@ -107,11 +107,14 @@
     }).length;
   }
 
-  /* Les cases de navigation : les cinq pages du menu + le logo.
-     Elles tournent de copie en copie, comme les affiches, pour
-     que toutes les options reviennent régulièrement au fil du
-     scroll (le cycle complet des 6 cases s'étale sur 2 copies). */
-  var navTiles = (window.ZinemaNavLinks || []).slice().concat([{ logo: true }]);
+  /* Les cases de navigation : les six pages du menu, le logo, et
+     la case d'achat (verte). Huit cases au total — exactement le
+     nombre de places par cycle sur ordinateur : aucune rubrique
+     n'apparaît donc deux fois dans le même écran. Elles tournent
+     de copie en copie, comme les affiches. */
+  var navTiles = (window.ZinemaNavLinks || [])
+    .slice()
+    .concat([{ logo: true }, { achat: true, label: "Acheter", href: "agenda/" }]);
 
   /* Sur l'écran d'arrivée, la case qui traverse le centre est
      celle d'index 2 dans l'ordre des cases. On y place
@@ -152,15 +155,18 @@
     if (tile.logo) {
       return (
         '<a href="' + root + '" class="canvas-tile canvas-tile--logo" aria-label="Zinéma — accueil">' +
-        '<img src="' + root + 'assets/img/zinema-logo.png" alt="Zinéma">' +
-        '<span class="canvas-tile__tagline">Cinéma indépendant — Lausanne</span></a>'
+        '<img src="' + root + 'assets/img/zinema-logo.png" alt="Zinéma"></a>'
       );
     }
-    /* Les titres longs (« Infos pratiques ») réduisent leur corps
-       pour ne jamais couper un mot en deux. */
+    /* Les titres longs (« Membership ») réduisent leur corps pour
+       ne jamais couper un mot en deux. La couleur, elle, est tirée
+       au hasard à chaque case : la même rubrique n'a pas deux fois
+       la même couleur au fil du défilement. Seule la case d'achat
+       échappe au tirage : elle est verte, comme partout ailleurs. */
     var compact = tile.label.length > 8 ? " canvas-tile--compact" : "";
+    var teinte = tile.achat ? "canvas-tile--achat" : window.ZinemaCouleurs.classe();
     return (
-      '<a href="' + root + tile.href + '" class="canvas-tile canvas-tile--' + tile.color + compact + '">' +
+      '<a href="' + root + tile.href + '" class="canvas-tile ' + teinte + compact + '">' +
       '<span class="canvas-tile__label">' + tile.label + "</span></a>"
     );
   }
@@ -201,21 +207,34 @@
       return config().cycleHeight * scale();
     }
 
-    /* Écran d'arrivée : le tableau s'ouvre sur la rangée dont la
-       case en haut à droite est le logo Zinéma. On cherche la case
-       logo dans la copie centrale et on cale le haut de l'écran
-       juste au-dessus, au début de son espace blanc. */
-    function startTop() {
-      var c = config();
-      var tilesPerCycle = countType(c.slots, "tile");
-      var logoTop = 0;
+    /* Position du logo Zinéma dans une copie donnée du cycle, ou
+       -1 si le logo n'y figure pas (les cases tournent d'une copie
+       à l'autre, il n'apparaît donc pas dans chacune). */
+    function logoTopDansCopie(c, copie, tilesPerCycle) {
+      var top = -1;
       var tileIdx = 0;
       c.slots.forEach(function (slot) {
         if (slot.type !== "tile") return;
-        if (tileForSlot(JUMP, tileIdx, tilesPerCycle).logo) logoTop = slot.top;
+        if (top < 0 && tileForSlot(copie, tileIdx, tilesPerCycle).logo) top = slot.top;
         tileIdx += 1;
       });
-      return (JUMP * c.cycleHeight + logoTop - c.gap) * scale();
+      return top;
+    }
+
+    /* Écran d'arrivée : le tableau s'ouvre sur la rangée qui porte
+       le logo Zinéma. On part de la copie centrale et on descend
+       jusqu'à la première copie où le logo apparaît, puis on cale
+       le haut de l'écran juste au-dessus, au début de son espace
+       blanc. Le recentrage tolère quatre copies d'écart : on reste
+       dans cette marge. */
+    function startTop() {
+      var c = config();
+      var tilesPerCycle = countType(c.slots, "tile");
+      for (var copie = JUMP; copie <= JUMP + 4; copie++) {
+        var top = logoTopDansCopie(c, copie, tilesPerCycle);
+        if (top >= 0) return (copie * c.cycleHeight + top - c.gap) * scale();
+      }
+      return JUMP * c.cycleHeight * scale();
     }
 
     function layout() {
@@ -318,7 +337,7 @@
 
   /* Le collage mélange les affiches des films à l'affiche et les
      visuels des annonces épinglées (événements type Coupe du monde),
-     qui renvoient vers la page Annonces. */
+     qui renvoient vers la page Événement. */
   function selectHomeItems(films, announcements) {
     var filmItems = films
       .filter(function (f) {
@@ -337,7 +356,7 @@
         return a.pinned && isRealImage(a.image);
       })
       .map(function (a) {
-        return { title: a.title, poster: a.image, href: "annonces/" };
+        return { title: a.title, poster: a.image, href: "evenements/" };
       });
 
     return filmItems.concat(eventItems);

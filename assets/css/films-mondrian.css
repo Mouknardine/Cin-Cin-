@@ -3,34 +3,18 @@
    S'appuie sur film-mondrian.css (quadrillage, cases, affiches) :
    les deux feuilles sont chargées ensemble sur cette page.
 
-   Le tableau : une case d'en-tête, une rangée de filtres, puis
-   les films — chaque film est une colonne affiche + infos.
-   Les affiches ne sont jamais recadrées : la case d'infos
-   absorbe la hauteur restante de sa rangée, jamais de trou.
+   Le tableau commence directement par la rangée de filtres : plus
+   aucune page du site ne porte de bandeau de titre. Chaque film
+   est ensuite une colonne de cases : l'affiche, le titre, puis ses
+   infos sur une seule ligne, dans leur propre case.
+   Les affiches ne sont jamais recadrées : les cases de texte
+   absorbent la hauteur restante de leur rangée, jamais de trou.
    ============================================================ */
 
-/* ---------- Case d'en-tête : numéro de page + titre géant ---------- */
-
-.m-entete {
-  grid-column: 1 / -1;
-  padding: 1.25rem 1rem;
-}
-.m-entete h1 {
-  margin-top: 0.5rem;
-  font-family: var(--font-display);
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  font-size: var(--taille-titre);
-  line-height: 0.92;
-  overflow-wrap: anywhere;
-}
-
-/* ---------- Filtres : des cases-boutons, bleu au survol
-   (bleu = navigation), noir quand le filtre est actif. ---------- */
+/* ---------- Filtres : des cases-boutons. Leur couleur est tirée
+   au hasard (survol) ; le filtre actif est noir. ---------- */
 
 .m-filtres {
-  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   gap: var(--ligne);
@@ -49,24 +33,18 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  transition: background 0.2s ease-out, color 0.2s ease-out;
 }
-.m-filtre:hover,
-.m-filtre:focus-visible {
-  background: var(--blue);
-  color: #fff;
-}
-.m-filtre.is-active {
+.m-filtre.is-active,
+.m-filtre.is-active:hover {
   background: var(--ink);
   color: var(--paper);
 }
 
-/* ---------- Les films : colonnes affiche + infos.
+/* ---------- Les films : colonnes de cases.
    Flexbox plutôt que grille : la dernière rangée s'élargit pour
    remplir toute la largeur — jamais de case vide ni de trou noir. */
 
 .m-films {
-  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   gap: var(--ligne);
@@ -87,17 +65,24 @@
 .m-film > * {
   background: var(--paper);
 }
-/* La case d'infos absorbe la hauteur restante de la rangée. */
-.m-film__meta {
+/* La case du titre absorbe la hauteur restante de la rangée. */
+.m-film__entete {
   flex: 1;
-  transition: background 0.2s ease-out, color 0.2s ease-out;
 }
 .m-film__statut {
   font-weight: 800;
   text-transform: uppercase;
-  color: var(--red);
+  color: var(--case-accent, var(--ink));
   transition: color 0.2s ease-out;
 }
+/* Survoler la fiche remplit ses deux cases de texte, chacune de sa
+   propre couleur tirée au hasard. */
+.m-film:hover .m-cell,
+.m-film:focus-visible .m-cell {
+  background: var(--case-fond);
+  color: var(--case-texte);
+}
+.m-film:hover .m-film__statut { color: inherit; }
 .m-film__titre {
   font-family: var(--font-display);
   font-weight: 900;
@@ -110,25 +95,18 @@
   font-weight: 400;
   opacity: 0.75;
 }
-/* Les infos en toutes lettres, sans majuscules forcées ni gris
-   pâle : lisibles d'un coup d'œil. */
-.m-film__ligne {
+/* Les repères du film (année, pays, durée, version, âge) tiennent
+   sur une seule ligne, dans leur propre case. */
+.m-film__infos {
   font-weight: 400;
-}
-.m-film__version {
-  font-weight: 700;
-}
-/* Rouge au survol (rouge = mise en avant), comme le titre de la fiche. */
-.m-film:hover .m-film__meta,
-.m-film:focus-visible .m-film__meta {
-  background: var(--red);
-  color: #fff;
-}
-.m-film:hover .m-film__statut,
-.m-film:focus-visible .m-film__statut {
-  color: #fff;
+  overflow-wrap: break-word;
 }
 
+/* L'affiche garde toujours sa hauteur naturelle : elle n'est jamais
+   comprimée par la rangée, donc jamais rognée. */
+.m-films .m-affiche {
+  flex: none;
+}
 /* Les affiches générées (films sans visuel) ne dictent jamais la
    hauteur de leur rangée : elles remplissent la place disponible. */
 .m-films .m-affiche--generee {
@@ -137,26 +115,18 @@
   min-height: 18rem;
 }
 
-/* Case « Agenda complet » : bleue en permanence (bleu = navigation),
-   noire au survol. Elle ferme le tableau et absorbe l'espace restant
-   des rangées incomplètes — jamais de trou noir. */
+/* Case « Agenda complet » : elle ferme le tableau et absorbe
+   l'espace restant des rangées incomplètes — jamais de trou noir. */
 .m-films-agenda {
   flex: 1 1 22%;
   align-items: flex-end;
-  background: var(--blue);
-  color: #fff;
+  background: var(--paper);
   padding: 1.25rem 1rem;
-}
-a.m-films-agenda:hover,
-a.m-films-agenda:focus-visible {
-  background: var(--ink);
-  color: #fff;
 }
 
 /* ---------- Aucun film dans la catégorie ---------- */
 
 .m-vide {
-  grid-column: 1 / -1;
   min-height: 30dvh;
   justify-content: center;
 }

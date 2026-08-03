@@ -47,16 +47,74 @@
   --red: #c22a1d;
   --blue: #2f49c2;
   --jaune: #f7c600;
-  --line: rgba(16, 15, 12, 0.15);
+  /* Le vert du billet : un vert fougère profond. C'est la seule
+     couleur du site qui a un sens fixe — elle ne sert qu'à acheter
+     un billet, nulle part ailleurs.
+     Les deux valeurs ont exactement la même teinte et la même
+     saturation : seule la luminosité change, pour que le survol se
+     lise comme le même vert qui s'assombrit, jamais comme une
+     autre couleur. Le blanc dessus tient largement le contraste
+     (8,2:1 au repos, 11,7:1 au survol). */
+  --vert: #275a1b;
+  --vert-fonce: #1b4014;
+  /* Le rose de We Are Brothers : il ne sert qu'à leur signature,
+     tout en bas du pied de page. */
+  --rose: #e0218a;
+  /* Le trait du site. Il n'y en a qu'un : la même épaisseur pour
+     TOUS les traits, partout — le quadrillage des tableaux, la
+     barre de navigation, le pied de page, les cases de l'accueil,
+     les pastilles d'horaire. Changer ce seul chiffre change tout
+     le site d'un coup.
+
+     Deuxième règle : deux traits qui se touchent n'en font qu'un.
+     Là où deux blocs se rejoignent (la barre de navigation et le
+     tableau, le tableau et le pied de page), le bloc du dessous
+     remonte d'exactement une épaisseur de trait pour venir se
+     poser sur celui du dessus — jamais un trait deux fois plus
+     épais à la jonction. */
+  --ligne: 4px;
   --ease-editorial: cubic-bezier(0.65, 0, 0.35, 1);
   /* Les deux seules tailles de texte du site : titres et tout le reste.
      La hiérarchie se fait avec les graisses, jamais avec la taille. */
   --taille-titre: clamp(2.75rem, 1.5rem + 5.5vw, 6rem);
   --taille-texte: clamp(1.375rem, 1.1rem + 0.75vw, 1.75rem);
+  /* Seule exception à ces deux tailles : la barre de navigation.
+     Six rubriques + le logo doivent tenir sur une ligne dès
+     1200px de large ; elle grandit ensuite avec l'écran et
+     rejoint la taille courante du site sur les grands moniteurs. */
+  --taille-nav: clamp(1.3rem, 0.7rem + 0.85vw, 1.75rem);
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* ------------------------------------------------------------
+   Les quatre couleurs Mondrian, tirées au hasard
+   ------------------------------------------------------------
+   Aucune couleur n'a de signification : couleurs.js pose une de
+   ces quatre classes au hasard sur chaque case, à chaque
+   affichage. La classe ne peint rien elle-même — elle renseigne
+   trois variables que les feuilles de style utilisent ensuite :
+     --case-fond   : la couleur de remplissage (au survol)
+     --case-texte  : le texte lisible sur ce fond
+     --case-accent : la même couleur en version « texte sur
+                     papier » (le jaune y est assombri, illisible
+                     sinon sur fond clair).
+   Le vert du bouton d'achat ne fait pas partie du tirage. */
+.c-rouge { --case-fond: var(--red);   --case-texte: #fff;      --case-accent: var(--red); }
+.c-bleu  { --case-fond: var(--blue);  --case-texte: #fff;      --case-accent: var(--blue); }
+.c-noir  { --case-fond: var(--ink);   --case-texte: var(--paper); --case-accent: var(--ink); }
+.c-jaune { --case-fond: var(--jaune); --case-texte: var(--ink);   --case-accent: #8a6d00; }
+
+/* Une case « teintée » se remplit de sa couleur au survol. */
+.m-teinte {
+  transition: background 0.2s ease-out, color 0.2s ease-out;
+}
+.m-teinte:hover,
+.m-teinte:focus-visible {
+  background: var(--case-fond);
+  color: var(--case-texte);
 }
 
 html {
@@ -79,8 +137,20 @@ html {
   }
 }
 
+/* Le corps du site occupe toujours au moins toute la hauteur
+   visible, et le contenu pousse le pied de page vers le bas : sur
+   une page courte (un jour d'agenda avec deux séances, une page
+   d'histoire encore vide), le pied de page se cale au bas de
+   l'écran au lieu de flotter au milieu. Sur une page longue, il
+   reprend sa place normale, à la suite du contenu.
+   L'en-tête et le menu plein écran sont en position fixe : ils ne
+   participent pas à cet empilement. */
 body {
   margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
   color: var(--ink);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
@@ -122,6 +192,10 @@ button {
 ::-webkit-scrollbar-track {
   background: var(--paper);
 }
+/* Seul « trait » du site à ne pas valoir --ligne, et ce n'en est
+   pas un : ces 2px de papier ne dessinent rien, ils affinent le
+   curseur à l'intérieur de sa glissière de 10px. À --ligne, il ne
+   resterait qu'un filet de 2px à saisir. */
 ::-webkit-scrollbar-thumb {
   background: var(--ink);
   border: 2px solid var(--paper);
@@ -137,10 +211,6 @@ button {
   text-transform: uppercase;
   letter-spacing: -0.01em !important;
 }
-.tracking-tightest { letter-spacing: -0.01em; }
-.tracking-widen { letter-spacing: -0.01em; }
-.tracking-widest { letter-spacing: -0.01em; }
-
 .stroke-text {
   -webkit-text-stroke: 1.5px var(--ink);
   color: transparent;
@@ -148,8 +218,6 @@ button {
 @media (min-width: 1080px) {
   .stroke-text { -webkit-text-stroke: 2px var(--ink); }
 }
-
-.vertical-rl { writing-mode: vertical-rl; }
 
 .underline-hover {
   background-image: linear-gradient(currentColor, currentColor);
@@ -159,9 +227,6 @@ button {
   transition: background-size 0.4s var(--ease-editorial);
 }
 .underline-hover:hover { background-size: 100% 1px; }
-
-.scrollbar-none { scrollbar-width: none; }
-.scrollbar-none::-webkit-scrollbar { display: none; }
 
 .visually-hidden {
   position: absolute;
@@ -187,7 +252,7 @@ button {
 }
 body:not([data-page="home"]) .site-header {
   justify-content: space-between;
-  border-bottom: 2px solid var(--ink);
+  border-bottom: var(--ligne) solid var(--ink);
   background: var(--paper);
 }
 @media (min-width: 768px) {
@@ -210,17 +275,13 @@ body:not([data-page="home"]) .site-header__logo { display: flex; }
   .site-header__logo img { height: 2.5rem; }
 }
 
+/* Le bouton du menu n'est plus qu'un carré : plus de mot à côté,
+   donc plus de typographie ni d'espacement à régler ici. */
 .menu-toggle {
   position: relative;
   z-index: 10;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-family: var(--font-display);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  font-size: var(--taille-texte);
 }
 .menu-toggle__box {
   display: flex;
@@ -231,7 +292,7 @@ body:not([data-page="home"]) .site-header__logo { display: flex; }
   justify-content: center;
   gap: 5px;
   /* Même épaisseur de trait que les pastilles du site. */
-  border: 2px solid var(--ink);
+  border: var(--ligne) solid var(--ink);
 }
 .menu-toggle__bar {
   height: 2px;
@@ -251,7 +312,7 @@ body:not([data-page="home"]) .site-header__logo { display: flex; }
    ------------------------------------------------------------ */
 .nav-bar { display: none; }
 
-/* En dessous de 1200px, les cinq cases ne tiennent pas en gros
+/* En dessous de 1200px, les six cases ne tiennent pas en gros
    caractères : le menu plein écran reste alors en service. */
 @media (min-width: 1200px) {
   .menu-toggle { display: none; }
@@ -264,7 +325,7 @@ body:not([data-page="home"]) .site-header__logo { display: flex; }
     align-items: stretch;
     justify-content: flex-start;
     background: var(--paper);
-    border-bottom: 2px solid var(--ink);
+    border-bottom: var(--ligne) solid var(--ink);
   }
   .site-header__logo,
   body:not([data-page="home"]) .site-header__logo {
@@ -277,7 +338,7 @@ body:not([data-page="home"]) .site-header__logo { display: flex; }
   .nav-bar {
     display: flex;
     flex: 1;
-    border-left: 2px solid var(--ink);
+    border-left: var(--ligne) solid var(--ink);
   }
   .nav-bar__list {
     display: flex;
@@ -291,40 +352,29 @@ body:not([data-page="home"]) .site-header__logo { display: flex; }
     flex: 1 0 auto;
   }
   .nav-bar__item + .nav-bar__item {
-    border-left: 2px solid var(--ink);
+    border-left: var(--ligne) solid var(--ink);
   }
   .nav-bar__link {
     display: flex;
     flex: 1;
     align-items: center;
     justify-content: center;
-    padding: 0 1rem;
+    /* Six rubriques à loger : le calage horizontal est plus serré
+       que sur les cases du tableau. */
+    padding: 0 0.75rem;
     white-space: nowrap;
     font-family: var(--font-display);
-    font-size: var(--taille-texte);
+    font-size: var(--taille-nav);
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: -0.01em;
     color: var(--ink);
     transition: background 0.2s ease-out, color 0.2s ease-out;
   }
-  .nav-bar__link--blue:hover,
-  .nav-bar__link--blue:focus-visible {
-    background: var(--blue);
-    color: var(--paper);
-  }
-  .nav-bar__link--red:hover,
-  .nav-bar__link--red:focus-visible {
-    background: var(--red);
-    color: var(--paper);
-  }
-  /* Sur le jaune, le texte reste noir : le blanc n'y serait pas lisible. */
-  .nav-bar__link--jaune:hover,
-  .nav-bar__link--jaune:focus-visible {
-    background: var(--jaune);
-    color: var(--ink);
-  }
-  .nav-bar__link[aria-current="page"] {
+  /* Le remplissage au survol vient de .m-teinte (couleur tirée au
+     hasard) ; la case de la page courante, elle, reste noire. */
+  .nav-bar__link[aria-current="page"],
+  .nav-bar__link[aria-current="page"]:hover {
     background: var(--ink);
     color: var(--paper);
   }
@@ -362,7 +412,7 @@ body:not([data-page="home"]) .site-header__logo { display: flex; }
 @media (min-width: 768px) { .main-nav__list { gap: 0.5rem; } }
 
 .main-nav__item {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  border-bottom: var(--ligne) solid rgba(255, 255, 255, 0.15);
   padding: 0.5rem 0;
   opacity: 0;
   transform: translateY(30px);
@@ -400,7 +450,7 @@ body:not([data-page="home"]) .site-header__logo { display: flex; }
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-top: var(--ligne) solid rgba(255, 255, 255, 0.15);
   padding-top: 1.5rem;
   font-weight: 400;
   font-size: var(--taille-texte);
@@ -412,109 +462,31 @@ body:not([data-page="home"]) .site-header__logo { display: flex; }
 }
 .main-nav__footer a { color: var(--paper); }
 
-/* Le contenu se cale exactement sous l'en-tête fixe. Sur les pages
-   en tableau Mondrian (fiche film et films), le quadrillage remonte
-   de 2px : son trait noir se superpose à la bordure de la barre —
-   un seul trait, et la bordure reste visible quand on défile. */
-body:not([data-page="home"]) .main-area { padding-top: 3.5rem; }
-body[data-page="film"] .main-area,
-body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
+/* Le contenu s'étire pour occuper la hauteur restante : c'est lui
+   qui repousse le pied de page en bas de l'écran. */
+.main-area { flex: 1 0 auto; }
+
+/* Le contenu se cale exactement sous l'en-tête fixe. Toutes les
+   pages du site (sauf l'accueil, qui n'a pas de barre) sont des
+   tableaux : leur quadrillage remonte d'une épaisseur de trait
+   pour venir se poser sur celui de la barre de navigation — un
+   seul trait à la jonction, jamais deux. */
+body:not([data-page="home"]) .main-area {
+  padding-top: calc(3.5rem - var(--ligne));
+}
 @media (min-width: 768px) {
-  body:not([data-page="home"]) .main-area { padding-top: 4.5rem; }
-  body[data-page="film"] .main-area,
-  body[data-page="films"] .main-area { padding-top: calc(4.5rem - 2px); }
+  body:not([data-page="home"]) .main-area {
+    padding-top: calc(4.5rem - var(--ligne));
+  }
 }
 
-/* ------------------------------------------------------------
-   En-tête de page (eyebrow + grand titre)
-   ------------------------------------------------------------ */
-.page-header {
-  padding: 0 1rem 2rem;
+/* Même principe en bas de page : le pied de page remonte d'une
+   épaisseur de trait pour que son cadre se confonde avec le bas
+   du tableau. Sur une page courte, où du papier les sépare, ce
+   décalage ne se voit pas. */
+#footer-root {
+  margin-top: calc(-1 * var(--ligne));
 }
-@media (min-width: 768px) { .page-header { padding: 0 2rem 2.5rem; } }
-.page-header__eyebrow {
-  font-weight: 700;
-  font-size: var(--taille-texte);
-  letter-spacing: -0.01em;
-  color: rgba(16, 15, 12, 0.7);
-}
-.page-header__title {
-  margin-top: 4vw;
-  font-weight: 900;
-  font-size: var(--taille-titre);
-  line-height: 0.85;
-}
-@media (min-width: 768px) { .page-header__title { margin-top: 1.5vw; } }
-
-.page-body { padding: 2rem 0; }
-@media (min-width: 768px) { .page-body { padding: 3rem 0; } }
-
-/* ------------------------------------------------------------
-   Reveal (apparition au scroll)
-   ------------------------------------------------------------ */
-.reveal {
-  opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.6s var(--ease-editorial), transform 0.6s var(--ease-editorial);
-}
-.reveal.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* ------------------------------------------------------------
-   Boutons
-   ------------------------------------------------------------ */
-.buy-button {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  border: 1px solid var(--ink);
-  background: var(--ink);
-  color: var(--paper);
-  padding: 0.75rem 1.25rem;
-  font-family: var(--font-display);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  font-size: var(--taille-texte);
-  transition: background-color 0.3s, border-color 0.3s;
-}
-.buy-button:hover { background: var(--red); border-color: var(--red); }
-.buy-button__group { display: inline-flex; align-items: center; gap: 0.5rem; }
-.buy-button__price { color: rgba(255, 255, 255, 0.7); }
-.buy-button__arrow { display: inline-block; transition: transform 0.3s; }
-.buy-button:hover .buy-button__arrow { transform: translateX(0.25rem); }
-
-.buy-button--disabled {
-  display: inline-flex;
-  align-items: center;
-  gap: 1rem;
-  border: 1px solid rgba(16, 15, 12, 0.25);
-  color: rgba(16, 15, 12, 0.55);
-  padding: 0.75rem 1.25rem;
-  font-family: var(--font-display);
-  font-weight: 800;
-  text-transform: uppercase;
-  font-size: var(--taille-texte);
-  letter-spacing: -0.01em;
-}
-
-.chip {
-  border: 1px solid rgba(16, 15, 12, 0.3);
-  color: rgba(16, 15, 12, 0.7);
-  padding: 0.375rem 0.75rem;
-  font-family: var(--font-display);
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: var(--taille-texte);
-  letter-spacing: -0.01em;
-  transition: border-color 0.2s, background-color 0.2s, color 0.2s;
-}
-.chip:hover { border-color: var(--ink); }
-.chip.is-active { border-color: var(--ink); background: var(--ink); color: var(--paper); }
 
 /* ------------------------------------------------------------
    Affiches
@@ -546,9 +518,9 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
 .generated-poster--0 .gp-row { display: flex; flex: 1; align-items: stretch; justify-content: space-between; padding: 1rem; }
 .generated-poster--0 .gp-year { font-size: 0.6875rem; letter-spacing: -0.01em; opacity: 0.7; }
 .generated-poster--0 .gp-title { writing-mode: vertical-rl; font-weight: 900; font-size: clamp(2.2rem, 10vw, 4.5rem); line-height: 0.85; letter-spacing: -0.01em; word-break: break-word; }
-.generated-poster--0 .gp-director { border-top: 1px solid rgba(255,255,255,0.25); padding: 1rem; font-size: 0.625rem; letter-spacing: -0.01em; opacity: 0.7; }
+.generated-poster--0 .gp-director { border-top: var(--ligne) solid rgba(255,255,255,0.25); padding: 1rem; font-size: 0.625rem; letter-spacing: -0.01em; opacity: 0.7; }
 
-.generated-poster--1 { border: 1px solid rgba(16,15,12,0.7); background: var(--paper); color: var(--ink); }
+.generated-poster--1 { border: var(--ligne) solid rgba(16,15,12,0.7); background: var(--paper); color: var(--ink); }
 .generated-poster--1 .gp-top { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 1rem; font-size: 0.625rem; letter-spacing: -0.01em; }
 .generated-poster--1 .gp-mid { display: flex; flex: 1; align-items: center; justify-content: center; padding: 1rem; text-align: center; }
 .generated-poster--1 .gp-mid span { font-weight: 900; font-size: clamp(2rem, 9vw, 4rem); line-height: 0.86; word-break: break-word; }
@@ -566,10 +538,10 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
 .generated-poster--3 .gp-year { display: flex; height: 3.5rem; width: 3.5rem; align-items: center; justify-content: center; border-radius: 999px; background: var(--ink); font-size: 0.6875rem; }
 
 .generated-poster--4 { background: var(--ink); color: var(--paper); }
-.generated-poster--4 .gp-frame { margin: 0.75rem; display: flex; flex: 1; flex-direction: column; border: 1px solid rgba(255,255,255,0.4); padding: 1rem; }
+.generated-poster--4 .gp-frame { margin: 0.75rem; display: flex; flex: 1; flex-direction: column; border: var(--ligne) solid rgba(255,255,255,0.4); padding: 1rem; }
 .generated-poster--4 .gp-spacer { flex: 1; }
 .generated-poster--4 .gp-title { font-weight: 900; font-size: clamp(1.8rem, 8vw, 3.4rem); line-height: 0.86; word-break: break-word; }
-.generated-poster--4 .gp-bottom { display: flex; margin-top: 0.75rem; justify-content: space-between; gap: 0.75rem; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 0.5rem; font-size: 0.625rem; letter-spacing: -0.01em; opacity: 0.8; }
+.generated-poster--4 .gp-bottom { display: flex; margin-top: 0.75rem; justify-content: space-between; gap: 0.75rem; border-top: var(--ligne) solid rgba(255,255,255,0.3); padding-top: 0.5rem; font-size: 0.625rem; letter-spacing: -0.01em; opacity: 0.8; }
 
 /* ------------------------------------------------------------
    Accueil — canevas d'affiches
@@ -719,34 +691,19 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
   background: var(--paper);
   /* Cadre noir : sans lui, une case blanche serait invisible sur
      le fond blanc de la page. */
-  border: 3px solid var(--ink);
+  border: var(--ligne) solid var(--ink);
   color: var(--ink);
   font-family: var(--font-display);
   text-transform: uppercase;
   letter-spacing: 0.02em;
   transition: background 0.2s ease-out, color 0.2s ease-out;
 }
-/* Au survol, la case se remplit de sa couleur (action volontaire). */
-.canvas-tile--blue:hover,
-.canvas-tile--blue:focus-visible {
-  background: var(--blue);
-  color: var(--paper);
-}
-.canvas-tile--red:hover,
-.canvas-tile--red:focus-visible {
-  background: var(--red);
-  color: var(--paper);
-}
-/* Sur le jaune, le texte reste noir : le blanc n'y serait pas lisible. */
-.canvas-tile--jaune:hover,
-.canvas-tile--jaune:focus-visible {
-  background: var(--jaune);
-  color: var(--ink);
-}
+/* Au survol, la case se remplit de la couleur tirée au hasard pour
+   elle : c'est .m-teinte qui s'en charge (voir en haut de fichier). */
 
 /* Case blanche de secours (aucun film avec affiche) : le tableau
    reste plein. */
-.canvas-block { height: 100%; width: 100%; background: var(--paper); border: 3px solid var(--ink); }
+.canvas-block { height: 100%; width: 100%; background: var(--paper); border: var(--ligne) solid var(--ink); }
 
 .canvas-tile__label {
   font-weight: 900;
@@ -761,30 +718,36 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
    au milieu des aplats — pas de cadre ajouté, le quadrillage suffit.
    Sous le logo, une devise situe le lieu et l'activité d'un coup
    d'œil pour qui découvre le site. */
-.canvas-tile--logo {
-  flex-direction: column;
-  justify-content: center;
-  background: var(--paper);
+/* La case d'achat ne participe pas au tirage : elle est verte en
+   permanence, comme tous les boutons d'achat du site. */
+.canvas-tile--achat {
+  background: var(--vert);
+  border-color: var(--vert);
+  color: #fff;
 }
-.canvas-tile--logo:hover,
-.canvas-tile--logo:focus-visible {
-  background: var(--paper);
+.canvas-tile--achat:hover,
+.canvas-tile--achat:focus-visible {
+  background: var(--vert-fonce);
+  border-color: var(--vert-fonce);
+}
+
+/* Le logo n'est pas une case : ni cadre, ni fond, ni couleur au
+   survol. Il est posé directement sur le papier du tableau —
+   c'est la signature du site, pas une rubrique de plus. Sans
+   cadre ni calage, il occupe toute la largeur de son emplacement.
+   Le sélecteur est doublé (.canvas-tile.canvas-tile--logo) pour
+   passer devant le calage des cases sur grand écran, plus bas. */
+.canvas-tile.canvas-tile--logo {
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
 }
 .canvas-tile--logo img {
-  width: 78%;
+  width: 100%;
   height: auto;
-  max-height: 58%;
+  max-height: 100%;
   object-fit: contain;
-}
-.canvas-tile__tagline {
-  margin-top: 6px;
-  font-weight: 700;
-  font-size: 12px;
-  line-height: 1.2;
-  letter-spacing: 0.06em;
-}
-@media (min-width: 768px) {
-  .canvas-tile__tagline { margin-top: 10px; font-size: 15px; }
 }
 
 @media (min-width: 768px) {
@@ -793,289 +756,79 @@ body[data-page="films"] .main-area { padding-top: calc(3.5rem - 2px); }
   .canvas-tile--compact .canvas-tile__label { font-size: 36px; }
 }
 
-.empty-state {
-  padding: 4rem 1rem;
-  text-align: center;
-  font-family: var(--font-display);
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: var(--taille-texte);
-  letter-spacing: -0.01em;
-  color: rgba(16, 15, 12, 0.6);
-}
-@media (min-width: 768px) { .empty-state { padding: 4rem 2rem; } }
+/* La page Agenda est un tableau Mondrian comme le reste du
+   site : sa mise en page vit dans agenda-mondrian.css. */
 
-/* ------------------------------------------------------------
-   Agenda
-   ------------------------------------------------------------ */
-.agenda-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0 1rem 1rem; }
-@media (min-width: 768px) { .agenda-toolbar { padding: 0 2rem 1rem; } }
-.agenda-toolbar__modes { display: flex; gap: 0.5rem; }
+/* La page Histoire est un tableau Mondrian comme le reste du
+   site : sa mise en page vit dans histoire-mondrian.css. */
 
-.agenda-days {
-  display: flex;
-  gap: 0.25rem;
-  overflow-x: auto;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  padding: 0.5rem 1rem;
-}
-@media (min-width: 768px) { .agenda-days { padding: 0.5rem 2rem; } }
-.agenda-day-btn {
-  display: flex;
-  flex-shrink: 0;
-  flex-direction: column;
-  align-items: center;
-  padding: 0.5rem 1rem;
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  color: rgba(16, 15, 12, 0.7);
-  transition: color 0.2s, background-color 0.2s;
-}
-.agenda-day-btn:hover { color: var(--ink); }
-.agenda-day-btn.is-active { background: var(--ink); color: var(--paper); }
-.agenda-day-btn__dow { font-weight: 400; font-size: var(--taille-texte); letter-spacing: 0.14em; }
-.agenda-day-btn__num { font-weight: 900; font-size: var(--taille-texte); letter-spacing: -0.06em; }
-
-.agenda-day-panel { padding: 2rem 1rem; }
-@media (min-width: 768px) { .agenda-day-panel { padding: 2rem 2rem; } }
-.agenda-day-panel__heading { margin-bottom: 1.5rem; font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; font-size: var(--taille-texte); }
-
-.agenda-item {
-  display: grid;
-  grid-template-columns: 64px 1fr;
-  align-items: center;
-  gap: 1rem;
-  border-top: 1px solid var(--line);
-  padding: 1rem 0;
-}
-.agenda-item:last-child { border-bottom: 1px solid var(--line); }
-@media (min-width: 768px) { .agenda-item { grid-template-columns: 96px 1fr auto; } }
-.agenda-item__time { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; font-size: var(--taille-texte); }
-.agenda-item__title { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; letter-spacing: -0.01em; font-size: var(--taille-texte); }
-.agenda-item__sub { margin-top: 0.125rem; font-weight: 400; font-size: var(--taille-texte); color: rgba(16, 15, 12, 0.7); }
-.agenda-item__sub .is-status-red { color: var(--red); }
-.agenda-item__status { display: none; font-family: var(--font-display); font-weight: 700; text-transform: uppercase; font-size: var(--taille-texte); letter-spacing: -0.01em; color: rgba(16, 15, 12, 0.6); }
-.agenda-item__status.is-status-red { color: var(--red); }
-@media (min-width: 768px) { .agenda-item__status { display: block; text-align: right; } }
-@media (max-width: 767px) { .agenda-item__sub-status { display: inline; } }
-@media (min-width: 768px) { .agenda-item__sub-status { display: none; } }
-
-.agenda-week {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-  overflow-x: auto;
-  padding: 2rem 1rem;
-}
-@media (min-width: 768px) { .agenda-week { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1rem; padding: 2rem 2rem; } }
-.agenda-week__col { min-width: 140px; border-top: 2px solid var(--ink); padding-top: 0.75rem; }
-.agenda-week__date { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; font-size: var(--taille-texte); letter-spacing: -0.01em; }
-.agenda-week__list { margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem; }
-.agenda-week__link { display: block; font-family: var(--font-display); font-weight: 700; text-transform: uppercase; font-size: var(--taille-texte); line-height: 1.2; letter-spacing: -0.01em; }
-.agenda-week__meta { font-weight: 400; font-size: var(--taille-texte); color: rgba(16, 15, 12, 0.65); }
-
-/* ------------------------------------------------------------
-   Annonces
-   ------------------------------------------------------------ */
-.announcement-highlight {
-  margin: 0 1rem 2.5rem;
-  border: 1px solid var(--ink);
-  padding: 2rem 1.25rem;
-}
-@media (min-width: 768px) { .announcement-highlight { margin: 0 2rem 2.5rem; padding: 3rem 2.5rem; } }
-/* Mise en avant avec affiche : texte à gauche, affiche à droite. */
-.announcement-highlight--with-image {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-}
-@media (min-width: 768px) {
-  .announcement-highlight--with-image {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-  .announcement-highlight__body { flex: 1; }
-}
-.announcement-highlight__image {
-  flex-shrink: 0;
-  max-width: 20rem;
-  border: 2px solid var(--ink);
-  box-shadow: 8px 8px 0 0 var(--ink);
-}
-.announcement-highlight__image img { display: block; width: 100%; height: auto; }
-.announcement-highlight__cat { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: var(--taille-texte); letter-spacing: -0.01em; color: var(--red); }
-.announcement-highlight__title { margin-top: 0.75rem; max-width: 42rem; font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; font-size: var(--taille-titre); line-height: 0.95; }
-.announcement-highlight__excerpt { margin-top: 1rem; max-width: 36rem; font-weight: 400; font-size: var(--taille-texte); color: rgba(16, 15, 12, 0.75); }
-.announcement-highlight__link { margin-top: 1.25rem; display: inline-block; font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: var(--taille-texte); letter-spacing: -0.01em; }
-
-.announcements-list { padding: 0 1rem; }
-@media (min-width: 768px) { .announcements-list { padding: 0 2rem; } }
-.announcement-item {
-  display: grid;
-  gap: 0.5rem;
-  border-top: 1px solid var(--line);
-  padding: 1.5rem 0;
-}
-.announcement-item:last-child { border-bottom: 1px solid var(--line); }
-@media (min-width: 768px) { .announcement-item { grid-template-columns: 160px 1fr; gap: 2rem; } }
-.announcement-item__date-col { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; font-size: var(--taille-texte); letter-spacing: -0.01em; color: rgba(16, 15, 12, 0.7); }
-.announcement-item__cat { margin-top: 0.375rem; color: rgba(16, 15, 12, 0.85); }
-.announcement-item__title { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; font-size: var(--taille-texte); }
-.announcement-item__excerpt { margin-top: 0.5rem; max-width: 36rem; font-weight: 400; font-size: var(--taille-texte); color: rgba(16, 15, 12, 0.7); }
-.announcement-item__link { margin-top: 0.5rem; display: inline-block; font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: var(--taille-texte); letter-spacing: -0.01em; }
-
-/* ------------------------------------------------------------
-   Histoire
-   ------------------------------------------------------------ */
-.history-intro {
-  margin: 0 1rem 3.5rem;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  padding: 2rem 0;
-}
-@media (min-width: 768px) { .history-intro { margin: 0 2rem 3.5rem; padding: 3rem 0; } }
-.history-intro p {
-  max-width: 42rem;
-  white-space: pre-line;
-  font-family: var(--font-display);
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  font-size: var(--taille-texte);
-  line-height: 1.2;
-}
-
-.history-timeline {
-  position: relative;
-  margin: 0 1rem;
-  border-left: 1px solid rgba(16, 15, 12, 0.2);
-  padding-left: 1.5rem;
-}
-@media (min-width: 768px) { .history-timeline { margin: 0 2rem; padding-left: 3rem; } }
-.history-entry { position: relative; margin-bottom: 5rem; }
-.history-entry:last-child { margin-bottom: 0; }
-@media (min-width: 768px) { .history-entry { margin-bottom: 7rem; } }
-.history-entry__dot {
-  position: absolute;
-  left: -31px;
-  top: 0.25rem;
-  height: 0.75rem;
-  width: 0.75rem;
-  border-radius: 999px;
-  background: var(--ink);
-}
-@media (min-width: 768px) { .history-entry__dot { left: -51px; } }
-.history-entry__ghost-year {
-  font-family: var(--font-display);
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  font-size: var(--taille-titre);
-  line-height: 0.8;
-  color: rgba(16, 15, 12, 0.1);
-}
-.history-entry__body { margin-top: -1.5rem; }
-@media (min-width: 768px) { .history-entry__body { margin-top: -2.5rem; } }
-.history-entry__year { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: var(--taille-texte); letter-spacing: -0.01em; color: var(--red); }
-.history-entry__title { margin-top: 0.5rem; font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; font-size: var(--taille-texte); }
-@media (min-width: 768px) { .history-entry__title { margin-top: 0.75rem; } }
-.history-entry__text { margin-top: 1rem; max-width: 36rem; white-space: pre-line; font-weight: 400; font-size: var(--taille-texte); line-height: 1.6; color: rgba(16, 15, 12, 0.75); }
-@media (min-width: 768px) { .history-entry__text { margin-top: 1.25rem; } }
-
-/* ------------------------------------------------------------
-   Infos pratiques
-   ------------------------------------------------------------ */
-.practical-grid {
-  display: grid;
-  gap: 2.5rem;
-  border-top: 1px solid var(--line);
-  padding: 2.5rem 1rem;
-}
-@media (min-width: 768px) { .practical-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); padding: 3.5rem 2rem; } }
-.practical-col--address { }
-@media (min-width: 768px) { .practical-col--address { grid-column: span 5 / span 5; } }
-.practical-col--hours { }
-@media (min-width: 768px) { .practical-col--hours { grid-column: span 4 / span 4; } }
-.practical-col--access { }
-@media (min-width: 768px) { .practical-col--access { grid-column: span 3 / span 3; } }
-
-.practical-label { font-family: var(--font-display); font-weight: 700; text-transform: uppercase; font-size: var(--taille-texte); letter-spacing: -0.01em; color: rgba(16, 15, 12, 0.7); }
-.practical-address {
-  margin-top: 0.5rem;
-  max-width: 24rem;
-  white-space: pre-line;
-  font-family: var(--font-display);
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  font-size: var(--taille-texte);
-  line-height: 1.15;
-}
-
-.practical-map {
-  position: relative;
-  margin-top: 1.25rem;
-  height: 180px;
-  max-width: 24rem;
-  overflow: hidden;
-  border: 1px solid var(--ink);
-  filter: grayscale(1) contrast(1.05);
-  transition: filter 0.4s var(--ease-editorial);
-}
-.practical-map:hover, .practical-map:focus-within { filter: grayscale(0); }
-.practical-map iframe { position: absolute; inset: 0; height: 100%; width: 100%; border: 0; }
-@media (min-width: 768px) { .practical-map { height: 220px; } }
-
-.practical-map-link { margin-top: 0.75rem; display: inline-block; font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: var(--taille-texte); letter-spacing: -0.01em; }
-.practical-contact { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.25rem; font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; font-size: var(--taille-texte); }
-.practical-contact__note { font-family: var(--font-body); font-weight: 400; text-transform: none; font-size: var(--taille-texte); letter-spacing: normal; color: rgba(16, 15, 12, 0.5); }
-.practical-socials { margin-top: 2rem; display: flex; gap: 1.5rem; }
-.practical-socials a { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: var(--taille-texte); letter-spacing: -0.01em; }
-
-.practical-hours { margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem; }
-.practical-hours li { display: flex; justify-content: space-between; gap: 1rem; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem; }
-.practical-hours .label { font-weight: 400; font-size: var(--taille-texte); color: rgba(16, 15, 12, 0.7); }
-.practical-hours .value { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: var(--taille-texte); letter-spacing: -0.01em; }
-
-.practical-access-text { margin-top: 0.75rem; white-space: pre-line; font-weight: 400; font-size: var(--taille-texte); line-height: 1.6; color: rgba(16, 15, 12, 0.7); }
+/* La page Contact est un tableau Mondrian comme le reste du
+   site : sa mise en page vit dans contact-mondrian.css. */
 
 /* ------------------------------------------------------------
    Pied de page
    ------------------------------------------------------------ */
-/* Pied de page minimaliste : le logo en grand, une ligne de petits
-   liens, une ligne légale — le tout centré. */
+/* Le pied de page est lui aussi un tableau : des cases blanches
+   séparées par les mêmes traits noirs que le reste du site, et les
+   mêmes couleurs tirées au hasard au survol.
+
+   Une seule suite de cases, sans rangées imposées : chacune se cale
+   sur la longueur de son texte et la suite se replie toute seule
+   selon la largeur de l'écran — une ligne sur ordinateur, trois ou
+   quatre sur mobile. Aucune case ne se retrouve seule sur sa ligne
+   par construction, elles se regroupent au mieux.
+
+   Il ne reprend aucune rubrique du site (voir footer.js) : la
+   navigation est ailleurs. */
 .site-footer {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-  border-top: 2px solid var(--ink);
-  background: var(--paper);
-  padding: 3.5rem 1rem 2.5rem;
-  text-align: center;
-}
-@media (min-width: 768px) { .site-footer { padding: 5rem 2rem 3rem; gap: 2.5rem; } }
-.site-footer__logo {
-  display: block;
-  width: min(70%, 30rem);
-}
-.site-footer__logo img { width: 100%; height: auto; }
-.site-footer__links {
-  display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.75rem 2rem;
+  gap: var(--ligne);
+  background: var(--ink);
+  border: var(--ligne) solid var(--ink);
+}
+
+.site-footer__lien,
+.site-footer__case {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 1rem;
+  background: var(--paper);
+  font-size: var(--taille-texte);
+  line-height: 1.35;
+}
+.site-footer__lien {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  font-size: 1rem;
+  line-height: 1.2;
 }
-.site-footer__legal {
-  font-weight: 400;
-  font-size: 1rem;
-  letter-spacing: -0.01em;
-  color: rgba(16, 15, 12, 0.55);
+.site-footer__case { font-weight: 700; }
+
+/* Sur mobile, chaque case du pied de page prend toute la largeur :
+   à hauteur de case égale au reste du site, le colophon occupait
+   plus de la moitié de l'écran. Il se resserre donc — c'est un
+   pied de page, pas du contenu : le texte y garde sa taille, seul
+   le calage se réduit. */
+@media (max-width: 767px) {
+  .site-footer__lien,
+  .site-footer__case {
+    padding: 0.6rem 1rem;
+  }
+}
+
+/* La signature de l'agence : une case comme les autres, même
+   graisse que ses voisines. Elle ne s'en distingue que d'une
+   façon — c'est la seule case du site qui échappe au tirage des
+   couleurs : elle se remplit du rose de We Are Brothers au survol. */
+.site-footer__signature {
+  transition: background 0.2s ease-out, color 0.2s ease-out;
+}
+.site-footer__signature:hover,
+.site-footer__signature:focus-visible {
+  background: var(--rose);
+  color: #fff;
 }

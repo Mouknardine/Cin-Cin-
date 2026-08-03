@@ -7,3 +7,10 @@ node_modules
 
 # Build local du Studio Sanity (sortie de « sanity build »)
 dist/
+
+# Clés secrètes de la billetterie (SumUp + Sanity).
+# Ce fichier vit sur le serveur, hors du dossier public, et ne doit
+# JAMAIS partir sur GitHub. Le modèle à recopier est versionné,
+# lui : serveur/config.exemple.php
+config.php
+serveur/config.php

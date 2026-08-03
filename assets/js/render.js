@@ -30,22 +30,25 @@
     return statusLabels[status] || status;
   }
 
-  function filmMetaLine(film) {
-    var parts = [
-      film.year ? String(film.year) : null,
-      film.country || null,
-      film.duration ? film.duration + " min" : null,
-      [film.language, film.subtitles].filter(Boolean).join(" ") || null,
-      film.ageRating || null,
-    ].filter(Boolean);
-    return parts.join(" · ");
+  /* Les filtres de la page Films, dans l'ordre voulu. Libellés plus
+     courts que les statuts complets : ils tiennent sur une rangée. */
+  var filtresFilms = [
+    { statut: "a-laffiche", label: "À l'affiche" },
+    { statut: "avant-premiere", label: "Première" },
+    { statut: "prochainement", label: "Prochainement" },
+    { statut: "cycle", label: "Cycles" },
+  ];
+
+  /* Le prix affiché sur un bouton d'achat : celui de la séance, sinon
+     celui du film, sinon les tarifs du cinéma (16.- / 10.- réduit). */
+  function prixLabel(film, seance) {
+    return (seance && seance.price) || (film && film.price) || global.ZinemaData.tarifs.resume;
   }
 
   /* ---------------- Dates, en français, sans dépendance ---------------- */
   var DOW_LONG = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
   var DOW_SHORT = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
   var MONTH_LONG = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
-  var MONTH_SHORT = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
 
   function parseISODate(dateStr) {
     return new Date(dateStr + "T00:00:00");
@@ -66,13 +69,6 @@
     if (isToday(date)) return "Aujourd'hui";
     if (isTomorrow(date)) return "Demain";
     return DOW_LONG[date.getDay()] + " " + date.getDate() + " " + MONTH_LONG[date.getMonth()];
-  }
-  function formatDayLabel(dateStr) {
-    return formatDayHeading(dateStr);
-  }
-  function formatShortDate(dateStr) {
-    var date = parseISODate(dateStr);
-    return date.getDate() + " " + MONTH_SHORT[date.getMonth()];
   }
   function formatLongDate(dateStr) {
     var date = parseISODate(dateStr);
@@ -185,28 +181,13 @@
     return generatedPosterHTML(film.title, film.director, film.year, film.slug);
   }
 
-  /* ---------------- Boutons ---------------- */
-  function buyButtonHTML(checkoutUrl, price, label) {
-    label = label || "Réserver";
-    if (!checkoutUrl) {
-      return '<span class="buy-button--disabled" aria-disabled="true">Billetterie bientôt disponible</span>';
-    }
-    return (
-      '<a class="buy-button" href="' + escapeHtml(checkoutUrl) + '" target="_blank" rel="noopener noreferrer">' +
-      "<span>" + escapeHtml(label) + "</span>" +
-      '<span class="buy-button__group">' + (price ? '<span class="buy-button__price">' + escapeHtml(price) + "</span>" : "") +
-      '<span class="buy-button__arrow">→</span></span></a>'
-    );
-  }
-
   global.ZinemaRender = {
     escapeHtml: escapeHtml,
     hashString: hashString,
     statusLabel: statusLabel,
-    filmMetaLine: filmMetaLine,
+    filtresFilms: filtresFilms,
+    prixLabel: prixLabel,
     formatDayHeading: formatDayHeading,
-    formatDayLabel: formatDayLabel,
-    formatShortDate: formatShortDate,
     formatLongDate: formatLongDate,
     formatDowShort: formatDowShort,
     isToday: isToday,
@@ -217,6 +198,5 @@
     localImageUrl: localImageUrl,
     posterHTML: posterHTML,
     generatedPosterHTML: generatedPosterHTML,
-    buyButtonHTML: buyButtonHTML,
   };
 })(window);
