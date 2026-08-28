@@ -23,19 +23,6 @@
 .m-jour__dow { font-weight: 700; }
 .m-jour__num { font-weight: 900; }
 
-/* Le jour choisi ne se peint pas en noir, contrairement aux autres
-   cases actives du site : juste au-dessus, la bascule Jour/Semaine
-   marque déjà en noir la vue où l'on se trouve, et deux cases
-   noires qui se touchent se confondent en un seul bloc. Le jour
-   prend donc sa couleur Mondrian — tirée au hasard comme partout
-   ailleurs, mais jamais le noir (voir classeVive dans couleurs.js).
-   Les deux repères restent ainsi toujours de couleurs différentes. */
-.m-filtre--jour.is-active,
-.m-filtre--jour.is-active:hover {
-  background: var(--case-fond);
-  color: var(--case-texte);
-}
-
 /* ---------- La date choisie, en toutes lettres ---------- */
 
 .m-jour-actif {

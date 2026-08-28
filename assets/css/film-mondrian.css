@@ -208,15 +208,34 @@
   min-width: min(100%, 8.5rem);
 }
 
+/* Sur mobile, une case en pleine largeur par repère faisait six
+   rangées pour six mots : une demi-page à faire défiler, et un
+   grand vide au milieu de chaque rangée. Empilés et calés sur la
+   longueur de leur texte, deux ou trois repères courts tiennent
+   désormais sur la même rangée — comme sur ordinateur. Le calage
+   se resserre au passage : ces cases n'ont que deux lignes à
+   loger, elles n'ont pas besoin de l'air d'une case de texte. */
+@media (max-width: 899px) {
+  .m-bande--reperes .m-info {
+    padding: 0.75rem;
+    gap: 0.25rem;
+  }
+  /* Même règle que sur ordinateur : un repère se resserre jusqu'à
+     son mot le plus long, mais « Italie » ne se coupe jamais en
+     « Ita-lie ». Les espaces suffisent à faire les retours. */
+  .m-bande--reperes .m-info .m-cell__value { hyphens: manual; }
+}
+
 /* ---------- Une information sur une seule ligne (mobile) ----------
-   Sur mobile, chaque case prend toute la largeur : une information
-   courte y occupe alors deux lignes (l'intitulé, puis la valeur)
-   pour trois mots. Six repères de film font six grandes cases et
-   une page interminable à faire défiler.
-   Les cases qui portent un intitulé et une valeur courte passent
-   donc sur une seule ligne : l'intitulé à gauche, la valeur à
-   droite. Elles reprennent leur disposition normale, en colonne,
-   dès qu'il y a la place (ordinateur). */
+   Quelques cases portent un intitulé et une valeur longue : une
+   adresse, un e-mail, un numéro (page Contact). Empilées, elles
+   feraient de très hautes cases pour trois mots ; elles passent
+   donc sur une seule ligne sur mobile — l'intitulé à gauche, la
+   valeur à droite — et reprennent leur disposition normale, en
+   colonne, dès qu'il y a la place (ordinateur).
+   Les repères de la fiche film, eux, sont courts : ils restent
+   empilés pour pouvoir se serrer à plusieurs par rangée (voir la
+   rangée des repères, plus bas). */
 @media (max-width: 899px) {
   .m-cell--ligne {
     flex-direction: row;
@@ -241,9 +260,9 @@
    Au repos, une pastille est un simple cadre : la case des séances
    reste une liste d'horaires, pas un mur de boutons verts. C'est
    au survol qu'elle devient verte — le vert de l'achat, comme tous
-   les gestes d'achat du site. Son cadre et son texte suivent la
-   couleur de la case qui l'entoure (currentColor) : la pastille
-   reste lisible quand la case se remplit au survol. */
+   les gestes d'achat du site. Seule la pastille visée réagit : sa
+   case, elle, ne se teinte pas (voir classeSansSurvol dans
+   couleurs.js), pour que le vert soit le seul mouvement à l'écran. */
 .m-seances__bloc { margin-top: 0.25rem; }
 .m-seances__jour {
   font-weight: 400;

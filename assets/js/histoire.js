@@ -16,7 +16,7 @@
   var C = window.ZinemaCouleurs;
 
   var INTRO_DEFAUT =
-    "Pendant que les grandes salles rétrécissaient leurs rangées pour multiplier les écrans, le Zinéma a fait le pari inverse : une salle généreuse, pensée pour rassembler un public plutôt que le fragmenter en micro-écrans.";
+    "Le Zinéma a toujours eu une petite salle, et c'est un choix. Une jauge courte pour une vraie ambiance, une programmation qui prend des risques, et assez peu de monde pour qu'à la fin de la séance, les passionnés restent se parler.";
 
   function bande(classe, contenu) {
     return '<div class="m-bande ' + classe + '">' + contenu + "</div>";

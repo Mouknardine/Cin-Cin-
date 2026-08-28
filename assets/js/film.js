@@ -42,10 +42,14 @@
   /* Une case d'information : elle n'existe que si la donnée existe —
      pas de case « — » qui ne dit rien. C'est ce qui fait que deux
      films n'ont jamais exactement la même page. */
+  /* Un repère du film : l'intitulé au-dessus, la valeur en dessous.
+     Comme toutes les cases du tableau, il se cale sur la longueur
+     de son texte — c'est ce qui permet à deux ou trois repères
+     courts de tenir sur la même rangée, y compris sur mobile. */
   function celluleInfo(label, valeur) {
     if (!valeur) return "";
     return (
-      '<div class="m-cell m-info m-cell--ligne ' + C.classe() + '">' +
+      '<div class="m-cell m-info ' + C.classe() + '">' +
       '<p class="m-cell__label">' + label + "</p>" +
       '<p class="m-cell__value">' + R.escapeHtml(valeur) + "</p></div>"
     );
@@ -188,28 +192,25 @@
   }
 
   /* La citation presse ferme la fiche : toute la case est cliquable
-     et ouvre l'article complet quand son lien existe. Sans citation :
-     la carte de visite du cinéma (jamais de case vide). */
-  function presseHTML(film, settings) {
+     et ouvre l'article complet quand son lien existe. Sans citation,
+     la case disparaît et la rangée du bas se repartage sa largeur. */
+  function presseHTML(film) {
     var review = film.review;
-    if (review && review.quote) {
-      var signature = [review.author, review.source].filter(Boolean).join(", ");
-      var contenu =
-        '<p class="m-cell__label">La presse</p>' +
-        '<p class="m-presse__citation">« ' + R.escapeHtml(review.quote) + " »</p>" +
-        (signature ? '<p class="m-presse__signature">— ' + R.escapeHtml(signature) + "</p>" : "");
-      if (review.url) {
-        return (
-          '<a class="m-cell m-presse ' + C.classe() + '" href="' + R.escapeHtml(review.url) + '" target="_blank" rel="noopener noreferrer" aria-label="Lire l\'article complet">' +
-          contenu + "</a>"
-        );
-      }
-      return '<div class="m-cell m-presse ' + C.classe() + '">' + contenu + "</div>";
+    if (!review || !review.quote) return "";
+
+    var signature = [review.author, review.source].filter(Boolean).join(", ");
+    var contenu =
+      '<p class="m-cell__label">La presse</p>' +
+      '<p class="m-presse__citation">« ' + R.escapeHtml(review.quote) + " »</p>" +
+      (signature ? '<p class="m-presse__signature">— ' + R.escapeHtml(signature) + "</p>" : "");
+
+    if (review.url) {
+      return (
+        '<a class="m-cell m-presse ' + C.classe() + '" href="' + R.escapeHtml(review.url) + '" target="_blank" rel="noopener noreferrer" aria-label="Lire l\'article complet">' +
+        contenu + "</a>"
+      );
     }
-    return (
-      '<div class="m-cell m-presse ' + C.classe() + '"><p class="m-cell__label">Le Zinéma</p>' +
-      '<p class="m-cell__value">' + R.escapeHtml((settings && settings.tagline) || "Cinéma indépendant à Lausanne") + "</p></div>"
-    );
+    return '<div class="m-cell m-presse ' + C.classe() + '">' + contenu + "</div>";
   }
 
   /* Une bande : une rangée de cases qui traverse le tableau.
@@ -221,7 +222,7 @@
     return '<div class="m-bande ' + classe + '">' + contenu + "</div>";
   }
 
-  function renderFilm(film, settings) {
+  function renderFilm(film) {
     document.title = film.title + " — Zinéma";
     var embed = R.toEmbedUrl(film.trailerUrl);
 
@@ -248,7 +249,10 @@
       celluleInfo("Année", film.year ? String(film.year) : "") +
       celluleInfo("Pays", film.country) +
       celluleInfo("Durée", film.duration ? film.duration + " min" : "") +
-      celluleInfo("Genre", (film.genres || []).join(" · ")) +
+      /* Le point médian est collé au genre qui le suit (espace
+         insécable) : à la coupure, il descend avec lui au lieu de
+         rester orphelin en bout de ligne. */
+      celluleInfo("Genre", (film.genres || []).join(" ·\u00A0")) +
       celluleInfo("Version", [film.language, film.subtitles].filter(Boolean).join(" ")) +
       celluleInfo("Âge", film.ageRating);
 
@@ -257,7 +261,7 @@
       '<p class="m-synopsis__texte">' + R.escapeHtml(film.synopsis || "Synopsis à venir.") + "</p></div>";
 
     var seancesCellHTML =
-      '<div class="m-cell m-seances ' + C.classe() + '"><p class="m-cell__label">Séances</p>' + seancesHTML(film) +
+      '<div class="m-cell m-seances ' + C.classeSansSurvol() + '"><p class="m-cell__label">Séances</p>' + seancesHTML(film) +
       '<a href="' + root + 'agenda/" class="m-seances__agenda">Agenda complet</a></div>';
 
     /* La rangée du bas : synopsis, presse et retour aux films.
@@ -267,7 +271,7 @@
     var basHTML = bande(
       "m-bande--bas",
       synopsisHTML +
-        presseHTML(film, settings) +
+        presseHTML(film) +
         '<a href="' + root + 'films/" class="m-cell m-action m-lien-retour ' + C.classe() + '">' +
         "<span>← Tous les films</span></a>"
     );
@@ -324,15 +328,11 @@
   }
 
   var slug = new URLSearchParams(window.location.search).get("s") || "";
-  Promise.all([
-    window.ZinemaData.getFilmBySlug(slug),
-    window.ZinemaData.getSiteSettings(),
-  ]).then(function (resultats) {
-    var film = resultats[0];
+  window.ZinemaData.getFilmBySlug(slug).then(function (film) {
     if (!film) {
       renderNotFound();
     } else {
-      renderFilm(film, resultats[1]);
+      renderFilm(film);
     }
   });
 })();

@@ -1,5 +1,7 @@
 /* ============================================================
-   Zinéma — en-tête + menu plein écran (identique sur chaque page)
+   Zinéma — en-tête + menu plein écran (identique sur chaque page,
+   accueil compris : c'est le seul repère de navigation du site,
+   il doit être au même endroit partout)
 
    Le logo reste toujours tout à gauche et ramène à l'accueil ;
    les six rubriques suivent, dans l'ordre du menu.
@@ -19,9 +21,6 @@
     { href: "contact/", label: "Contact", num: "06", page: "contact" },
   ];
 
-  /* Liste partagée avec l'accueil, qui en fait ses cases de scroll. */
-  window.ZinemaNavLinks = navLinks;
-
   /* Barre de navigation en cases (ordinateur uniquement, cachée en CSS
      sur mobile où le menu plein écran prend le relais). */
   function navBarHTML(root, currentPage) {
@@ -40,10 +39,6 @@
 
   function init() {
     var root = document.body.dataset.root || "";
-
-    /* Sur l'accueil, aucune barre en haut : la navigation passe
-       entièrement par les cases colorées du scroll infini. */
-    if (document.body.dataset.page === "home") return;
 
     var header = document.createElement("header");
     header.className = "site-header";

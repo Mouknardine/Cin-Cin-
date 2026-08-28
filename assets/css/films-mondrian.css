@@ -12,7 +12,8 @@
    ============================================================ */
 
 /* ---------- Filtres : des cases-boutons. Leur couleur est tirée
-   au hasard (survol) ; le filtre actif est noir. ---------- */
+   au hasard : au survol pour les autres, en permanence pour le
+   filtre actif. ---------- */
 
 .m-filtres {
   display: flex;
@@ -34,10 +35,17 @@
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
+/* Le filtre actif se peint de sa couleur Mondrian, et jamais en
+   noir — contrairement aux autres marqueurs « ici » du site. La
+   rangée de filtres est collée sous la barre de navigation, dont
+   la case de la page courante est déjà noire ; comme le trait qui
+   sépare les cases est noir lui aussi, deux cases noires qui se
+   touchent se soudent en un seul bloc. La couleur est tirée sans
+   le noir (voir classeVive dans couleurs.js). */
 .m-filtre.is-active,
 .m-filtre.is-active:hover {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--case-fond);
+  color: var(--case-texte);
 }
 
 /* ---------- Les films : colonnes de cases.

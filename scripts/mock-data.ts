@@ -295,21 +295,21 @@ export const mockHistory: HistoryEntry[] = [
     year: "2001",
     title: "Ouverture, contre le courant",
     order: 1,
-    body: "Le Zinéma ouvre ses portes à une époque où les grandes salles lausannoises multiplient les écrans en réduisant leur nombre de sièges. Le pari inverse : une salle généreuse, pensée pour rassembler plutôt que fragmenter.",
+    body: "Le Zinéma ouvre ses portes à une époque où les salles lausannoises courent après les grandes jauges. Le pari inverse : une petite salle, choisie petite, où l'on sent le public autour de soi.",
   },
   {
     _id: "h2",
     year: "2006",
     title: "Premier cycle de reprises",
     order: 2,
-    body: "Le cinéma se fait connaître pour ses cycles thématiques et ses avant-premières accompagnées de rencontres, à contre-courant du multiplexe standardisé.",
+    body: "Le cinéma se fait connaître pour ses cycles thématiques et ses avant-premières prolongées par une discussion en salle : le film ne s'arrête plus au générique.",
   },
   {
     _id: "h3",
     year: "2013",
     title: "Rénovation et deuxième salle",
     order: 3,
-    body: "Agrandissement du lieu avec une seconde salle, sans jamais sacrifier le confort ni l'intimité qui font la réputation du Zinéma.",
+    body: "Le lieu se rénove et ouvre une seconde salle, plus petite encore. Deux jauges courtes plutôt qu'une grande : deux fois plus de films à l'affiche, sans jamais diluer l'ambiance.",
   },
   {
     _id: "h4",
@@ -323,13 +323,13 @@ export const mockHistory: HistoryEntry[] = [
     year: "2026",
     title: "Toujours avant-gardiste",
     order: 5,
-    body: "Vingt-cinq ans après son ouverture, le Zinéma continue de défendre l'idée qu'un cinéma indépendant se juge à la qualité de son accueil autant qu'à celle de sa programmation.",
+    body: "Vingt-cinq ans plus tard, la salle n'a pas grandi. Même pari : des films que l'on ne voit nulle part ailleurs, peu de sièges, et des spectateurs qui restent en parler après la séance.",
   },
 ];
 
 export const mockSiteSettings: SiteSettings = {
   historyIntro:
-    "Pendant que les grandes salles rétrécissaient leurs rangées pour multiplier les écrans, le Zinéma a fait le pari inverse : une salle généreuse, pensée pour rassembler un public plutôt que le fragmenter en micro-écrans.",
+    "Le Zinéma a toujours eu une petite salle, et c'est un choix. Une jauge courte pour une vraie ambiance, une programmation qui prend des risques, et assez peu de monde pour qu'à la fin de la séance, les passionnés restent se parler.",
   tagline: "Cinéma indépendant à Lausanne",
   seoDescription:
     "Le Zinéma, cinéma indépendant à Lausanne : films en VO, avant-premières, ciné-club et brunchs-ciné.",

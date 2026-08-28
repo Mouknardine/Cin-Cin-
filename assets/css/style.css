@@ -245,13 +245,10 @@ button {
   z-index: 50;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   /* Hauteur fixe : le contenu des pages se cale pile dessous. */
   height: 3.5rem;
   padding: 0.75rem 1rem;
-}
-body:not([data-page="home"]) .site-header {
-  justify-content: space-between;
   border-bottom: var(--ligne) solid var(--ink);
   background: var(--paper);
 }
@@ -263,13 +260,12 @@ body:not([data-page="home"]) .site-header {
 }
 
 .site-header__logo {
-  display: none;
+  display: flex;
   position: relative;
   z-index: 10;
   align-items: center;
   gap: 0.75rem;
 }
-body:not([data-page="home"]) .site-header__logo { display: flex; }
 .site-header__logo img { height: 2rem; width: auto; }
 @media (min-width: 768px) {
   .site-header__logo img { height: 2.5rem; }
@@ -318,17 +314,14 @@ body:not([data-page="home"]) .site-header__logo { display: flex; }
   .menu-toggle { display: none; }
   .main-nav { display: none; }
 
-  .site-header,
-  body:not([data-page="home"]) .site-header,
-  body[data-page="film"] .site-header {
+  .site-header {
     padding: 0;
     align-items: stretch;
     justify-content: flex-start;
     background: var(--paper);
     border-bottom: var(--ligne) solid var(--ink);
   }
-  .site-header__logo,
-  body:not([data-page="home"]) .site-header__logo {
+  .site-header__logo {
     display: flex;
     /* Le logo garde ses proportions, quoi qu'il arrive. */
     flex-shrink: 0;
@@ -546,15 +539,21 @@ body:not([data-page="home"]) .main-area {
 /* ------------------------------------------------------------
    Accueil — canevas d'affiches
    ------------------------------------------------------------ */
-/* Le canevas : des cases (affiches et boutons) qui flottent sur
-   fond blanc, séparées par de larges espaces — comme des cadres
-   accrochés à un mur. Les espaces sont définis dans home.js (gap). */
+/* Le mur : des affiches qui flottent sur fond blanc, séparées par
+   de larges espaces — comme des cadres accrochés à un mur. Les
+   espaces sont définis dans home.js (gap).
+   Le mur occupe tout l'écran SOUS la barre de navigation, qui est
+   fixe : le défilement passe donc dessous, il ne la recouvre
+   jamais. Les deux hauteurs suivent celle de .site-header. */
 .home-canvas {
   position: fixed;
-  inset: 0;
+  inset: 3.5rem 0 0 0;
   z-index: 0;
   overflow: hidden;
   background: var(--paper);
+}
+@media (min-width: 768px) {
+  .home-canvas { inset: 4.5rem 0 0 0; }
 }
 /* Flèche d'invitation au défilement : une petite case blanche qui
    rebondit doucement en bas de l'écran, dans le langage du tableau.
@@ -602,17 +601,30 @@ body:not([data-page="home"]) .main-area {
 .home-canvas__copy { position: absolute; left: 0; }
 .home-canvas__slot { position: absolute; }
 
+/* Une case du mur : l'affiche, puis la bande du titre en dessous.
+   Le titre vit hors de l'image, sur le papier — jamais posé
+   par-dessus l'affiche, qui reste entièrement visible. */
 .canvas-poster {
   position: relative;
-  display: block;
+  display: flex;
+  flex-direction: column;
   height: 100%;
   width: 100%;
+  color: var(--ink);
+}
+.canvas-poster__image {
+  position: relative;
+  display: block;
+  flex: 1;
+  /* Sans cette ligne, l'image imposerait sa hauteur naturelle au
+     lieu de se plier à celle de la case. */
+  min-height: 0;
   overflow: hidden;
   background: var(--paper);
 }
 /* Les cases sont taillées au ratio des affiches ; `cover` garantit
    zéro liséré blanc, même si une affiche dévie un peu. Au survol,
-   l'affiche grossit dans sa case — la grille, elle, ne bouge pas. */
+   l'affiche grossit dans son cadre — la grille, elle, ne bouge pas. */
 .canvas-poster .poster img {
   object-fit: cover;
   transition: transform 0.4s var(--ease-editorial);
@@ -638,122 +650,35 @@ body:not([data-page="home"]) .main-area {
 }
 .canvas-poster:hover .canvas-poster__plus { opacity: 1; }
 
-/* Bandeau de titre en bas de chaque affiche, révélé au survol sur
-   ordinateur uniquement. Sur mobile il reste masqué : les affiches
-   portent déjà leur titre, et un bandeau permanent surchargerait
-   le tableau. */
+/* Le titre du film, toujours visible sous son affiche — sur
+   ordinateur comme sur mobile, où il n'y a pas de survol possible.
+   La bande a une hauteur fixe et le titre s'y limite à deux
+   lignes : toutes les affiches gardent ainsi exactement la même
+   hauteur, quel que soit le titre, et le mur reste d'aplomb. */
 .canvas-poster__title {
-  pointer-events: none;
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: none;
-  padding: 10px 14px;
-  background: var(--paper);
+  flex: none;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  height: 54px;
+  padding-top: 10px;
   color: var(--ink);
   font-family: var(--font-display);
   font-weight: 900;
   font-size: 18px;
-  line-height: 1.2;
+  line-height: 1.15;
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
-@media (min-width: 768px) {
-  .canvas-poster__title {
-    display: block;
-    opacity: 0;
-    transform: translateY(100%);
-    transition: opacity 0.25s ease-out, transform 0.3s var(--ease-editorial);
-  }
-  .canvas-poster:hover .canvas-poster__title,
-  .canvas-poster:focus-visible .canvas-poster__title {
-    opacity: 1;
-    transform: none;
-  }
-}
 
-/* Cases de navigation du tableau : blanches, texte noir — le même
-   langage que la barre de navigation des autres pages. Chaque case
-   se remplit de sa couleur Zinéma au survol seulement. Les tailles
-   sont en pixels de la grille de référence : elles suivent la mise
-   à l'échelle du canevas, la coupure à 768px correspondant pile au
-   changement de grille mobile/ordinateur dans home.js. */
-.canvas-tile {
-  position: relative;
-  display: flex;
+/* Case de secours (aucun film avec affiche) : le mur reste plein. */
+.canvas-block {
   height: 100%;
   width: 100%;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 8px 10px;
   background: var(--paper);
-  /* Cadre noir : sans lui, une case blanche serait invisible sur
-     le fond blanc de la page. */
   border: var(--ligne) solid var(--ink);
-  color: var(--ink);
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  transition: background 0.2s ease-out, color 0.2s ease-out;
-}
-/* Au survol, la case se remplit de la couleur tirée au hasard pour
-   elle : c'est .m-teinte qui s'en charge (voir en haut de fichier). */
-
-/* Case blanche de secours (aucun film avec affiche) : le tableau
-   reste plein. */
-.canvas-block { height: 100%; width: 100%; background: var(--paper); border: var(--ligne) solid var(--ink); }
-
-.canvas-tile__label {
-  font-weight: 900;
-  font-size: 24px;
-  line-height: 1.1;
-}
-/* Titres longs (deux mots) : corps réduit, retour à la ligne
-   uniquement entre les mots, jamais au milieu d'un mot. */
-.canvas-tile--compact .canvas-tile__label { font-size: 19px; }
-
-/* Le logo occupe une case blanche du tableau, comme une signature
-   au milieu des aplats — pas de cadre ajouté, le quadrillage suffit.
-   Sous le logo, une devise situe le lieu et l'activité d'un coup
-   d'œil pour qui découvre le site. */
-/* La case d'achat ne participe pas au tirage : elle est verte en
-   permanence, comme tous les boutons d'achat du site. */
-.canvas-tile--achat {
-  background: var(--vert);
-  border-color: var(--vert);
-  color: #fff;
-}
-.canvas-tile--achat:hover,
-.canvas-tile--achat:focus-visible {
-  background: var(--vert-fonce);
-  border-color: var(--vert-fonce);
-}
-
-/* Le logo n'est pas une case : ni cadre, ni fond, ni couleur au
-   survol. Il est posé directement sur le papier du tableau —
-   c'est la signature du site, pas une rubrique de plus. Sans
-   cadre ni calage, il occupe toute la largeur de son emplacement.
-   Le sélecteur est doublé (.canvas-tile.canvas-tile--logo) pour
-   passer devant le calage des cases sur grand écran, plus bas. */
-.canvas-tile.canvas-tile--logo {
-  justify-content: center;
-  padding: 0;
-  border: none;
-  background: none;
-}
-.canvas-tile--logo img {
-  width: 100%;
-  height: auto;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-@media (min-width: 768px) {
-  .canvas-tile { padding: 12px 16px; }
-  .canvas-tile__label { font-size: 42px; }
-  .canvas-tile--compact .canvas-tile__label { font-size: 36px; }
 }
 
 /* La page Agenda est un tableau Mondrian comme le reste du

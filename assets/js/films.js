@@ -56,7 +56,7 @@
 
   function filtreHTML(filtre) {
     return (
-      '<button type="button" class="m-filtre ' + C.classe() +
+      '<button type="button" class="m-filtre ' + C.classeVive() +
       (activeFilter === filtre.statut ? " is-active" : "") +
       '" data-filter="' + filtre.statut + '">' + filtre.label + "</button>"
     );

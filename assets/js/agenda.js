@@ -39,11 +39,13 @@
   var mode = "jour";
 
   /* La bascule Jour/Semaine : des cases-boutons comme les filtres
-     de la page Films (noir = actif, couleur au hasard au survol). */
+     de la page Films. La vue en cours se peint de sa couleur
+     Mondrian (jamais le noir : elle touche la barre de navigation,
+     déjà noire sur la page courante). */
   function modesHTML() {
     function bouton(m, label) {
       return (
-        '<button type="button" class="m-filtre ' + C.classe() + (mode === m ? " is-active" : "") + '" data-mode="' + m + '">' +
+        '<button type="button" class="m-filtre ' + C.classeVive() + (mode === m ? " is-active" : "") + '" data-mode="' + m + '">' +
         label + "</button>"
       );
     }
@@ -55,10 +57,9 @@
   }
 
   /* Les jours : mêmes cases-boutons, sur deux lignes (jour + date).
-     Leur couleur est tirée SANS le noir : le jour choisi se peint
-     de sa couleur (voir .m-filtre--jour.is-active), et il est collé
-     à la bascule Jour/Semaine dont la case active est noire. Deux
-     cases noires qui se touchent ne feraient qu'un seul bloc. */
+     Le jour choisi se peint de sa couleur, comme la bascule
+     Jour/Semaine juste au-dessus : deux cases colorées se lisent
+     toujours l'une à côté de l'autre, le trait noir les sépare. */
   function dayTabsHTML() {
     var boutons = days
       .map(function (d) {

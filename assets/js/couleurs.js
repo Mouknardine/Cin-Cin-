@@ -20,8 +20,9 @@
 
   var COULEURS = ["rouge", "jaune", "bleu", "noir"];
   /* Les mêmes, sans le noir : pour les cases qui doivent rester
-     distinctes d'une case noire voisine (voir le jour choisi dans
-     l'agenda, collé à la bascule Jour/Semaine). */
+     distinctes d'une case noire voisine — les rangées de filtres,
+     collées sous la barre de navigation dont la case de la page
+     courante est noire. */
   var COULEURS_VIVES = ["rouge", "jaune", "bleu"];
 
   function melanger(liste) {
@@ -77,10 +78,20 @@
     return "m-teinte c-" + suivanteVive();
   }
 
+  /* Une case qui garde sa couleur mais ne se remplit pas au survol.
+     Pour les cases dont le contenu réagit déjà au pointeur (les
+     pastilles de séances passent au vert) : deux réactions
+     superposées brouilleraient le geste. La couleur est quand même
+     tirée, pour ne pas décaler le tirage des cases suivantes. */
+  function classeSansSurvol() {
+    return "c-" + suivante();
+  }
+
   global.ZinemaCouleurs = {
     couleurs: COULEURS,
     suivante: suivante,
     classe: classe,
     classeVive: classeVive,
+    classeSansSurvol: classeSansSurvol,
   };
 })(window);
