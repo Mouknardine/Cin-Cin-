@@ -16,8 +16,6 @@
   var R = window.ZinemaRender;
   var C = window.ZinemaCouleurs;
 
-  var ACCES_DEFAUT = "Bus et métro m2, arrêt à quelques minutes.";
-
   /* Une bande vide laisserait un trait noir en travers du tableau :
      on ne l'écrit que si elle a au moins une case. */
   function bande(classe, cases) {
@@ -56,8 +54,7 @@
     );
   }
 
-  /* Le texte d'accès arrive de Sanity en blocs de texte riche (ou en
-     simple chaîne dans le contenu d'exemple). */
+  /* Le texte d'accès arrive de Sanity en blocs de texte riche. */
   function texteAcces(access) {
     if (typeof access === "string") return access;
     if (!Array.isArray(access)) return "";
@@ -76,48 +73,78 @@
   }
 
   /* L'adresse est écrite comme sur une enveloppe : la rue, puis le
-     code postal et la ville sur la ligne suivante — la virgule de
-     Sanity marque le passage à la ligne. Le numéro de rue est
-     rattaché au nom de la rue par une espace insécable : écrit en
-     très gros, il ne se retrouve jamais seul en début de ligne. */
+     code postal et la ville sur la ligne suivante. Dans Sanity, on
+     peut passer à la ligne soit avec un vrai retour à la ligne,
+     soit avec une virgule — les deux marchent. Le numéro de rue
+     est rattaché au nom de la rue par une espace insécable : écrit
+     en très gros, il ne se retrouve jamais seul en début de ligne. */
   function adresseEnLignes(adresse) {
     return adresse
-      .split(/,\s*/)
+      .split(/\s*\n\s*|,\s*/)
+      .filter(Boolean)
       .map(function (ligne) {
         return ligne.replace(/\s+(\d+[a-z]?)$/i, " $1");
       })
       .join("\n");
   }
 
-  window.ZinemaData.getSiteSettings().then(function (reglages) {
-    var adresse = reglages.address || "Lausanne, Suisse";
+  var D = window.ZinemaData;
+
+  app.innerHTML = R.etatChargement("des infos pratiques");
+
+  Promise.all([D.getReglages(), D.getPage("contact")]).then(function (r) {
+    var reglages = r[0];
+    var page = r[1];
+
+    if (D.estUneErreur(reglages)) {
+      app.innerHTML = R.etatErreur();
+      return;
+    }
+    if (!reglages) {
+      app.innerHTML = R.etatVide(
+        (page && page.messageVide) ||
+          "Les infos pratiques n'ont pas encore été renseignées."
+      );
+      return;
+    }
+
+    var adresse = reglages.address || "";
 
     /* La carte est construite à partir de l'adresse renseignée dans
        Sanity (cet embed en lecture seule ne demande aucune clé API) :
        elle suit l'adresse toute seule, sans champ à maintenir en
        double. « Lien carte » dans Sanity reste disponible pour
        pointer vers une fiche Google Maps précise (avis, photos…). */
-    var requeteCarte = encodeURIComponent(adresse);
+    var requeteCarte = encodeURIComponent(adresse.replace(/\s*\n\s*/g, ", "));
     var lienCarte = reglages.mapUrl || "https://www.google.com/maps/search/?api=1&query=" + requeteCarte;
     var sourceCarte = "https://www.google.com/maps?q=" + requeteCarte + "&output=embed";
 
-    var caseAdresse =
+    var caseAdresse = !adresse ? "" :
       '<div class="m-cell m-contact__adresse ' + C.classe() + '">' +
       '<p class="m-cell__label">Adresse</p>' +
       '<p class="m-contact__adresse-valeur">' + R.escapeHtml(adresseEnLignes(adresse)) + "</p></div>";
 
-    var caseCarte =
+    var caseCarte = !adresse ? "" :
       '<div class="m-contact__carte"><iframe src="' + R.escapeHtml(sourceCarte) +
       '" title="Le Zinéma sur Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>';
 
-    var caseAcces =
-      '<div class="m-cell m-contact__acces ' + C.classe() + '">' +
-      '<p class="m-cell__label">Accès</p>' +
-      '<p class="m-contact__acces-texte">' + R.escapeHtml(texteAcces(reglages.accessInfo) || ACCES_DEFAUT) +
-      "</p></div>";
+    /* Pas de texte d'accès dans Sanity : pas de case Accès. */
+    var acces = texteAcces(reglages.accessInfo);
+    var caseAcces = acces
+      ? '<div class="m-cell m-contact__acces ' + C.classe() + '">' +
+        '<p class="m-cell__label">Accès</p>' +
+        '<p class="m-contact__acces-texte">' + R.escapeHtml(acces) + "</p></div>"
+      : "";
+
+    var caseIntro =
+      page && page.intro
+        ? '<div class="m-cell m-intro ' + C.classe() + '">' +
+          R.escapeHtml(page.intro) + "</div>"
+        : "";
 
     app.innerHTML =
       '<article class="mondrian mondrian--contact">' +
+      bande("m-bande--intro", [caseIntro]) +
       bande("m-bande--adresse", [caseAdresse]) +
       bande("m-bande--carte", [caseCarte]) +
       bande(
@@ -130,6 +157,11 @@
         caseLien("Cinéma", reglages.phone, numeroVersLien(reglages.phone || "")),
         caseLien("Bureau", reglages.phoneSecondary, numeroVersLien(reglages.phoneSecondary || "")),
         caseLien("E-mail", reglages.email, "mailto:" + (reglages.email || "")),
+        caseLien(
+          "Louer une salle",
+          reglages.emailLocation,
+          "mailto:" + (reglages.emailLocation || "")
+        ),
       ]) +
       bande("m-bande--acces", [caseAcces]) +
       /* Les réseaux sociaux, « nous écrire » et le retour vers
@@ -137,7 +169,7 @@
          déjà, sur toutes les pages du site, et il s'affiche juste
          en dessous. Les répéter allongeait la page d'un écran
          entier sur mobile, avec Instagram et Facebook deux fois. */
-      bande("m-bande--actions", [caseAction("Voir sur Google Maps", lienCarte)]) +
+      bande("m-bande--actions", adresse ? [caseAction("Voir sur Google Maps", lienCarte)] : []) +
       "</article>";
   });
 })();

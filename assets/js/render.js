@@ -39,10 +39,28 @@
     { statut: "cycle", label: "Cycles" },
   ];
 
-  /* Le prix affiché sur un bouton d'achat : celui de la séance, sinon
-     celui du film, sinon les tarifs du cinéma (16.- / 10.- réduit). */
-  function prixLabel(film, seance) {
-    return (seance && seance.price) || (film && film.price) || global.ZinemaData.tarifs.resume;
+  /* ---------------- Tarifs ----------------
+     Les prix ne sont plus écrits dans le code : ils viennent des
+     « Réglages du cinéma » dans Sanity, et sont donc modifiables
+     sans toucher au site. Une séance ou un film peut toujours
+     imposer son propre prix (ciné-goûter, soirée spéciale) : il
+     prend alors le pas sur les tarifs habituels. */
+  function montant(valeur) {
+    if (typeof valeur !== "number" || !isFinite(valeur)) return null;
+    return valeur % 1 === 0 ? valeur + ".-" : valeur.toFixed(2);
+  }
+  function tarifsResume(reglages) {
+    var plein = montant(reglages && reglages.tarifPlein);
+    var reduit = montant(reglages && reglages.tarifReduit);
+    if (plein && reduit) return plein + " / " + reduit + " réduit";
+    return plein || reduit || "";
+  }
+  function prixLabel(film, seance, reglages) {
+    return (
+      (seance && seance.price) ||
+      (film && film.price) ||
+      tarifsResume(reglages)
+    );
   }
 
   /* ---------------- Dates, en français, sans dépendance ---------------- */
@@ -111,14 +129,9 @@
   function hasRealImage(img) {
     return Boolean(img && img.asset && (img.asset._ref || img.asset._id));
   }
-  /* Affiche hébergée dans le site (assets/img/affiches). Le chemin est
-     relatif à la racine du site : on le préfixe avec le data-root de la
-     page (« ../ » sur les sous-pages, vide sur l'accueil). */
-  function localImageUrl(img) {
-    if (!img || !img.localUrl) return null;
-    var root = (document.body && document.body.getAttribute("data-root")) || "";
-    return root + img.localUrl;
-  }
+  /* Il n'existe plus d'image « locale » de secours : une image vient
+     de Sanity, ou n'existe pas. C'est ce qui garantit qu'on voit
+     toujours l'image que l'on vient de déposer, et jamais l'ancienne. */
   function sanityImageUrl(img, width) {
     if (!hasRealImage(img) || !global.ZinemaData.projectId) return null;
     var ref = img.asset._ref || img.asset._id || "";
@@ -171,14 +184,45 @@
     );
   }
 
+  /* Le texte alternatif saisi dans Sanity ; à défaut, le titre. */
+  function altDeLImage(img, secours) {
+    return escapeHtml((img && img.alt) || secours || "");
+  }
+
   function posterHTML(film, opts) {
     opts = opts || {};
-    var src = sanityImageUrl(film.poster, 1200) || localImageUrl(film.poster);
+    var src = sanityImageUrl(film.poster, 1200);
     if (src) {
       var loading = opts.priority ? "eager" : "lazy";
-      return '<div class="poster"><img src="' + src + '" alt="' + escapeHtml(film.title) + '" loading="' + loading + '"></div>';
+      return (
+        '<div class="poster"><img src="' + src +
+        '" alt="' + altDeLImage(film.poster, "Affiche de " + film.title) +
+        '" loading="' + loading + '"></div>'
+      );
     }
+    /* Pas d'affiche déposée : une affiche typographique, construite à
+       partir du titre. Elle disparaît dès qu'une vraie affiche est
+       ajoutée dans le Studio. */
     return generatedPosterHTML(film.title, film.director, film.year, film.slug);
+  }
+
+  /* ---------------- États d'une page ----------------
+     Trois situations, trois messages honnêtes — jamais de contenu
+     inventé pour combler un vide. */
+  function etatChargement(quoi) {
+    return (
+      '<p class="etat etat--chargement" role="status">Chargement ' +
+      escapeHtml(quoi || "du contenu") + "…</p>"
+    );
+  }
+  function etatVide(message) {
+    return '<p class="etat etat--vide">' + escapeHtml(message) + "</p>";
+  }
+  function etatErreur() {
+    return (
+      '<p class="etat etat--erreur" role="alert">Le contenu du site n\'a pas pu être chargé. ' +
+      "Vérifiez votre connexion et rechargez la page.</p>"
+    );
   }
 
   global.ZinemaRender = {
@@ -187,6 +231,12 @@
     statusLabel: statusLabel,
     filtresFilms: filtresFilms,
     prixLabel: prixLabel,
+    tarifsResume: tarifsResume,
+    montant: montant,
+    altDeLImage: altDeLImage,
+    etatChargement: etatChargement,
+    etatVide: etatVide,
+    etatErreur: etatErreur,
     formatDayHeading: formatDayHeading,
     formatLongDate: formatLongDate,
     formatDowShort: formatDowShort,
@@ -195,7 +245,6 @@
     toEmbedUrl: toEmbedUrl,
     hasRealImage: hasRealImage,
     sanityImageUrl: sanityImageUrl,
-    localImageUrl: localImageUrl,
     posterHTML: posterHTML,
     generatedPosterHTML: generatedPosterHTML,
   };

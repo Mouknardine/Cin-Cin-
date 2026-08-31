@@ -757,3 +757,70 @@ body:not([data-page="home"]) .main-area {
   background: var(--rose);
   color: #fff;
 }
+
+/* ============================================================
+   États d'une page : chargement, rubrique vide, erreur.
+
+   Le site n'affiche plus jamais de contenu d'exemple pour combler
+   un vide : il dit ce qu'il en est. Ces trois messages reprennent
+   le trait et le gris du reste du site.
+   ============================================================ */
+.etat {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.4;
+  margin: 0;
+  padding: 2rem 1.25rem;
+  border: var(--trait) solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  max-width: 42rem;
+}
+.etat--chargement {
+  /* Rien de clignotant : un simple texte, qui disparaît dès que le
+     contenu arrive. */
+  opacity: 0.55;
+  font-weight: 400;
+}
+.etat--erreur {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* Le paragraphe d'introduction d'une page, réglé dans Sanity
+   (« Pages du site → Textes des pages »). */
+.m-intro {
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+/* La liste d'avantages d'une formule d'abonnement. */
+.m-formule__avantages {
+  margin: 0.5rem 0 0;
+  padding: 0 0 0 1.1rem;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+.m-formule__avantages li {
+  margin-bottom: 0.2rem;
+}
+
+/* Les affiches des films rattachés à un événement. */
+.m-bande--une-films {
+  display: flex;
+  flex-wrap: wrap;
+}
+.m-annonce__film {
+  flex: 0 0 auto;
+  width: clamp(6rem, 18vw, 10rem);
+}
+
+/* Les coordonnées bancaires : une ligne par information, pour
+   qu'un IBAN reste lisible et copiable. */
+.m-banque__ligne {
+  margin: 0;
+}
+.m-banque__ligne + .m-banque__ligne {
+  margin-top: 0.15rem;
+}

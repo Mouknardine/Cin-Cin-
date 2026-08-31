@@ -20,7 +20,10 @@
   var mount = document.getElementById("footer-root");
   if (!mount) return;
 
-  window.ZinemaData.getSiteSettings().then(function (settings) {
+  window.ZinemaData.getReglages().then(function (settings) {
+    /* Pas de réglages publiés (ou réseau coupé) : pas de pied de
+       page inventé — on n'affiche simplement que la signature. */
+    if (window.ZinemaData.estUneErreur(settings) || !settings) settings = {};
     var esc = window.ZinemaRender.escapeHtml;
     var C = window.ZinemaCouleurs;
 
@@ -44,7 +47,10 @@
     mount.innerHTML =
       '<footer class="site-footer">' +
       reseauxHTML +
-      '<p class="site-footer__case ' + C.classe() + '">' + esc(settings.address || "Lausanne") + "</p>" +
+      (settings.address
+        ? '<p class="site-footer__case ' + C.classe() + '">' +
+          esc(String(settings.address).replace(/\s*\n\s*/g, ", ")) + "</p>"
+        : "") +
       telephoneHTML +
       /* La signature de l'agence ferme le tableau. Seule case du
          site à ne pas participer au tirage des couleurs : elle est

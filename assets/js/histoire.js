@@ -15,16 +15,12 @@
   var R = window.ZinemaRender;
   var C = window.ZinemaCouleurs;
 
-  var INTRO_DEFAUT =
-    "Le Zinéma a toujours eu une petite salle, et c'est un choix. Une jauge courte pour une vraie ambiance, une programmation qui prend des risques, et assez peu de monde pour qu'à la fin de la séance, les passionnés restent se parler.";
-
   function bande(classe, contenu) {
     return '<div class="m-bande ' + classe + '">' + contenu + "</div>";
   }
 
-  /* Le texte d'une étape arrive de Sanity en blocs de texte riche
-     (ou en simple chaîne dans le contenu d'exemple) : on n'en garde
-     que les paragraphes, séparés par une ligne vide. */
+  /* Le texte d'une étape arrive de Sanity en blocs de texte riche :
+     on n'en garde que les paragraphes, séparés par une ligne vide. */
   function texteEtape(body) {
     if (typeof body === "string") return body;
     if (!Array.isArray(body)) return "";
@@ -61,11 +57,12 @@
   /* Le visuel n'existe que si l'étape en a un : jamais de case
      vide dans le tableau. */
   function visuelHTML(entree) {
-    var src = R.sanityImageUrl(entree.image, 900) || R.localImageUrl(entree.image);
+    var src = R.sanityImageUrl(entree.image, 900);
     if (!src) return "";
     return (
       '<div class="m-affiche m-histoire__visuel"><div class="poster">' +
-      '<img src="' + R.escapeHtml(src) + '" alt="' + R.escapeHtml(entree.title) + '" loading="lazy"></div></div>'
+      '<img src="' + R.escapeHtml(src) + '" alt="' +
+      R.altDeLImage(entree.image, entree.title) + '" loading="lazy"></div></div>'
     );
   }
 
@@ -80,33 +77,49 @@
     );
   }
 
-  Promise.all([window.ZinemaData.getHistory(), window.ZinemaData.getSiteSettings()]).then(function (resultats) {
-    var entrees = resultats[0] || [];
-    var reglages = resultats[1] || {};
-    var intro = reglages.historyIntro || INTRO_DEFAUT;
+  var D = window.ZinemaData;
 
-    if (entrees.length === 0) {
-      app.innerHTML =
-        '<article class="mondrian mondrian--histoire">' +
+  function cadre(contenu) {
+    return '<article class="mondrian mondrian--histoire">' + contenu + "</article>";
+  }
+
+  app.innerHTML = R.etatChargement("de l'histoire du cinéma");
+
+  Promise.all([D.getHistory(), D.getPage("histoire")]).then(function (resultats) {
+    var entrees = resultats[0];
+    var page = resultats[1];
+
+    if (D.estUneErreur(entrees)) {
+      app.innerHTML = R.etatErreur();
+      return;
+    }
+
+    /* L'introduction se règle dans « Pages du site → Histoire ».
+       Vide, il n'y a simplement pas de paragraphe. */
+    var intro = (page && page.intro) || "";
+
+    if (!entrees.length) {
+      app.innerHTML = cadre(
         bande(
           "m-bande--vide",
           '<div class="m-cell m-vide ' + C.classe() + '"><p class="m-cell__label">Histoire</p>' +
-            '<p class="m-cell__value">' + R.escapeHtml(intro) + "</p></div>"
-        ) +
-        "</article>";
+            '<p class="m-cell__value">' +
+            R.escapeHtml(intro || (page && page.messageVide) || "") +
+            "</p></div>"
+        )
+      );
       return;
     }
 
     var ouverture = bande(
       "m-bande--intro",
       ageHTML(entrees[0]) +
-        '<div class="m-cell m-histoire__intro ' + C.classe() + '">' + R.escapeHtml(intro) + "</div>"
+        (intro
+          ? '<div class="m-cell m-histoire__intro ' + C.classe() + '">' +
+            R.escapeHtml(intro) + "</div>"
+          : "")
     );
 
-    app.innerHTML =
-      '<article class="mondrian mondrian--histoire">' +
-      ouverture +
-      entrees.map(etapeHTML).join("") +
-      "</article>";
+    app.innerHTML = cadre(ouverture + entrees.map(etapeHTML).join(""));
   });
 })();

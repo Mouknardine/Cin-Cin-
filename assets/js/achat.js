@@ -23,21 +23,25 @@
   var dialogue = null;
   var etat = { seance: null, plein: 1, reduit: 0, envoi: false };
 
-  function tarifs() {
-    return global.ZinemaData.tarifs;
-  }
+  /* Les tarifs affichés dans le panneau viennent des « Réglages du
+     cinéma » dans Sanity, chargés une fois à l'ouverture. Le serveur,
+     lui, relit ces mêmes montants de son côté au moment du paiement :
+     l'aperçu ci-dessous ne peut donc pas être trafiqué. */
+  var reglages = { tarifPlein: 0, tarifReduit: 0 };
+  global.ZinemaData.getReglages().then(function (r) {
+    if (!global.ZinemaData.estUneErreur(r) && r) reglages = r;
+  });
 
-  /* Les tarifs sont écrits « 16.- » : on en extrait le nombre pour
-     l'aperçu du total. Le serveur, lui, lit les vrais montants
-     dans les réglages Sanity. */
-  function nombreDepuisPrix(texte) {
-    var trouve = String(texte || "").match(/\d+(?:[.,]\d+)?/);
-    return trouve ? parseFloat(trouve[0].replace(",", ".")) : 0;
+  function tarifs() {
+    return {
+      plein: R.montant(reglages.tarifPlein) || "",
+      reduit: R.montant(reglages.tarifReduit) || "",
+    };
   }
 
   function total() {
-    return etat.plein * nombreDepuisPrix(tarifs().plein) +
-      etat.reduit * nombreDepuisPrix(tarifs().reduit);
+    return etat.plein * (reglages.tarifPlein || 0) +
+      etat.reduit * (reglages.tarifReduit || 0);
   }
 
   function totalBillets() {

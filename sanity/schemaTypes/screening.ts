@@ -1,12 +1,36 @@
 import { defineField, defineType, type SanityDocument } from "sanity";
 
 import { intervallesSeChevauchent } from "../plugins/planification/utils/conflits";
+import { listeDesSalles, SALLES } from "../salles";
+
+/* ============================================================
+   Une séance : un film, une date, une heure, une salle.
+
+   Presque tout est hérité du film (titre, affiche, durée, prix,
+   lien de paiement) : il n'y a donc que quatre champs à remplir.
+   L'onglet « Planification » en haut du Studio permet d'en créer
+   des dizaines d'un coup plutôt qu'une par une.
+   ============================================================ */
 
 interface ScreeningEnCours extends SanityDocument {
   film?: { _ref?: string };
   date?: string;
   time?: string;
   room?: string;
+}
+
+const JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+const MOIS = [
+  "janvier", "février", "mars", "avril", "mai", "juin",
+  "juillet", "août", "septembre", "octobre", "novembre", "décembre",
+];
+
+function dateEnFrancais(iso?: string): string {
+  if (!iso) return "";
+  const [a, m, j] = iso.split("-").map(Number);
+  if (!a || !m || !j) return iso;
+  const d = new Date(Date.UTC(a, m - 1, j));
+  return `${JOURS[d.getUTCDay()]} ${j} ${MOIS[m - 1]}`;
 }
 
 export const screening = defineType({
@@ -42,103 +66,123 @@ export const screening = defineType({
         intervallesSeChevauchent(time, duree, autre.heure, autre.duree)
       );
       if (genante) {
-        return `Conflit possible : « ${genante.titre ?? "un autre film"} » occupe déjà cette salle vers ${genante.heure} (durée + pause comprises).`;
+        return `Attention : « ${genante.titre ?? "un autre film"} » occupe déjà cette salle vers ${genante.heure} (durée du film + 15 min de pause). Choisissez une autre heure ou l'autre salle.`;
       }
       return true;
     }).warning(),
   fields: [
     defineField({
       name: "film",
-      title: "Film",
+      title: "Quel film ?",
       type: "reference",
       to: [{ type: "film" }],
-      validation: (Rule) => Rule.required(),
+      description:
+        "Le titre, l'affiche, la durée, la version et le prix sont repris automatiquement de la fiche du film — rien à recopier ici.",
+      validation: (Rule) => Rule.required().error("Choisissez le film projeté."),
     }),
     defineField({
       name: "date",
-      title: "Date",
+      title: "Date de la séance",
       type: "date",
-      validation: (Rule) => Rule.required(),
+      options: { dateFormat: "dddd D MMMM YYYY" },
+      validation: (Rule) => Rule.required().error("Indiquez la date de la séance."),
     }),
     defineField({
       name: "time",
-      title: "Heure",
+      title: "Heure de début",
       type: "string",
-      description: "Format 24h, ex. 20:30",
+      description: "Sur 24 heures, avec deux points. Ex. 20:30 pour 20 h 30.",
       validation: (Rule) =>
-        Rule.required().regex(/^([01]\d|2[0-3]):[0-5]\d$/, {
-          name: "heure (HH:MM)",
-        }),
+        Rule.required()
+          .regex(/^([01]\d|2[0-3]):[0-5]\d$/, { name: "heure (HH:MM)" })
+          .error("Écrivez l'heure sous la forme 20:30."),
     }),
     defineField({
       name: "room",
       title: "Salle",
       type: "string",
-      options: {
-        list: [
-          { title: "Salle 1 (18 places)", value: "Salle 1" },
-          { title: "Salle 2 (14 places)", value: "Salle 2" },
-        ],
-        layout: "radio",
-      },
-      initialValue: "Salle 1",
-    }),
-    defineField({
-      name: "versionNote",
-      title: "Mention de version",
-      type: "string",
-      description: "Ex. VO st fr, ciné-club, avant-première + rencontre…",
+      description:
+        "Le nombre de places de chaque salle se règle dans « Réglages du cinéma → Tarifs & salles ».",
+      options: { list: listeDesSalles, layout: "radio" },
+      initialValue: SALLES[0],
+      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "status",
-      title: "Statut",
+      title: "État de la séance",
       type: "string",
+      description:
+        "« Complet » et « Annulé » s'affichent sur l'agenda et désactivent l'achat de billets.",
       options: {
         list: [
-          { title: "Disponible", value: "disponible" },
+          { title: "Places disponibles", value: "disponible" },
           { title: "Complet", value: "complet" },
-          { title: "Annulé", value: "annule" },
+          { title: "Annulée", value: "annule" },
         ],
         layout: "radio",
       },
       initialValue: "disponible",
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: "versionNote",
+      title: "Mention particulière",
+      type: "string",
+      description:
+        "S'affiche à côté de l'heure sur l'agenda. Ex. « Séance suivie d'une rencontre », « Ciné-goûter dès 6 ans », « Copie restaurée ». Laissez vide pour une séance normale.",
     }),
     defineField({
       name: "price",
-      title: "Prix (CHF)",
+      title: "Prix particulier pour cette séance",
       type: "string",
-      description: "Remplace le prix par défaut du film si renseigné.",
+      description:
+        "Laissez vide : la séance prend le prix du film, sinon les tarifs du cinéma. À remplir seulement pour une exception.",
     }),
     defineField({
       name: "sumupCheckoutUrl",
-      title: "Lien de paiement SumUp",
+      title: "Lien de paiement SumUp de cette séance",
       type: "url",
       description:
-        "Lien spécifique à cette séance. Si vide, le lien par défaut du film est utilisé.",
+        "Laissez vide : le lien du film est utilisé. À remplir seulement si cette séance a son propre lien.",
     }),
   ],
   orderings: [
     {
-      title: "Date & heure",
+      title: "De la plus proche à la plus lointaine",
       name: "dateTimeAsc",
       by: [
         { field: "date", direction: "asc" },
         { field: "time", direction: "asc" },
       ],
     },
+    {
+      title: "De la plus récente à la plus ancienne",
+      name: "dateTimeDesc",
+      by: [
+        { field: "date", direction: "desc" },
+        { field: "time", direction: "desc" },
+      ],
+    },
   ],
   preview: {
     select: {
-      title: "film.title",
+      titre: "film.title",
+      media: "film.poster",
       date: "date",
       time: "time",
       room: "room",
       status: "status",
+      mention: "versionNote",
     },
-    prepare({ title, date, time, room, status }) {
+    prepare({ titre, media, date, time, room, status, mention }) {
+      const etat =
+        status === "complet" ? "COMPLET" : status === "annule" ? "ANNULÉE" : null;
       return {
-        title: title || "Séance",
-        subtitle: [date, time, room, status].filter(Boolean).join(" · "),
+        title: `${time || "??:??"} — ${titre || "Film à choisir"}`,
+        subtitle: [dateEnFrancais(date), room, etat, mention]
+          .filter(Boolean)
+          .join(" · "),
+        media,
       };
     },
   },

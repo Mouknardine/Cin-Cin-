@@ -1,142 +1,181 @@
-# Brancher Sanity (gestion du contenu)
+# Gérer le contenu du site — le Studio Sanity
 
-> **✅ Déjà fait sur cette copie** (15 juillet 2026) : le site est branché sur le projet
-> Sanity **Zinema** (`g0k3smf3`, dataset `production`), le Studio est déployé sur
-> <https://zinema.sanity.studio>, les films et séances de l'ancienne version ont été
-> migrés, et le CORS autorise `http://localhost:3000`, `http://localhost:3333` et
-> `https://mouknardine.github.io`. Les étapes 1 à 4 et 6 ci-dessous ne sont donc utiles
-> qu'à titre de référence. Voir aussi « L'onglet Planification » en fin de document.
+> **État actuel** (31 août 2026)
+> Projet Sanity **`vle63mzm`**, dataset `production`, organisation `oj78FguHq`.
+> Studio en ligne : <https://cincin-zinema.sanity.studio>
+> Le site est branché dessus ([assets/js/data.js](assets/js/data.js)).
+>
+> *Historique : le projet d'origine `g0k3smf3` (Studio `zinema.sanity.studio`)
+> appartient à un autre compte. Son contenu a été recopié vers `vle63mzm` ;
+> il n'est plus lu par le site.*
 
-Le site est composé de **simples fichiers HTML/CSS/JS** (`index.html`,
-`films/`, `agenda/`, `evenements/`, `histoire/`, `membership/`, `contact/`, `film/`,
-`assets/`) — pas de build, pas de framework, hébergeables tels quels
-n'importe où, y compris un hébergement mutualisé sans serveur comme
-Infomaniak. Le contenu Sanity est lu **directement par le navigateur de
-chaque visiteur**, à chaque affichage — une publication dans le Studio
-apparaît donc en ligne immédiatement, **sans jamais reconstruire ni
-redéployer le site**. Tant qu'aucun projet Sanity n'est configuré (ou en
-cas de souci réseau/CORS), le site affiche un contenu d'exemple à la
-place — jamais de page vide.
+## Deux règles qui gouvernent tout
 
-Le Studio (l'interface d'édition, dans le dossier `sanity/`) est un outil
-séparé, à part le site : c'est la seule partie du projet qui utilise encore
-Node/npm, puisque Sanity Studio en a besoin pour fonctionner.
+**1. Ce qui est publié est ce qui s'affiche. Rien d'autre.**
+Le site ne contient plus aucun contenu d'exemple. Une rubrique vide dans le
+Studio donne une rubrique vide sur le site, avec un message clair
+(« Aucune séance n'est programmée pour l'instant »). Il n'y a plus de faux
+films, de fausses annonces ni de fausse adresse qui apparaîtraient par-dessus
+le vrai contenu. Autrement dit : **si vous ne le voyez pas dans le Studio,
+personne ne le voit sur le site — et inversement.**
 
-## 1. Créer le projet Sanity (une seule fois)
+**2. Une image = un seul endroit.**
+Chaque image vient de Sanity et de nulle part ailleurs. Il n'existe plus
+d'image de secours cachée dans le code du site. Remplacer une affiche dans le
+Studio la remplace partout, tout de suite : accueil, page Films, fiche du
+film, agenda. On ne peut plus se retrouver avec l'ancienne image d'un côté et
+la nouvelle de l'autre.
 
-1. Créer un compte gratuit sur <https://www.sanity.io/manage>.
-2. Créer un projet (nom libre, ex. « Zinéma »), dataset **production**.
-3. Noter le **Project ID** (visible dans l'URL et la page du projet).
+Chaque image demande aussi **une description en une phrase** (obligatoire).
+Elle sert aux personnes malvoyantes, à Google, s'affiche si l'image ne charge
+pas — et permet de savoir d'un coup d'œil quelle image on est en train de
+remplacer.
 
-## 2. Brancher le site sur ce projet
+## Publier
 
-Ouvrir `assets/js/data.js` et renseigner les deux constantes tout en haut
-du fichier :
+Le contenu est lu **directement par le navigateur de chaque visiteur**, à
+chaque affichage de page. Un clic sur **Publish** dans le Studio et c'est en
+ligne : **il n'y a rien d'autre à faire**, ni reconstruire, ni redéployer, ni
+prévenir qui que ce soit. Il suffit de recharger la page du site.
 
-```js
-var SANITY_PROJECT_ID = "xxxxxxxx";
-var SANITY_DATASET = "production";
-```
+Tant qu'un document est en brouillon (bandeau orange dans le Studio), il n'est
+visible de personne sur le site.
 
-Ce ne sont pas des informations secrètes (elles sont visibles de tous les
-visiteurs, comme sur n'importe quel site), donc pas besoin de variable
-d'environnement ni de build : une fois ces deux lignes modifiées et le
-fichier envoyé sur l'hébergement, le site lit directement le contenu
-Sanity.
+L'onglet **Planification** est la seule exception, dans le bon sens : ce qu'on
+y crée est publié directement, sans passer par un brouillon.
 
-## 3. Configuration du Studio (uniquement pour l'interface d'édition)
+## Ce que contient le Studio
 
-Copier `.env.local.example` vers `.env.local` et remplir le Project ID :
+Le menu de gauche suit l'ordre du travail réel, pas l'ordre technique :
 
-```
-SANITY_STUDIO_PROJECT_ID=xxxxxxxx
-```
-
-Puis :
-
-```
-npm run studio:dev      # Studio local sur http://localhost:3333
-npm run studio:deploy   # Héberge le Studio sur https://<nom>.sanity.studio
-```
-
-Au premier lancement, autoriser l'origine dans Sanity Manage →
-**API → CORS origins** (ajouter `http://localhost:3333` et l'URL du Studio
-déployé).
-
-## 4. Pré-remplir avec le contenu d'exemple (facultatif)
-
-Pour partir des films/séances/annonces d'exemple plutôt que d'une base
-vide : créer un token **Editor** (Sanity Manage → API → Tokens), le mettre
-dans `SANITY_API_WRITE_TOKEN` de `.env.local`, puis :
-
-```
-npm run seed
-```
-
-## 5. Ce qui se gère depuis le Studio
-
-| Rubrique | Contenu modifiable |
+| Rubrique | À quoi ça sert |
 |---|---|
-| **Films** | titre, réalisateur·rice, année, pays, durée, langue/sous-titres, âge, genres, statut (à l'affiche, avant-première, prochainement, cycle, passé), synopsis, **affiche** (image), photos, bande-annonce, critique liée, prix, lien SumUp, case « Mettre en avant sur l'accueil » (fait passer le film en tête du canevas d'accueil) |
-| **Séances** | date, heure, salle, note de version, statut (disponible / complet / annulé), prix, lien SumUp, film lié |
-| **Annonces** | titre, catégorie, date, image, résumé, texte, lien, épinglée |
-| **Critiques** | citation, auteur, média, lien |
-| **Histoire** | étapes de la frise : année, titre, texte, image, ordre |
-| **Réglages du site** | accroche, description SEO, **intro de la page Histoire**, adresse, téléphone (+ un second facultatif, ex. bureau), e-mail, horaires, accès, lien carte (facultatif — sinon calculé depuis l'adresse), réseaux sociaux |
+| **Les 7 prochains jours** | Les séances de la semaine, pour vérifier le programme d'un coup d'œil. |
+| **Toutes les séances à venir** | La liste complète, de la plus proche à la plus lointaine. |
+| **Séances passées** | L'archive. Elle se remplit toute seule : une séance dont la date est passée quitte le site et atterrit ici. Rien à supprimer. |
+| **Films** | Rangés par état : à l'affiche · avant-premières & prochainement · cycles & ciné-club · terminés. Un film passé sur « Terminé » disparaît des pages publiques mais reste consultable. |
+| **Événements** | Cycles, brunchs, ciné-club, séances spéciales. Séparés en « en cours & à venir » et « terminés » — là aussi, automatiquement, par les dates. |
+| **Critiques presse** | Les citations de journaux, à rattacher à un film. |
+| **Pages du site** | Une fiche par page, dans l'ordre de la navigation du site : Accueil, Films, Agenda, Événements, Histoire, Abonnements, Infos pratiques. |
+| **Réglages du cinéma** | Adresse, téléphones, e-mails, horaires, tarifs, places par salle, réseaux sociaux, logo. |
+| **Billets vendus** | Les commandes de la billetterie en ligne, créées automatiquement par le serveur. |
 
-Tout champ laissé vide retombe sur un texte de secours raisonnable ; les
-films sans affiche reçoivent automatiquement une affiche typographique
-générée.
+## Modifier une page du site
 
-## 6. Autoriser le site à lire Sanity depuis le navigateur (CORS)
+Dans **Pages du site**, chaque page du site a sa fiche, rangée dans
+l'ordre exact du menu du site : Accueil · Films · Agenda · Événements ·
+Histoire · Abonnements · Infos pratiques. Pour modifier la page Agenda,
+on clique donc simplement sur « Agenda ».
 
-Le contenu étant récupéré directement par le navigateur du visiteur, il
-faut indiquer à Sanity quels sites ont le droit de lui parler. Sans cette
-étape, le site retombe silencieusement sur le contenu d'exemple.
+Chaque fiche contient quatre choses :
 
-Aller dans **Sanity Manage → API → CORS origins → Add CORS origin** et
-ajouter, sans case « Allow credentials » à cocher :
+| Champ | Où ça se voit |
+|---|---|
+| **Titre de la page** | Dans l'onglet du navigateur, dans les signets, et comme titre bleu cliquable dans les résultats Google. Il ne s'affiche pas sur la page elle-même — les pages du site s'ouvrent directement sur leur contenu, sans bandeau de titre. |
+| **Paragraphe d'introduction** | En haut de la page, au-dessus du contenu. Laissé vide, il n'y a simplement pas de paragraphe. |
+| **Message quand la page n'a rien à afficher** | Ce que lit un visiteur quand il n'y a pas encore de séance, de film ou d'événement. Le site n'invente jamais de contenu pour combler un vide : c'est cette phrase qui s'affiche. |
+| **Description pour Google** | Le texte gris sous le titre dans les résultats de recherche. |
 
-- l'adresse définitive du site (ex. `https://www.zinema.ch`, ou l'URL
-  GitHub Pages `https://mouknardine.github.io`) ;
-- `http://localhost:8000` (ou le port utilisé) pour tester le site en local.
+Le **contenu** d'une page (les films, les séances, les événements) ne se
+règle pas ici : il vient des rubriques du haut du menu. Une fiche de page
+ne sert qu'à ce qui entoure ce contenu.
 
-## 7. Mettre le site en ligne
+Deux pages ont, en plus de leurs textes, un contenu qui leur est propre —
+on le trouve juste à côté de leur fiche :
 
-Aucun build n'est nécessaire : il suffit d'envoyer les fichiers du site
-(`index.html`, `films/`, `agenda/`, `evenements/`, `histoire/`,
-`membership/`, `contact/`, `film/`, `assets/` — pas `sanity/` ni les autres
-fichiers du dépôt, qui ne concernent que l'édition de contenu) sur
-l'hébergement :
+- **Histoire** → « Les étapes de la frise » ;
+- **Abonnements** → « Formules & paiement ».
 
-- **Infomaniak (hébergement mutualisé)** : envoyer ces dossiers/fichiers
-  par FTP dans le répertoire du site (souvent nommé `web` ou
-  correspondant au nom de domaine).
-- **GitHub Pages** : le workflow `.github/workflows/deploy-pages.yml`
-  publie automatiquement ces mêmes fichiers à chaque envoi sur la branche.
+## Ce qui est lié à quoi (pour ne rien saisir deux fois)
 
-Cet envoi n'est à refaire qu'en cas de changement de **code ou de
-design** — **jamais** pour une simple mise à jour de contenu, qui
-apparaît seule dès qu'elle est publiée dans le Studio.
+- **Une séance** ne demande que quatre choses : le film, la date, l'heure, la
+  salle. Le titre, l'affiche, la durée, la version, le prix et le lien de
+  paiement sont repris de la fiche du film.
+- **Les tarifs** sont écrits une seule fois dans « Réglages du cinéma →
+  Tarifs & salles ». Ils s'affichent sur la page Abonnements, sur les boutons
+  d'achat, et **ce sont eux que la caisse en ligne facture réellement**. Un
+  film ou une séance peut imposer un prix différent (ciné-goûter, soirée
+  spéciale) : il prend alors le pas.
+- **Le nombre de places par salle** sert à ne jamais vendre plus de billets
+  qu'il n'y a de sièges. Les *noms* des salles sont fixes (« Salle 1 »,
+  « Salle 2 ») parce qu'ils servent de clé partout dans le site ; seul le
+  nombre de places se modifie.
+- **Un événement** peut pointer vers des films : leurs affiches apparaissent
+  alors sur l'événement sans rien recopier.
+- **Une critique** rattachée à un film s'affiche sur sa fiche.
 
-## 8. L'onglet « Planification » du Studio
+## Ce qui se décide tout seul (rien à régler)
 
-En haut du Studio (à côté de « Structure »), l'onglet **Planification** affiche
-le calendrier de la semaine et automatise la programmation :
+- **Ce qui remonte sur l'accueil** : les films à l'affiche d'abord, puis les
+  avant-premières, les cycles et les films annoncés ; à égalité, celui dont la
+  prochaine séance est la plus proche. Plus aucune case « mettre en avant ».
+- **La taille des affiches** dans les grilles : le site s'en charge.
+- **L'archivage** des séances, des films terminés et des événements passés :
+  par les dates et le statut.
+- **L'affiche d'un film qui n'en a pas encore** : le site en dessine une,
+  typographique, à partir du titre. Elle disparaît dès qu'une vraie affiche
+  est déposée.
 
-- **Programmer un film** : choisir un film, ses créneaux habituels
-  (ex. mercredi 19 h Salle 1 + samedi 21 h Salle 2) et le nombre de semaines →
-  toutes les séances se créent et se publient d'un coup.
+## Les garde-fous
+
+Le Studio refuse de publier une fiche incomplète et explique pourquoi :
+
+- un film sans **affiche** ou sans **durée** (la durée sert à repérer deux
+  films qui se chevaucheraient dans la même salle) ;
+- une image sans **description** ;
+- un événement dont le dernier jour est avant le premier ;
+- un tarif réduit plus cher que le plein tarif ;
+- une salle sans nombre de places.
+
+Et il **avertit** (sans bloquer) si une séance chevauche une autre dans la
+même salle — durée du film plus 15 minutes de pause comprises.
+
+## L'onglet « Planification »
+
+En haut du Studio, à côté de « Contenu ». Il sert à programmer vite :
+
+- **Programmer un film** : choisir un film, ses créneaux habituels (ex. mercredi
+  19 h Salle 1 + samedi 21 h Salle 2) et un nombre de semaines → toutes les
+  séances sont créées et publiées d'un coup.
 - **Dupliquer la semaine** : recopie toutes les séances de la semaine affichée
-  vers une semaine suivante, en un clic.
-- **Supprimer une séance** : menu ⋮ sur la séance → Supprimer.
-- **Conflits de salle détectés automatiquement** : deux films ne peuvent pas se
-  chevaucher dans la même salle (durée du film + 15 min de pause). Les conflits
-  existants apparaissent en rouge ; l'outil refuse d'en créer de nouveaux et les
-  doublons sont ignorés. La même alerte apparaît dans le formulaire classique
-  d'une séance.
-- **Publication immédiate** : tout ce qui est créé dans cet onglet est
-  directement visible sur le site, sans clic « Publish ».
+  vers la suivante, en un clic.
+- **Supprimer une séance** : menu ⋮ sur la séance.
+- **Conflits de salle** : les chevauchements existants apparaissent en rouge,
+  l'outil refuse d'en créer de nouveaux, et les doublons sont ignorés.
 
-> Astuce : renseigner la **durée** de chaque film rend la détection de conflits
-> précise (sans durée, l'outil compte 2 h par défaut).
+## Travailler sur le Studio (côté technique)
+
+```
+npm install
+npm run studio:dev      # Studio local sur http://localhost:3333
+npm run studio:deploy   # Met en ligne https://cincin-zinema.sanity.studio
+npm run typecheck       # Vérifie les schémas
+```
+
+Le Studio lit `.env.local` (copier `.env.local.example`). Le site, lui, n'a
+besoin de rien : son Project ID est écrit dans
+[assets/js/data.js](assets/js/data.js) — ce n'est pas une information secrète,
+elle est visible de tous les visiteurs comme sur n'importe quel site.
+
+**CORS** — le contenu étant récupéré par le navigateur du visiteur, chaque
+adresse depuis laquelle le site est servi doit être autorisée dans
+Sanity Manage → API → CORS origins. Sont déjà autorisées :
+`http://localhost:3000`, `:3333`, `:5500`, `:8000`,
+`https://mouknardine.github.io` et l'URL du Studio. **Il faudra y ajouter
+l'adresse définitive du site** (ex. `https://www.zinema.ch`) le jour de la
+mise en ligne, sinon le site affichera partout le message
+« Le contenu du site n'a pas pu être chargé ».
+
+## Mettre le site en ligne
+
+Aucun build : il suffit d'envoyer `index.html`, `films/`, `agenda/`,
+`evenements/`, `histoire/`, `membership/`, `contact/`, `film/`, `billet/`,
+`api/` et `assets/` sur l'hébergement (pas `sanity/`, qui ne concerne que
+l'édition).
+
+- **Infomaniak** : par FTP, dans le répertoire du site.
+- **GitHub Pages** : le workflow `.github/workflows/deploy-pages.yml` publie
+  automatiquement à chaque envoi sur la branche.
+
+Cet envoi n'est à refaire qu'en cas de changement de **code ou de design** —
+**jamais** pour une mise à jour de contenu.

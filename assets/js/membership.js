@@ -1,16 +1,11 @@
 /* ============================================================
-   Zinéma — Membership : les tarifs et les formules d'abonnement,
-   en tableau « Mondrian » (mêmes bandes que la fiche film).
-   La page s'ouvre directement sur les tarifs, sans bandeau de
-   titre — comme toutes les pages du site.
+   Zinéma — page Abonnements : les tarifs et les formules, en
+   tableau « Mondrian » (mêmes bandes que la fiche film).
 
-   Les deux prix du cinéma viennent de ZinemaData.tarifs : ils
-   sont écrits à un seul endroit et repris partout (bouton
-   d'achat, fiche film, ici).
-
-   Les formules d'abonnement ci-dessous sont à confirmer avec le
-   cinéma : ce sont les seules valeurs de cette page qui ne
-   proviennent pas encore de Sanity.
+   Tout le contenu de cette page vient de Sanity : les deux tarifs
+   des « Réglages du cinéma », les formules et les coordonnées
+   bancaires de « Pages du site → Page Abonnements ». Plus aucun
+   prix ni aucune formule n'est écrit dans ce fichier.
    ============================================================ */
 (function () {
   "use strict";
@@ -19,29 +14,6 @@
   var app = document.getElementById("membership-app");
   var R = window.ZinemaRender;
   var C = window.ZinemaCouleurs;
-  var tarifs = window.ZinemaData.tarifs;
-
-  var formules = [
-    {
-      titre: "Carte 10 entrées",
-      prix: "prix libre, 90.- à 140.-",
-      texte:
-        "Dix places, valables un an, transmissibles. Vous choisissez ce que vous payez : un cinéma de quartier doit rester accessible à tout le quartier.",
-    },
-    {
-      titre: "Membre de soutien",
-      prix: "dès 50.- par an",
-      texte:
-        "Vous soutenez la programmation indépendante et recevez le programme avant tout le monde, avec une invitation aux avant-premières.",
-    },
-    {
-      titre: "Écoles & associations",
-      prix: "sur demande",
-      texte:
-        "Projections scolaires, séances privées, partenariats de quartier : écrivez-nous, on construit la séance avec vous.",
-    },
-  ];
-
   function bande(classe, contenu) {
     return '<div class="m-bande ' + classe + '">' + contenu + "</div>";
   }
@@ -57,34 +29,121 @@
   }
 
   function caseFormule(formule) {
+    var avantages = (formule.avantages || []).filter(Boolean);
     return (
       '<div class="m-cell m-formule ' + C.classe() + '">' +
       '<p class="m-cell__label">' + R.escapeHtml(formule.titre) + "</p>" +
       '<p class="m-tarif__prix">' + R.escapeHtml(formule.prix) + "</p>" +
-      '<p class="m-formule__texte">' + R.escapeHtml(formule.texte) + "</p></div>"
+      (formule.texte
+        ? '<p class="m-formule__texte">' + R.escapeHtml(formule.texte) + "</p>"
+        : "") +
+      (avantages.length
+        ? '<ul class="m-formule__avantages">' +
+          avantages
+            .map(function (a) {
+              return "<li>" + R.escapeHtml(a) + "</li>";
+            })
+            .join("") +
+          "</ul>"
+        : "") +
+      "</div>"
     );
   }
 
-  window.ZinemaData.getSiteSettings().then(function (settings) {
-    var contact = settings.email
-      ? '<a class="m-cell m-action m-acheter" href="mailto:' + R.escapeHtml(settings.email) +
+  /* Les coordonnées bancaires, s'il y en a. */
+  function caseBanque(abo) {
+    var lignes = [
+      abo.beneficiaire,
+      abo.iban ? "IBAN " + abo.iban : "",
+      abo.ccp ? "CCP " + abo.ccp : "",
+      abo.banque,
+    ].filter(Boolean);
+    if (!lignes.length) return "";
+    return (
+      '<div class="m-cell m-info ' + C.classe() + '">' +
+      '<p class="m-cell__label">Paiement</p>' +
+      lignes
+        .map(function (l) {
+          return '<p class="m-cell__value m-banque__ligne">' + R.escapeHtml(l) + "</p>";
+        })
+        .join("") +
+      (abo.notePaiement
+        ? '<p class="m-tarif__precision">' + R.escapeHtml(abo.notePaiement) + "</p>"
+        : "") +
+      "</div>"
+    );
+  }
+
+  var D = window.ZinemaData;
+
+  app.innerHTML = R.etatChargement("des abonnements");
+
+  Promise.all([D.getReglages(), D.getAbonnements(), D.getPage("membership")]).then(function (r) {
+    var reglages = r[0];
+    var abo = r[1];
+    var page = r[2];
+
+    if (D.estUneErreur(reglages) || D.estUneErreur(abo)) {
+      app.innerHTML = R.etatErreur();
+      return;
+    }
+    reglages = reglages || {};
+    abo = abo || {};
+
+    var plein = R.montant(reglages.tarifPlein);
+    var reduit = R.montant(reglages.tarifReduit);
+    var conditions = (reglages.conditionsReduit || []).filter(Boolean).join(", ");
+
+    var bandeTarifs =
+      plein || reduit
+        ? bande(
+            "m-bande--infos",
+            (plein ? caseTarif("Plein tarif", plein, "Une séance, tous les jours") : "") +
+              (reduit ? caseTarif("Tarif réduit", reduit, conditions) : "")
+          )
+        : "";
+
+    var formules = (abo.formules || []).filter(function (f) {
+      return f && f.titre;
+    });
+    var bandeFormules = formules.length
+      ? bande("m-bande--formules", formules.map(caseFormule).join(""))
+      : "";
+
+    var banque = caseBanque(abo);
+    var bandeBanque = banque ? bande("m-bande--banque", banque) : "";
+
+    var intro = page && page.intro
+      ? bande(
+          "m-bande--intro",
+          '<div class="m-cell m-intro ' + C.classe() + '">' + R.escapeHtml(page.intro) + "</div>"
+        )
+      : "";
+
+    if (!bandeTarifs && !bandeFormules && !bandeBanque) {
+      app.innerHTML = R.etatVide(
+        (page && page.messageVide) || "Les abonnements n'ont pas encore été renseignés."
+      );
+      return;
+    }
+
+    var contact = reglages.email
+      ? '<a class="m-cell m-action m-acheter" href="mailto:' + R.escapeHtml(reglages.email) +
         '?subject=' + encodeURIComponent("Abonnement Zinéma") + '">' +
-        "<span>Acheter un abonnement</span>" +
-        '<span class="m-acheter__prix">' + R.escapeHtml(settings.email) + "</span></a>"
-      : '<div class="m-cell m-action m-acheter m-acheter--indisponible"><span>Abonnements bientôt disponibles</span></div>';
+        "<span>Demander un abonnement</span>" +
+        '<span class="m-acheter__prix">' + R.escapeHtml(reglages.email) + "</span></a>"
+      : "";
 
     app.innerHTML =
       '<article class="mondrian">' +
-      bande(
-        "m-bande--infos",
-        caseTarif("Plein tarif", tarifs.plein, "Une séance, tous les jours") +
-          caseTarif("Tarif réduit", tarifs.reduit, tarifs.conditionsReduit)
-      ) +
-      bande("m-bande--formules", formules.map(caseFormule).join("")) +
+      intro +
+      bandeTarifs +
+      bandeFormules +
+      bandeBanque +
       bande(
         "m-bande--achat",
-        '<a href="' + root + 'agenda/" class="m-cell m-action m-lien-retour ' + C.classe() + '"><span>← Voir les séances</span></a>' +
-          contact
+        '<a href="' + root + 'agenda/" class="m-cell m-action m-lien-retour ' + C.classe() +
+          '"><span>← Voir les séances</span></a>' + contact
       ) +
       "</article>";
   });

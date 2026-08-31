@@ -122,6 +122,16 @@
     return '<div class="m-semaine">' + colonnes + "</div>";
   }
 
+  /* Le paragraphe d'introduction se règle dans le Studio
+     (« Pages du site → Textes des pages »). */
+  function introHTML() {
+    if (!intro) return "";
+    return (
+      '<div class="m-bande m-bande--intro"><div class="m-cell m-intro ' +
+      C.classe() + '">' + R.escapeHtml(intro) + "</div></div>"
+    );
+  }
+
   function render() {
     if (days.length === 0) {
       app.innerHTML =
@@ -134,6 +144,7 @@
 
     app.innerHTML =
       '<article class="mondrian mondrian--agenda">' +
+      introHTML() +
       modesHTML() +
       (mode === "jour" ? dayViewHTML() : weekViewHTML()) +
       "</article>";
@@ -152,7 +163,29 @@
     });
   }
 
-  window.ZinemaData.getScreenings().then(function (screenings) {
+  var D = window.ZinemaData;
+  var intro = "";
+
+  app.innerHTML = R.etatChargement("de l'agenda");
+
+  Promise.all([D.getScreenings(), D.getPage("agenda")]).then(function (r) {
+    var screenings = r[0];
+    var page = r[1];
+    intro = (page && page.intro) || "";
+
+
+    if (D.estUneErreur(screenings)) {
+      app.innerHTML = R.etatErreur();
+      return;
+    }
+    if (!screenings.length) {
+      app.innerHTML = R.etatVide(
+        (page && page.messageVide) ||
+          "Aucune séance n'est programmée pour l'instant."
+      );
+      return;
+    }
+
     days = groupByDate(screenings);
     activeDate = days[0] ? days[0].date : null;
     render();

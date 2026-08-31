@@ -20,7 +20,7 @@
   function filmHTML(film) {
     /* Vraie affiche = image Sanity OU image locale (assets/img/affiches),
        même critère que la fiche film. */
-    var vraieAffiche = Boolean(R.sanityImageUrl(film.poster, 1200) || R.localImageUrl(film.poster));
+    var vraieAffiche = Boolean(R.sanityImageUrl(film.poster, 1200));
     var realisation = film.director
       ? '<p class="m-film__real">' + R.escapeHtml(film.director) + "</p>"
       : "";
@@ -54,6 +54,17 @@
     );
   }
 
+  /* Le paragraphe d'introduction se règle dans le Studio
+     (« Pages du site → Textes des pages »). Vide, il n'y a
+     simplement pas de bande. */
+  function introHTML() {
+    if (!intro) return "";
+    return (
+      '<div class="m-bande m-bande--intro"><div class="m-cell m-intro ' +
+      C.classe() + '">' + R.escapeHtml(intro) + "</div></div>"
+    );
+  }
+
   function filtreHTML(filtre) {
     return (
       '<button type="button" class="m-filtre ' + C.classeVive() +
@@ -81,7 +92,8 @@
       : '<div class="m-cell m-vide ' + C.classe() + '"><p class="m-cell__label">Aucun film</p>' +
         '<p class="m-cell__value">Aucun film dans cette catégorie pour le moment.</p></div>';
 
-    app.innerHTML = '<article class="mondrian">' + filtresHTML + filmsHTML + "</article>";
+    app.innerHTML =
+      '<article class="mondrian">' + introHTML() + filtresHTML + filmsHTML + "</article>";
 
     app.querySelectorAll(".m-filtre").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -91,7 +103,27 @@
     });
   }
 
-  window.ZinemaData.getFilms().then(function (films) {
+  var D = window.ZinemaData;
+  var intro = "";
+
+  app.innerHTML = R.etatChargement("des films");
+
+  Promise.all([D.getFilms(), D.getPage("films")]).then(function (r) {
+    var films = r[0];
+    var page = r[1];
+    intro = (page && page.intro) || "";
+
+    if (D.estUneErreur(films)) {
+      app.innerHTML = R.etatErreur();
+      return;
+    }
+    if (!films.length) {
+      app.innerHTML = R.etatVide(
+        (page && page.messageVide) ||
+          "Aucun film n'est publié pour le moment."
+      );
+      return;
+    }
     allFilms = films;
     /* Si aucun film n'est à l'affiche, on ouvre sur la première
        rubrique qui en contient — jamais de page vide à l'arrivée. */

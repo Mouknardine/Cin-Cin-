@@ -34,6 +34,7 @@
 
   var root = document.body.dataset.root || "";
   var app = document.getElementById("film-app");
+  var reglages = null;
   var R = window.ZinemaRender;
   var C = window.ZinemaCouleurs;
 
@@ -140,13 +141,13 @@
         '<button type="button" class="m-cell m-action m-acheter" data-achat="' +
         R.escapeHtml(prochaine._id) + '">' +
         "<span>Acheter</span>" +
-        '<span class="m-acheter__prix">' + R.escapeHtml(R.prixLabel(film, prochaine)) + "</span></button>"
+        '<span class="m-acheter__prix">' + R.escapeHtml(R.prixLabel(film, prochaine, reglages)) + "</span></button>"
       );
     }
 
     var url = (prochaine && prochaine.sumupCheckoutUrl) || film.sumupCheckoutUrl;
     if (!url) return indisponible;
-    var prix = R.prixLabel(film, prochaine);
+    var prix = R.prixLabel(film, prochaine, reglages);
     return (
       '<a class="m-cell m-action m-acheter" href="' + R.escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' +
       "<span>Acheter</span>" +
@@ -235,7 +236,7 @@
       ? '<p class="m-titre__realisation">Un film de ' + R.escapeHtml(film.director) + "</p>"
       : "";
 
-    var vraieAffiche = Boolean(R.sanityImageUrl(film.poster, 1200) || R.localImageUrl(film.poster));
+    var vraieAffiche = Boolean(R.sanityImageUrl(film.poster, 1200));
 
     var titreHTML =
       '<header class="m-cell m-titre ' + C.classe() + '">' +
@@ -327,8 +328,24 @@
       "</article>";
   }
 
+  var D = window.ZinemaData;
   var slug = new URLSearchParams(window.location.search).get("s") || "";
-  window.ZinemaData.getFilmBySlug(slug).then(function (film) {
+
+  app.innerHTML = R.etatChargement("du film");
+
+  Promise.all([D.getFilmBySlug(slug), D.getReglages()]).then(function (r) {
+    var film = r[0];
+
+    if (D.estUneErreur(film)) {
+      app.innerHTML = R.etatErreur();
+      return;
+    }
+
+    /* Les tarifs affichés sur le bouton d'achat viennent des
+       « Réglages du cinéma » : un prix changé dans Sanity est
+       immédiatement le bon ici. */
+    reglages = D.estUneErreur(r[1]) ? null : r[1];
+
     if (!film) {
       renderNotFound();
     } else {
