@@ -48,27 +48,38 @@ export function ChampSeancesDuFilm(): React.JSX.Element {
   const id = (idBrut ?? '').replace(/^drafts\./, '')
 
   const [seances, setSeances] = useState<SeanceResumee[] | null>(null)
+  const [publie, setPublie] = useState<boolean | null>(null)
   const [dialogueOuvert, setDialogueOuvert] = useState(false)
 
   const charger = useCallback(() => {
     if (!id) return
     setSeances(null)
     client
-      .fetch<SeanceResumee[]>(
-        `*[_type == "screening" && film._ref == $id && date >= $today]
-          | order(date asc, time asc)
-          {_id, date, "heure": time, "salle": room, "statut": status}`,
+      .fetch<{seances: SeanceResumee[]; publie: boolean}>(
+        `{
+          "seances": *[_type == "screening" && film._ref == $id && date >= $today]
+            | order(date asc, time asc)
+            {_id, date, "heure": time, "salle": room, "statut": status},
+          "publie": defined(*[_id == $id][0]._id)
+        }`,
         {id, today: aujourdhui()},
       )
-      .then(setSeances)
-      .catch(() => setSeances([]))
+      .then((r) => {
+        setSeances(r.seances)
+        setPublie(r.publie)
+      })
+      .catch(() => {
+        setSeances([])
+        setPublie(null)
+      })
   }, [client, id])
 
   useEffect(charger, [charger])
 
-  /* Une séance renvoie vers la version publiée du film : tant que la fiche
-     n'a jamais été publiée, la programmer n'aurait pas de sens. */
-  const jamaisPublie = (idBrut ?? '').startsWith('drafts.') && seances !== null && !titre
+  /* Une séance renvoie toujours vers la version PUBLIÉE du film. Tant que
+     la fiche n'a jamais été publiée, programmer des séances créerait des
+     renvois dans le vide : on bloque, en disant quoi faire. */
+  const jamaisPublie = publie === false
 
   return (
     <Stack space={3}>
@@ -111,13 +122,13 @@ export function ChampSeancesDuFilm(): React.JSX.Element {
             text="Programmer des séances"
             tone="primary"
             mode="ghost"
-            disabled={!id || jamaisPublie}
+            disabled={!id || jamaisPublie || seances === null}
             onClick={() => setDialogueOuvert(true)}
           />
           <Text size={1} muted>
-            Vous donnez les créneaux habituels du film (par exemple mercredi 19:00 en Salle 1 et
-            samedi 21:00 en Salle 2) et le nombre de semaines : toutes les séances sont créées et
-            publiées d'un coup, et l'agenda du site se remplit aussitôt.
+            {jamaisPublie
+              ? "Publiez d'abord ce film (bouton Publish, en bas) : une séance a besoin d'un film publié pour s'afficher sur le site."
+              : "Vous donnez les créneaux habituels du film (par exemple mercredi 19:00 en Salle 1 et samedi 21:00 en Salle 2) et le nombre de semaines : toutes les séances sont créées et publiées d'un coup, et l'agenda du site se remplit aussitôt."}
           </Text>
         </Stack>
       </Card>
