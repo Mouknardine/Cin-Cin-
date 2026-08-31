@@ -124,6 +124,12 @@
 
   /* Le paragraphe d'introduction se règle dans le Studio
      (« Pages du site → Textes des pages »). */
+  /* L'introduction seule, dans son cadre, pour les pages qui n'ont
+     rien d'autre à afficher. */
+  function cadreIntro() {
+    return intro ? '<article class="mondrian">' + introHTML() + "</article>" : "";
+  }
+
   function introHTML() {
     if (!intro) return "";
     return (
@@ -179,7 +185,10 @@
       return;
     }
     if (!screenings.length) {
-      app.innerHTML = R.etatVide(
+      /* Le paragraphe d'introduction reste affiché même quand il n'y
+         a rien à montrer : sinon un texte écrit dans le Studio
+         semblerait ne servir à rien. */
+      app.innerHTML = cadreIntro() + R.etatVide(
         (page && page.messageVide) ||
           "Aucune séance n'est programmée pour l'instant."
       );

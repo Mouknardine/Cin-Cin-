@@ -57,6 +57,12 @@
   /* Le paragraphe d'introduction se règle dans le Studio
      (« Pages du site → Textes des pages »). Vide, il n'y a
      simplement pas de bande. */
+  /* L'introduction seule, dans son cadre, pour les pages qui n'ont
+     rien d'autre à afficher. */
+  function cadreIntro() {
+    return intro ? '<article class="mondrian">' + introHTML() + "</article>" : "";
+  }
+
   function introHTML() {
     if (!intro) return "";
     return (
@@ -118,7 +124,10 @@
       return;
     }
     if (!films.length) {
-      app.innerHTML = R.etatVide(
+      /* Le paragraphe d'introduction reste affiché même quand il n'y
+         a rien à montrer : sinon un texte écrit dans le Studio
+         semblerait ne servir à rien. */
+      app.innerHTML = cadreIntro() + R.etatVide(
         (page && page.messageVide) ||
           "Aucun film n'est publié pour le moment."
       );
