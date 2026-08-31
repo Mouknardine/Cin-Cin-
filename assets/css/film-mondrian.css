@@ -590,3 +590,24 @@ button.m-acheter:focus-visible { background: var(--vert-fonce); }
   }
 }
 
+
+/* ---------- Les photos du film ----------
+   Une bande sous la fiche, alimentée par « Photos du film » dans le
+   Studio. Les images gardent leurs proportions et se répartissent la
+   largeur ; sans photo, la bande n'est pas écrite du tout. */
+.m-bande--photos {
+  display: flex;
+  flex-wrap: wrap;
+}
+.m-photo {
+  flex: 1 1 18rem;
+  padding: 0;
+  overflow: hidden;
+}
+.m-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 12rem;
+  object-fit: cover;
+}

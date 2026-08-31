@@ -103,7 +103,7 @@
     'linkUrl,linkLabel,"films":films[]->{_id,"slug":coalesce(slug.current,_id),title,poster}';
 
   var CHAMPS_REGLAGES =
-    "tagline,logo,shareImage,address,phone,phoneSecondary,email,emailLocation," +
+    "logo,shareImage,address,phone,phoneSecondary,email,emailLocation," +
     "openingHours,accessInfo,mapUrl,tarifPlein,tarifReduit,conditionsReduit,salles," +
     "socialLinks,seoDescription";
 

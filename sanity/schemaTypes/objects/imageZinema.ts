@@ -36,22 +36,11 @@ export const imageZinema = defineType({
           "Sans cette phrase, l'image reste invisible pour les personnes malvoyantes et pour Google. À compléter quand vous avez un moment — cela n'empêche pas de publier."
         ),
     }),
-    defineField({
-      name: "credit",
-      title: "Crédit photo (facultatif)",
-      type: "string",
-      description:
-        "Nom du/de la photographe ou du distributeur, si l'image doit être créditée.",
-    }),
   ],
   preview: {
-    select: { media: "asset", title: "alt", subtitle: "credit" },
-    prepare({ media, title, subtitle }) {
-      return {
-        media,
-        title: title || "Image sans description",
-        subtitle: subtitle || undefined,
-      };
+    select: { media: "asset", title: "alt" },
+    prepare({ media, title }) {
+      return { media, title: title || "Image sans description" };
     },
   },
 });

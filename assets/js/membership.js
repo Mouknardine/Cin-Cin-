@@ -98,7 +98,7 @@
       plein || reduit
         ? bande(
             "m-bande--infos",
-            (plein ? caseTarif("Plein tarif", plein, "Une séance, tous les jours") : "") +
+            (plein ? caseTarif("Plein tarif", plein) : "") +
               (reduit ? caseTarif("Tarif réduit", reduit, conditions) : "")
           )
         : "";

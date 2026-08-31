@@ -27,15 +27,6 @@ export const siteSettings = defineType({
   fields: [
     /* ---------------- Identité ---------------- */
     defineField({
-      name: "tagline",
-      title: "Phrase de présentation",
-      type: "string",
-      group: "identite",
-      description:
-        "Une ligne qui dit ce qu'est le cinéma. Apparaît sur l'accueil et dans les résultats Google. Ex. « Premier cinéma miniplex d'art & d'essai de Lausanne, fondé en 2001 ».",
-      validation: (Rule) => Rule.max(120).warning("Au-delà de 120 signes, la phrase sera coupée."),
-    }),
-    defineField({
       name: "logo",
       title: "Logo affiché en haut de chaque page",
       type: "imageZinema",

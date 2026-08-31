@@ -42,21 +42,43 @@
      (« Pages du site »). Les valeurs écrites dans le fichier HTML
      servent de point de départ : tant qu'un champ est vide dans
      Sanity, on ne touche à rien. */
+  function poserMeta(attribut, nom, contenu) {
+    if (!contenu) return;
+    var meta = document.head.querySelector("meta[" + attribut + '="' + nom + '"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute(attribut, nom);
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", contenu);
+  }
+
   function poserTitreEtDescription(pageId) {
     var D = window.ZinemaData;
-    if (!D || !pageId) return;
-    D.getPage(pageId).then(function (page) {
-      if (!page) return;
-      if (page.titre) document.title = page.titre;
-      if (page.seoDescription) {
-        var meta = document.querySelector('meta[name="description"]');
-        if (!meta) {
-          meta = document.createElement("meta");
-          meta.setAttribute("name", "description");
-          document.head.appendChild(meta);
-        }
-        meta.setAttribute("content", page.seoDescription);
+    var R = window.ZinemaRender;
+    if (!D || !R || !pageId) return;
+    Promise.all([D.getPage(pageId), D.getReglages()]).then(function (r) {
+      var page = r[0];
+      var reglages = D.estUneErreur(r[1]) ? null : r[1];
+
+      if (page && page.titre) {
+        document.title = page.titre;
+        poserMeta("property", "og:title", page.titre);
       }
+      if (page && page.seoDescription) {
+        poserMeta("name", "description", page.seoDescription);
+        poserMeta("property", "og:description", page.seoDescription);
+      }
+
+      /* L'image qui s'affiche quand quelqu'un partage l'adresse du
+         cinéma sur WhatsApp, Facebook ou Instagram — réglée dans
+         « Réglages du cinéma → Identité ». */
+      var partage = R.sanityImageUrl(reglages && reglages.shareImage, 1200);
+      if (partage) {
+        poserMeta("property", "og:image", partage);
+        poserMeta("name", "twitter:card", "summary_large_image");
+      }
+      poserMeta("property", "og:type", "website");
     });
   }
 

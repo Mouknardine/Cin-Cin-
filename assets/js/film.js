@@ -277,6 +277,21 @@
         "<span>← Tous les films</span></a>"
     );
 
+    /* Les photos du film (« Photos du film » dans le Studio), en une
+       bande sous la fiche. Sans photo, pas de bande : jamais de case
+       vide dans le tableau. */
+    var photosHTML = (film.stillImages || [])
+      .map(function (image) {
+        var src = R.sanityImageUrl(image, 1200);
+        if (!src) return "";
+        return (
+          '<div class="m-cell m-photo"><img src="' + R.escapeHtml(src) + '" alt="' +
+          R.altDeLImage(image, "Photo du film " + film.title) + '" loading="lazy"></div>'
+        );
+      })
+      .filter(Boolean)
+      .join("");
+
     /* Sans bande-annonce, la grille ordinateur laisserait un trou
        noir à sa place : on prévient la feuille de style, qui
        redistribue alors la case aux séances. */
@@ -292,6 +307,7 @@
       baCellHTML +
       seancesCellHTML +
       basHTML +
+      (photosHTML ? bande("m-bande--photos", photosHTML) : "") +
       "</article>";
 
     brancherBandeAnnonce();
