@@ -1,5 +1,7 @@
 import { defineField, defineType } from "sanity";
 
+import { ChampSeancesDuFilm } from "../plugins/planification/components/ChampSeancesDuFilm";
+
 /* ============================================================
    Un film à l'affiche, à venir, ou terminé.
 
@@ -151,6 +153,15 @@ export const film = defineType({
       },
       initialValue: "a-laffiche",
       validation: (Rule) => Rule.required(),
+    }),
+
+    /* Le bloc « Séances » n'enregistre rien : il affiche les séances à
+       venir du film et porte le bouton qui les programme en masse. */
+    defineField({
+      name: "seancesDuFilm",
+      title: "Séances de ce film",
+      type: "string",
+      components: { input: ChampSeancesDuFilm },
     }),
 
     defineField({

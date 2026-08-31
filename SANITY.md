@@ -23,16 +23,30 @@
 C'est en ligne. Aucun champ technique à remplir : l'adresse de la page
 se fabrique toute seule.
 
-### Ajouter des séances — 2 minutes pour plusieurs semaines
-1. Onglet **Planification**, en haut du Studio (à côté de « Contenu »)
-2. **Programmer un film** → choisir le film, ses créneaux habituels
-   (ex. mercredi 19:00 Salle 1, samedi 21:00 Salle 2) et le nombre de
-   semaines
-3. Toutes les séances sont créées **et publiées** d'un coup
+### Programmer un film — depuis sa fiche, en 30 secondes
+Sur la fiche du film, sous le statut, un bloc **« Séances de ce film »**
+montre ses séances à venir et porte un bouton **Programmer des séances** :
 
-Pour une séance isolée : **Séances → Les 7 prochains jours → +**, puis
-quatre champs seulement — le film, la date, l'heure, la salle. Le titre,
-l'affiche, la durée, la version et le prix viennent du film.
+1. Cliquer sur **Programmer des séances**
+2. Ajouter autant de créneaux que le film a d'horaires dans la semaine —
+   jour + heure + salle (ex. mercredi 19:00 Salle 1, samedi 21:00 Salle 2,
+   dimanche 11:00 Salle 1)
+3. Choisir à partir de quand, et pendant combien de semaines
+4. **Créer**
+
+Toutes les séances sont créées **et publiées** d'un coup, et l'agenda du
+site se remplit aussitôt. Pas besoin de créer une fiche par horaire : un
+seul passage suffit pour tout le mois. Les doublons et les chevauchements
+de salle sont écartés automatiquement, avec un bilan à la fin.
+
+Le même assistant existe pour tous les films à la fois dans l'onglet
+**Planification**, en haut du Studio, qui permet aussi de **dupliquer une
+semaine entière** vers la suivante.
+
+Pour une séance isolée (une soirée exceptionnelle) : **Séances → Les 7
+prochains jours → +**, puis quatre champs — le film, la date, l'heure, la
+salle. Le titre, l'affiche, la durée, la version et le prix viennent du
+film.
 
 ### Modifier une page
 **Pages du site → *le nom de la page***. Voir « Modifier une page du

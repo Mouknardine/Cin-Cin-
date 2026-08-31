@@ -19,6 +19,11 @@ interface Props {
   lundi: string
   onFermer: () => void
   onCree: () => void
+  /**
+   * Quand l'assistant est ouvert depuis la fiche d'un film, le film est
+   * déjà connu : on masque la liste déroulante et on programme celui-là.
+   */
+  filmImpose?: FilmPlanning
 }
 
 const CRENEAU_INITIAL: Creneau = {jour: 2, heure: '19:00', salle: 'Salle 1'}
@@ -48,18 +53,27 @@ function genererCandidates(
   return candidates
 }
 
-export function DialogProgrammerFilm({films, lundi, onFermer, onCree}: Props): React.JSX.Element {
+export function DialogProgrammerFilm({
+  films,
+  lundi,
+  onFermer,
+  onCree,
+  filmImpose,
+}: Props): React.JSX.Element {
   const client = useClient({apiVersion: API_VERSION})
   const toast = useToast()
 
-  const [filmId, setFilmId] = useState('')
+  const [filmId, setFilmId] = useState(filmImpose?._id ?? '')
   const [creneaux, setCreneaux] = useState<Creneau[]>([CRENEAU_INITIAL])
   const [dateDebut, setDateDebut] = useState(lundi)
   const [nbSemaines, setNbSemaines] = useState(2)
   const [enCours, setEnCours] = useState(false)
   const [rapport, setRapport] = useState<RapportCreation | null>(null)
 
-  const film = useMemo(() => films.find((f) => f._id === filmId), [films, filmId])
+  const film = useMemo(
+    () => filmImpose ?? films.find((f) => f._id === filmId),
+    [filmImpose, films, filmId],
+  )
   const formulaireValide = Boolean(film && dateDebut && creneaux.every((c) => c.heure))
 
   const modifierCreneau = useCallback((index: number, creneau: Creneau) => {
@@ -100,7 +114,12 @@ export function DialogProgrammerFilm({films, lundi, onFermer, onCree}: Props): R
   const totalPrevu = creneaux.length * nbSemaines
 
   return (
-    <Dialog id="programmer-film" header="Programmer un film" onClose={onFermer} width={1}>
+    <Dialog
+      id="programmer-film"
+      header={filmImpose ? `Programmer « ${filmImpose.titre} »` : 'Programmer un film'}
+      onClose={onFermer}
+      width={1}
+    >
       <Box padding={4}>
         {rapport ? (
           <Stack space={4}>
@@ -109,20 +128,22 @@ export function DialogProgrammerFilm({films, lundi, onFermer, onCree}: Props): R
           </Stack>
         ) : (
           <Stack space={4}>
-            <Stack space={2}>
-              <Text size={1} weight="semibold">
-                Film
-              </Text>
-              <Select value={filmId} onChange={(e) => setFilmId(e.currentTarget.value)}>
-                <option value="">— Choisir un film —</option>
-                {films.map((f) => (
-                  <option key={f._id} value={f._id}>
-                    {f.titre}
-                    {f.duree ? ` (${f.duree} min)` : ''}
-                  </option>
-                ))}
-              </Select>
-            </Stack>
+            {filmImpose ? null : (
+              <Stack space={2}>
+                <Text size={1} weight="semibold">
+                  Film
+                </Text>
+                <Select value={filmId} onChange={(e) => setFilmId(e.currentTarget.value)}>
+                  <option value="">— Choisir un film —</option>
+                  {films.map((f) => (
+                    <option key={f._id} value={f._id}>
+                      {f.titre}
+                      {f.duree ? ` (${f.duree} min)` : ''}
+                    </option>
+                  ))}
+                </Select>
+              </Stack>
+            )}
 
             <Stack space={2}>
               <Text size={1} weight="semibold">
