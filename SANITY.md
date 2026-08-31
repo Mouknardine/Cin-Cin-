@@ -9,6 +9,35 @@
 > appartient à un autre compte. Son contenu a été recopié vers `vle63mzm` ;
 > il n'est plus lu par le site.*
 
+## En bref
+
+**Le Studio** : <https://cincin-zinema.sanity.studio>
+**Le site** : <https://mouknardine.github.io/Cin-Cin-/>
+
+### Ajouter un film — 1 minute
+1. **Films → À l'affiche → +**
+2. Titre, puis on dépose l'**affiche** juste en dessous
+3. Réalisation, durée, année, pays, version, synopsis
+4. **Publish**
+
+C'est en ligne. Aucun champ technique à remplir : l'adresse de la page
+se fabrique toute seule.
+
+### Ajouter des séances — 2 minutes pour plusieurs semaines
+1. Onglet **Planification**, en haut du Studio (à côté de « Contenu »)
+2. **Programmer un film** → choisir le film, ses créneaux habituels
+   (ex. mercredi 19:00 Salle 1, samedi 21:00 Salle 2) et le nombre de
+   semaines
+3. Toutes les séances sont créées **et publiées** d'un coup
+
+Pour une séance isolée : **Séances → Les 7 prochains jours → +**, puis
+quatre champs seulement — le film, la date, l'heure, la salle. Le titre,
+l'affiche, la durée, la version et le prix viennent du film.
+
+### Modifier une page
+**Pages du site → *le nom de la page***. Voir « Modifier une page du
+site » plus bas.
+
 ## Deux règles qui gouvernent tout
 
 **1. Ce qui est publié est ce qui s'affiche. Rien d'autre.**
