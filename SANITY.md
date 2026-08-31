@@ -52,9 +52,8 @@ Pour une séance isolée (une soirée exceptionnelle) : **Agenda → Séances à
 venir → +**, puis quatre champs — le film, la date, l'heure, la salle. Le
 titre, l'affiche, la durée, la version et le prix viennent du film.
 
-### Modifier une page
-**Pages du site → *le nom de la page***. Voir « Modifier une page du
-site » plus bas.
+### Modifier un texte de page
+**Textes des pages → le nom de la page.**
 
 ## Deux règles qui gouvernent tout
 
@@ -91,36 +90,40 @@ visible de personne sur le site.
 L'onglet **Planification** est la seule exception, dans le bon sens : ce qu'on
 y crée est publié directement, sans passer par un brouillon.
 
-## Le menu du Studio suit le site
+## Le menu du Studio
 
-Le menu de gauche reprend, dans l'ordre, la page d'accueil puis les six
-rubriques de la barre de navigation du site. Aucun mot inventé : ce qu'on
-lit dans le Studio, on le lit aussi sur le site.
+Neuf entrées, pas une de plus. Chacune porte le nom de la page du site
+où son contenu apparaît, et **rien n'existe à deux endroits**.
 
 ```
-Page d'accueil   → texte de la page · les films du mur d'affiches
-Films            → À l'affiche · Première · Prochainement · Cycles
-                   films retirés · tous les films · citations de presse
-                   texte de la page
-Agenda           → séances à venir · séances passées · texte de la page
-Événement        → en cours et à venir · terminés · texte de la page
-Histoire         → les étapes de la frise · texte de la page
-Membership       → formules et paiement · les deux tarifs · texte de la page
-Contact          → adresse, horaires, téléphones · texte de la page
+Films                 les fiches de film — et, dans chaque fiche, ses horaires
+Agenda                Séances à venir · Séances passées
+Événement             cycles, brunchs, séances spéciales
+Histoire              les étapes de la frise
+Membership            formules et paiement
+Citations de presse   les citations affichées sur les fiches de film
 ─────
-Réglages du cinéma
-Billets vendus
+Textes des pages      Accueil · Films · Agenda · Événement · Histoire ·
+                      Membership · Contact
+Réglages du cinéma    adresse, horaires, téléphones, e-mails, tarifs,
+                      salles, logo, réseaux sociaux
+Billets vendus        les commandes de la billetterie en ligne
 ```
 
-Sous **Films**, les quatre premières entrées — *À l'affiche, Première,
-Prochainement, Cycles* — sont exactement les quatre onglets qu'un
-visiteur voit en haut de la page Films du site. Déplacer un film d'une
-rubrique à l'autre se fait dans sa fiche, avec le champ « Où en est ce
-film ? ».
+**Il n'y a pas de rubrique « horaires ».** Les séances d'un film se
+règlent dans la fiche de ce film — c'est là qu'on se pose la question.
+« Agenda » sert seulement à retrouver une séance quand on ne se souvient
+plus de quel film il s'agit.
+
+**Il n'y a pas non plus de rubrique par statut** (à l'affiche, première,
+prochainement, cycles). La liste « Films » les montre tous, et chaque
+ligne affiche déjà l'affiche, le titre, l'état du film et sa réalisation.
+Pour déplacer un film d'un onglet du site à l'autre, on ouvre sa fiche et
+on change « Où en est ce film ? ».
 
 ## Modifier une page du site
 
-Dans **Pages du site**, chaque page du site a sa fiche, rangée dans
+Dans **Textes des pages**, chaque page du site a sa fiche, rangée dans
 l'ordre exact du menu du site : Accueil · Films · Agenda · Événements ·
 Histoire · Abonnements · Infos pratiques. Pour modifier la page Agenda,
 on clique donc simplement sur « Agenda ».
@@ -138,11 +141,10 @@ Le **contenu** d'une page (les films, les séances, les événements) ne se
 règle pas ici : il vient des rubriques du haut du menu. Une fiche de page
 ne sert qu'à ce qui entoure ce contenu.
 
-Deux pages ont, en plus de leurs textes, un contenu qui leur est propre —
-on le trouve juste à côté de leur fiche :
-
-- **Histoire** → « Les étapes de la frise » ;
-- **Abonnements** → « Formules & paiement ».
+Le contenu de ces pages, lui, vit dans les rubriques du haut du menu :
+les films dans **Films**, les séances dans la fiche de leur film, les
+étapes de la frise dans **Histoire**, les formules dans **Membership**,
+et l'adresse comme les horaires dans **Réglages du cinéma**.
 
 ## Ce qui est lié à quoi (pour ne rien saisir deux fois)
 
