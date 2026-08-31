@@ -23,12 +23,17 @@
 C'est en ligne. Aucun champ technique à remplir : l'adresse de la page
 se fabrique toute seule.
 
-### Programmer un film — depuis sa fiche, en 30 secondes
-Sur la fiche du film, sous le statut, un bloc **« Séances de ce film »**
-montre ses séances à venir et porte un bouton **Programmer des séances** :
+### Les horaires d'un film — tout depuis sa fiche
+Sur la fiche du film, un bloc **« Séances de ce film »** rassemble tout :
 
-1. Cliquer sur **Programmer des séances**
-2. Ajouter autant de créneaux que le film a d'horaires dans la semaine —
+- la **liste de ses séances à venir** (date, heure, salle) ;
+- pour chacune, un menu **Places disponibles / Complet / Annulée** —
+  le changement est en ligne immédiatement, sans clic « Publish » ;
+- une **corbeille** pour en supprimer une ;
+- un bouton **Ajouter des séances** pour en créer plusieurs d'un coup :
+
+1. Cliquer sur **Ajouter des séances**
+2. Ajouter autant d'horaires que le film en a dans la semaine —
    jour + heure + salle (ex. mercredi 19:00 Salle 1, samedi 21:00 Salle 2,
    dimanche 11:00 Salle 1)
 3. Choisir à partir de quand, et pendant combien de semaines
@@ -43,10 +48,9 @@ Le même assistant existe pour tous les films à la fois dans l'onglet
 **Planification**, en haut du Studio, qui permet aussi de **dupliquer une
 semaine entière** vers la suivante.
 
-Pour une séance isolée (une soirée exceptionnelle) : **Séances → Les 7
-prochains jours → +**, puis quatre champs — le film, la date, l'heure, la
-salle. Le titre, l'affiche, la durée, la version et le prix viennent du
-film.
+Pour une séance isolée (une soirée exceptionnelle) : **Agenda → Séances à
+venir → +**, puis quatre champs — le film, la date, l'heure, la salle. Le
+titre, l'affiche, la durée, la version et le prix viennent du film.
 
 ### Modifier une page
 **Pages du site → *le nom de la page***. Voir « Modifier une page du
@@ -87,21 +91,32 @@ visible de personne sur le site.
 L'onglet **Planification** est la seule exception, dans le bon sens : ce qu'on
 y crée est publié directement, sans passer par un brouillon.
 
-## Ce que contient le Studio
+## Le menu du Studio suit le site
 
-Le menu de gauche suit l'ordre du travail réel, pas l'ordre technique :
+Le menu de gauche reprend, dans l'ordre, la page d'accueil puis les six
+rubriques de la barre de navigation du site. Aucun mot inventé : ce qu'on
+lit dans le Studio, on le lit aussi sur le site.
 
-| Rubrique | À quoi ça sert |
-|---|---|
-| **Les 7 prochains jours** | Les séances de la semaine, pour vérifier le programme d'un coup d'œil. |
-| **Toutes les séances à venir** | La liste complète, de la plus proche à la plus lointaine. |
-| **Séances passées** | L'archive. Elle se remplit toute seule : une séance dont la date est passée quitte le site et atterrit ici. Rien à supprimer. |
-| **Films** | Rangés par état : à l'affiche · avant-premières & prochainement · cycles & ciné-club · terminés. Un film passé sur « Terminé » disparaît des pages publiques mais reste consultable. |
-| **Événements** | Cycles, brunchs, ciné-club, séances spéciales. Séparés en « en cours & à venir » et « terminés » — là aussi, automatiquement, par les dates. |
-| **Critiques presse** | Les citations de journaux, à rattacher à un film. |
-| **Pages du site** | Une fiche par page, dans l'ordre de la navigation du site : Accueil, Films, Agenda, Événements, Histoire, Abonnements, Infos pratiques. |
-| **Réglages du cinéma** | Adresse, téléphones, e-mails, horaires, tarifs, places par salle, réseaux sociaux, logo. |
-| **Billets vendus** | Les commandes de la billetterie en ligne, créées automatiquement par le serveur. |
+```
+Page d'accueil   → texte de la page · les films du mur d'affiches
+Films            → À l'affiche · Première · Prochainement · Cycles
+                   films retirés · tous les films · citations de presse
+                   texte de la page
+Agenda           → séances à venir · séances passées · texte de la page
+Événement        → en cours et à venir · terminés · texte de la page
+Histoire         → les étapes de la frise · texte de la page
+Membership       → formules et paiement · les deux tarifs · texte de la page
+Contact          → adresse, horaires, téléphones · texte de la page
+─────
+Réglages du cinéma
+Billets vendus
+```
+
+Sous **Films**, les quatre premières entrées — *À l'affiche, Première,
+Prochainement, Cycles* — sont exactement les quatre onglets qu'un
+visiteur voit en haut de la page Films du site. Déplacer un film d'une
+rubrique à l'autre se fait dans sa fiche, avec le champ « Où en est ce
+film ? ».
 
 ## Modifier une page du site
 

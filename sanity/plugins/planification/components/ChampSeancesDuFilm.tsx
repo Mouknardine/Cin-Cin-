@@ -1,21 +1,25 @@
 /**
- * Bloc « Séances de ce film », posé directement dans le formulaire d'un film.
+ * Bloc « Séances de ce film », posé dans le formulaire d'un film.
  *
- * Il répond à la question qu'on se pose en ouvrant une fiche — « ce film,
- * il passe quand ? » — et porte le bouton qui programme toutes ses séances
- * d'un coup. Plus besoin d'aller les créer une par une ailleurs : on donne
- * les créneaux habituels et le nombre de semaines, et l'agenda du site se
- * remplit dans la foulée.
+ * Tout se fait ici, sans quitter la fiche :
+ *   - voir les séances à venir du film ;
+ *   - en ajouter plusieurs d'un coup (les créneaux de la semaine × un
+ *     nombre de semaines) ;
+ *   - marquer une séance « complet » ou « annulée » ;
+ *   - supprimer une séance.
+ *
+ * Les changements partent directement sur la version publiée : ils sont
+ * en ligne aussitôt, sans clic « Publish » supplémentaire.
  */
-import {AddIcon, CalendarIcon} from '@sanity/icons'
-import {Box, Button, Card, Flex, Spinner, Stack, Text} from '@sanity/ui'
+import {AddIcon, CalendarIcon, TrashIcon} from '@sanity/icons'
+import {Box, Button, Card, Flex, Select, Spinner, Stack, Text, useToast} from '@sanity/ui'
 import {useCallback, useEffect, useState} from 'react'
 import {useClient, useFormValue} from 'sanity'
 
 import {API_VERSION} from '../types'
-import {formatJourCourt} from '../utils/dates'
+import {formatJourCourt, lundiDeLaSemaine} from '../utils/dates'
+import {supprimerSeance} from '../utils/mutations'
 import {DialogProgrammerFilm} from './DialogProgrammerFilm'
-import {lundiDeLaSemaine} from '../utils/dates'
 
 interface SeanceResumee {
   _id: string
@@ -34,13 +38,15 @@ function aujourdhui(): string {
   ].join('-')
 }
 
-const ETATS: Record<string, string> = {
-  complet: 'complet',
-  annule: 'annulée',
-}
+const ETATS = [
+  {valeur: 'disponible', libelle: 'Places disponibles'},
+  {valeur: 'complet', libelle: 'Complet'},
+  {valeur: 'annule', libelle: 'Annulée'},
+]
 
 export function ChampSeancesDuFilm(): React.JSX.Element {
   const client = useClient({apiVersion: API_VERSION})
+  const toast = useToast()
 
   const idBrut = useFormValue(['_id']) as string | undefined
   const titre = (useFormValue(['title']) as string | undefined) ?? ''
@@ -50,10 +56,10 @@ export function ChampSeancesDuFilm(): React.JSX.Element {
   const [seances, setSeances] = useState<SeanceResumee[] | null>(null)
   const [publie, setPublie] = useState<boolean | null>(null)
   const [dialogueOuvert, setDialogueOuvert] = useState(false)
+  const [enCours, setEnCours] = useState<string | null>(null)
 
   const charger = useCallback(() => {
     if (!id) return
-    setSeances(null)
     client
       .fetch<{seances: SeanceResumee[]; publie: boolean}>(
         `{
@@ -76,15 +82,50 @@ export function ChampSeancesDuFilm(): React.JSX.Element {
 
   useEffect(charger, [charger])
 
-  /* Une séance renvoie toujours vers la version PUBLIÉE du film. Tant que
-     la fiche n'a jamais été publiée, programmer des séances créerait des
-     renvois dans le vide : on bloque, en disant quoi faire. */
+  const changerEtat = useCallback(
+    async (seanceId: string, statut: string) => {
+      setEnCours(seanceId)
+      // Affichage immédiat : on n'attend pas l'aller-retour pour montrer le choix.
+      setSeances((liste) =>
+        (liste ?? []).map((s) => (s._id === seanceId ? {...s, statut} : s)),
+      )
+      try {
+        await client.patch(seanceId).set({status: statut}).commit()
+      } catch {
+        toast.push({status: 'error', title: "L'enregistrement a échoué. Réessayez."})
+        charger()
+      } finally {
+        setEnCours(null)
+      }
+    },
+    [charger, client, toast],
+  )
+
+  const supprimer = useCallback(
+    async (seanceId: string) => {
+      setEnCours(seanceId)
+      try {
+        await supprimerSeance(client, seanceId)
+        setSeances((liste) => (liste ?? []).filter((s) => s._id !== seanceId))
+      } catch {
+        toast.push({status: 'error', title: 'La suppression a échoué. Réessayez.'})
+        charger()
+      } finally {
+        setEnCours(null)
+      }
+    },
+    [charger, client, toast],
+  )
+
+  /* Une séance renvoie toujours vers la version PUBLIÉE du film : tant
+     que la fiche n'a jamais été publiée, la programmer créerait des
+     renvois dans le vide. */
   const jamaisPublie = publie === false
 
   return (
     <Stack space={3}>
       <Card padding={3} radius={2} tone="transparent" border>
-        <Stack space={3}>
+        <Stack space={4}>
           {seances === null ? (
             <Flex align="center" gap={2}>
               <Spinner muted />
@@ -97,39 +138,67 @@ export function ChampSeancesDuFilm(): React.JSX.Element {
               Ce film n'a aucune séance à venir.
             </Text>
           ) : (
-            <Stack space={2}>
+            <Stack space={3}>
               <Text size={1} weight="semibold">
                 {seances.length} séance{seances.length > 1 ? 's' : ''} à venir
               </Text>
-              <Box>
-                {seances.slice(0, 12).map((s) => (
-                  <Text key={s._id} size={1} muted style={{lineHeight: '1.6'}}>
-                    {formatJourCourt(s.date)} · {s.heure} · {s.salle}
-                    {ETATS[s.statut] ? ` — ${ETATS[s.statut]}` : ''}
-                  </Text>
+              <Stack space={2}>
+                {seances.map((s) => (
+                  <Flex key={s._id} align="center" gap={2}>
+                    <Box style={{minWidth: '11rem'}}>
+                      <Text size={1}>
+                        {formatJourCourt(s.date)} · {s.heure} · {s.salle}
+                      </Text>
+                    </Box>
+                    <Box flex={1}>
+                      <Select
+                        fontSize={1}
+                        value={s.statut || 'disponible'}
+                        disabled={enCours === s._id}
+                        onChange={(e) => changerEtat(s._id, e.currentTarget.value)}
+                      >
+                        {ETATS.map((etat) => (
+                          <option key={etat.valeur} value={etat.valeur}>
+                            {etat.libelle}
+                          </option>
+                        ))}
+                      </Select>
+                    </Box>
+                    <Button
+                      mode="bleed"
+                      tone="critical"
+                      icon={TrashIcon}
+                      fontSize={1}
+                      padding={2}
+                      title="Supprimer cette séance"
+                      disabled={enCours === s._id}
+                      onClick={() => supprimer(s._id)}
+                    />
+                  </Flex>
                 ))}
-                {seances.length > 12 ? (
-                  <Text size={1} muted>
-                    … et {seances.length - 12} autre{seances.length - 12 > 1 ? 's' : ''}
-                  </Text>
-                ) : null}
-              </Box>
+              </Stack>
+              <Text size={1} muted>
+                « Complet » et « Annulée » s'affichent tout de suite sur l'agenda du site et
+                désactivent l'achat de billets. Aucun clic « Publish » n'est nécessaire.
+              </Text>
             </Stack>
           )}
 
-          <Button
-            icon={seances && seances.length ? AddIcon : CalendarIcon}
-            text="Programmer des séances"
-            tone="primary"
-            mode="ghost"
-            disabled={!id || jamaisPublie || seances === null}
-            onClick={() => setDialogueOuvert(true)}
-          />
-          <Text size={1} muted>
-            {jamaisPublie
-              ? "Publiez d'abord ce film (bouton Publish, en bas) : une séance a besoin d'un film publié pour s'afficher sur le site."
-              : "Vous donnez les créneaux habituels du film (par exemple mercredi 19:00 en Salle 1 et samedi 21:00 en Salle 2) et le nombre de semaines : toutes les séances sont créées et publiées d'un coup, et l'agenda du site se remplit aussitôt."}
-          </Text>
+          <Stack space={2}>
+            <Button
+              icon={seances && seances.length ? AddIcon : CalendarIcon}
+              text="Ajouter des séances"
+              tone="primary"
+              mode="ghost"
+              disabled={!id || jamaisPublie || seances === null}
+              onClick={() => setDialogueOuvert(true)}
+            />
+            <Text size={1} muted>
+              {jamaisPublie
+                ? "Publiez d'abord ce film (bouton Publish, en bas) : une séance a besoin d'un film publié pour s'afficher sur le site."
+                : "Vous indiquez les horaires de la semaine — par exemple mercredi 19:00 en Salle 1 et samedi 21:00 en Salle 2 — et le nombre de semaines. Toutes les séances sont créées d'un coup et l'agenda du site se remplit aussitôt."}
+            </Text>
+          </Stack>
         </Stack>
       </Card>
 

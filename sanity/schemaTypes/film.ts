@@ -155,11 +155,14 @@ export const film = defineType({
       validation: (Rule) => Rule.required(),
     }),
 
-    /* Le bloc « Séances » n'enregistre rien : il affiche les séances à
-       venir du film et porte le bouton qui les programme en masse. */
+    /* Le bloc « Séances » n'enregistre rien dans le film : il affiche
+       ses séances à venir, permet de les marquer complètes ou annulées,
+       d'en supprimer, et d'en ajouter plusieurs d'un coup. */
     defineField({
       name: "seancesDuFilm",
       title: "Séances de ce film",
+      description:
+        "Les horaires auxquels ce film passe. Tout se règle ici, sans quitter la fiche.",
       type: "string",
       components: { input: ChampSeancesDuFilm },
     }),

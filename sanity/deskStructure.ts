@@ -7,6 +7,7 @@ import {
   CogIcon,
   CreditCardIcon,
   DocumentTextIcon,
+  HomeIcon,
   PlayIcon,
   SparklesIcon,
   StarIcon,
@@ -16,42 +17,69 @@ import {
 import { idDeLaFiche } from "./schemaTypes/page";
 
 /* ============================================================
-   L'organisation du Studio, pensée dans l'ordre du travail réel
-   d'un cinéma plutôt que dans l'ordre technique des données :
+   L'organisation du Studio suit EXACTEMENT le site.
 
-   1. La semaine en cours et les séances à venir — le quotidien.
-   2. Les films, rangés par état (à l'affiche / bientôt / terminés).
-   3. Les événements et les critiques.
-   4. Les pages du site et les réglages, qu'on ne touche que
-      rarement, tout en bas.
+   Le menu de gauche reprend, dans l'ordre, la page d'accueil puis
+   les six rubriques de la barre de navigation du site : Films,
+   Agenda, Événement, Histoire, Membership, Contact. Aucun mot
+   inventé : ce qu'on lit ici, on le lit aussi sur le site.
 
-   Les listes filtrées évitent la principale source d'erreur : se
-   tromper de fiche parce que tout est mélangé dans une seule liste.
+   Chaque rubrique contient tout ce qui alimente la page
+   correspondante, y compris son texte. On ne cherche donc jamais
+   « où ça se règle » : on ouvre la page qu'on a sous les yeux.
    ============================================================ */
 
 const aujourdhui = () => new Date().toISOString().slice(0, 10);
-const dansNjours = (n: number) => {
-  const d = new Date();
-  d.setDate(d.getDate() + n);
-  return d.toISOString().slice(0, 10);
-};
+
+/** Le texte d'une page (titre d'onglet, introduction, message vide, Google). */
+function texteDeLaPage(S: StructureBuilder, id: string, titre = "Texte de la page") {
+  return S.listItem()
+    .id(`texte-${id}`)
+    .title(titre)
+    .icon(DocumentTextIcon)
+    .child(S.document().schemaType("page").documentId(idDeLaFiche(id)).title(titre));
+}
 
 export const deskStructure: StructureResolver = (S) =>
   S.list()
     .title("Zinéma")
     .items([
-      /* ---------------- Ce qu'on modifie tous les jours ----------------
-         Films et Séances en tête : c'est 90 % du travail. Chacun
-         ouvre un sous-menu où les fiches sont déjà triées, pour ne
-         jamais chercher dans une liste fourre-tout. */
+      /* ---------------- Page d'accueil ---------------- */
       S.listItem()
+        .id("accueil")
+        .title("Page d'accueil")
+        .icon(HomeIcon)
+        .child(
+          S.list()
+            .title("Page d'accueil")
+            .items([
+              texteDeLaPage(S, "home"),
+              S.listItem()
+                .id("accueil-films")
+                .title("Les films du mur d'affiches")
+                .icon(PlayIcon)
+                .child(
+                  S.documentTypeList("film")
+                    .title("Films affichés sur l'accueil")
+                    .filter('_type == "film" && status != "passe"')
+                    .defaultOrdering([{ field: "title", direction: "asc" }])
+                ),
+            ])
+        ),
+
+      /* ---------------- Films ---------------- */
+      S.listItem()
+        .id("films")
         .title("Films")
         .icon(PlayIcon)
         .child(
           S.list()
             .title("Films")
             .items([
+              /* Les quatre premiers correspondent aux quatre onglets
+                 qu'un visiteur voit en haut de la page Films. */
               S.listItem()
+                .id("films-a-laffiche")
                 .title("À l'affiche")
                 .icon(PlayIcon)
                 .child(
@@ -61,66 +89,77 @@ export const deskStructure: StructureResolver = (S) =>
                     .defaultOrdering([{ field: "title", direction: "asc" }])
                 ),
               S.listItem()
-                .title("Bientôt")
+                .id("films-premiere")
+                .title("Première")
                 .icon(SparklesIcon)
                 .child(
                   S.documentTypeList("film")
-                    .title("Avant-premières & prochainement")
-                    .filter('_type == "film" && status in ["avant-premiere", "prochainement"]')
+                    .title("Première")
+                    .filter('_type == "film" && status == "avant-premiere"')
                     .defaultOrdering([{ field: "title", direction: "asc" }])
                 ),
               S.listItem()
-                .title("Cycles & ciné-club")
+                .id("films-prochainement")
+                .title("Prochainement")
+                .icon(ClockIcon)
+                .child(
+                  S.documentTypeList("film")
+                    .title("Prochainement")
+                    .filter('_type == "film" && status == "prochainement"')
+                    .defaultOrdering([{ field: "title", direction: "asc" }])
+                ),
+              S.listItem()
+                .id("films-cycles")
+                .title("Cycles")
                 .icon(BookIcon)
                 .child(
                   S.documentTypeList("film")
-                    .title("Cycles & ciné-club")
+                    .title("Cycles")
                     .filter('_type == "film" && status == "cycle"')
                     .defaultOrdering([{ field: "title", direction: "asc" }])
                 ),
+              S.divider(),
               S.listItem()
-                .title("Terminés")
+                .id("films-termines")
+                .title("Films retirés du site")
                 .icon(ArchiveIcon)
                 .child(
                   S.documentTypeList("film")
-                    .title("Films terminés")
+                    .title("Films retirés du site")
                     .filter('_type == "film" && status == "passe"')
                     .defaultOrdering([{ field: "year", direction: "desc" }])
                 ),
-              S.divider(),
               S.listItem()
+                .id("films-tous")
                 .title("Tous les films")
                 .child(
                   S.documentTypeList("film")
                     .title("Tous les films")
                     .defaultOrdering([{ field: "title", direction: "asc" }])
                 ),
+              S.listItem()
+                .id("films-critiques")
+                .title("Citations de presse")
+                .icon(StarIcon)
+                .child(S.documentTypeList("review").title("Citations de presse")),
+              S.divider(),
+              texteDeLaPage(S, "films"),
             ])
         ),
 
+      /* ---------------- Agenda ---------------- */
       S.listItem()
-        .title("Séances")
+        .id("agenda")
+        .title("Agenda")
         .icon(CalendarIcon)
         .child(
           S.list()
-            .title("Séances")
+            .title("Agenda")
             .items([
               S.listItem()
-                .title("Les 7 prochains jours")
+                .id("agenda-a-venir")
+                .title("Séances à venir")
                 .icon(CalendarIcon)
-                .child(
-                  S.documentTypeList("screening")
-                    .title("Séances des 7 prochains jours")
-                    .filter('_type == "screening" && date >= $debut && date <= $fin')
-                    .params({ debut: aujourdhui(), fin: dansNjours(7) })
-                    .defaultOrdering([
-                      { field: "date", direction: "asc" },
-                      { field: "time", direction: "asc" },
-                    ])
-                ),
-              S.listItem()
-                .title("Toutes les séances à venir")
-                .icon(ClockIcon)
                 .child(
                   S.documentTypeList("screening")
                     .title("Séances à venir")
@@ -132,6 +171,7 @@ export const deskStructure: StructureResolver = (S) =>
                     ])
                 ),
               S.listItem()
+                .id("agenda-passees")
                 .title("Séances passées")
                 .icon(ArchiveIcon)
                 .child(
@@ -145,39 +185,32 @@ export const deskStructure: StructureResolver = (S) =>
                     ])
                 ),
               S.divider(),
-              S.listItem()
-                .title("Toutes les séances")
-                .child(
-                  S.documentTypeList("screening")
-                    .title("Toutes les séances")
-                    .defaultOrdering([
-                      { field: "date", direction: "desc" },
-                      { field: "time", direction: "desc" },
-                    ])
-                ),
+              texteDeLaPage(S, "agenda"),
             ])
         ),
 
-      /* ---------------- Événements & presse ---------------- */
+      /* ---------------- Événement ---------------- */
       S.listItem()
-        .title("Événements")
+        .id("evenements")
+        .title("Événement")
         .icon(SparklesIcon)
         .child(
           S.list()
-            .title("Événements")
+            .title("Événement")
             .items([
               S.listItem()
-                .title("En cours & à venir")
+                .id("evenements-en-cours")
+                .title("En cours et à venir")
+                .icon(SparklesIcon)
                 .child(
                   S.documentTypeList("evenement")
-                    .title("En cours & à venir")
-                    .filter(
-                      '_type == "evenement" && (!defined(dateFin) || dateFin >= $today)'
-                    )
+                    .title("En cours et à venir")
+                    .filter('_type == "evenement" && (!defined(dateFin) || dateFin >= $today)')
                     .params({ today: aujourdhui() })
                     .defaultOrdering([{ field: "dateDebut", direction: "asc" }])
                 ),
               S.listItem()
+                .id("evenements-termines")
                 .title("Terminés")
                 .icon(ArchiveIcon)
                 .child(
@@ -187,78 +220,97 @@ export const deskStructure: StructureResolver = (S) =>
                     .params({ today: aujourdhui() })
                     .defaultOrdering([{ field: "dateDebut", direction: "desc" }])
                 ),
+              S.divider(),
+              texteDeLaPage(S, "evenements"),
             ])
         ),
-      S.listItem()
-        .title("Critiques presse")
-        .icon(StarIcon)
-        .child(S.documentTypeList("review").title("Critiques presse")),
 
-      S.divider(),
-
-      /* ---------------- Les pages du site ----------------
-         Une entrée par page, dans l'ordre exact de la navigation
-         du site : on retrouve la page qu'on a sous les yeux sans
-         avoir à deviner où elle se range. */
+      /* ---------------- Histoire ---------------- */
       S.listItem()
-        .title("Pages du site")
+        .id("histoire")
+        .title("Histoire")
+        .icon(BookIcon)
+        .child(
+          S.list()
+            .title("Histoire")
+            .items([
+              S.listItem()
+                .id("histoire-frise")
+                .title("Les étapes de la frise")
+                .icon(BookIcon)
+                .child(
+                  S.documentTypeList("historyEntry")
+                    .title("Les étapes de la frise")
+                    .defaultOrdering([{ field: "order", direction: "asc" }])
+                ),
+              S.divider(),
+              texteDeLaPage(S, "histoire", "Texte de la page (le grand paragraphe)"),
+            ])
+        ),
+
+      /* ---------------- Membership ---------------- */
+      S.listItem()
+        .id("membership")
+        .title("Membership")
+        .icon(UsersIcon)
+        .child(
+          S.list()
+            .title("Membership")
+            .items([
+              S.listItem()
+                .id("membership-formules")
+                .title("Formules et paiement")
+                .icon(CreditCardIcon)
+                .child(
+                  S.document()
+                    .schemaType("abonnements")
+                    .documentId("abonnements")
+                    .title("Formules et paiement")
+                ),
+              S.listItem()
+                .id("membership-tarifs")
+                .title("Les deux tarifs du cinéma")
+                .icon(CogIcon)
+                .child(
+                  S.document()
+                    .schemaType("siteSettings")
+                    .documentId("siteSettings")
+                    .title("Réglages du cinéma")
+                ),
+              S.divider(),
+              texteDeLaPage(S, "membership"),
+            ])
+        ),
+
+      /* ---------------- Contact ---------------- */
+      S.listItem()
+        .id("contact")
+        .title("Contact")
         .icon(DocumentTextIcon)
         .child(
           S.list()
-            .title("Pages du site")
+            .title("Contact")
             .items([
-              fichePage(S, "home", "Accueil"),
-              fichePage(S, "films", "Films"),
-              fichePage(S, "agenda", "Agenda"),
-              fichePage(S, "evenements", "Événements"),
-
-              /* Deux pages ont, en plus de leurs textes, un contenu
-                 propre : la frise pour Histoire, les formules pour
-                 Abonnements. */
               S.listItem()
-                .title("Histoire")
-                .icon(BookIcon)
+                .id("contact-infos")
+                .title("Adresse, horaires, téléphones")
+                .icon(CogIcon)
                 .child(
-                  S.list()
-                    .title("Page Histoire")
-                    .items([
-                      fichePage(S, "histoire", "Textes de la page"),
-                      S.listItem()
-                        .title("Les étapes de la frise")
-                        .icon(BookIcon)
-                        .child(
-                          S.documentTypeList("historyEntry")
-                            .title("Étapes de la frise")
-                            .defaultOrdering([{ field: "order", direction: "asc" }])
-                        ),
-                    ])
+                  S.document()
+                    .schemaType("siteSettings")
+                    .documentId("siteSettings")
+                    .title("Réglages du cinéma")
                 ),
-              S.listItem()
-                .title("Abonnements")
-                .icon(UsersIcon)
-                .child(
-                  S.list()
-                    .title("Page Abonnements")
-                    .items([
-                      fichePage(S, "membership", "Textes de la page"),
-                      S.listItem()
-                        .title("Formules & paiement")
-                        .icon(CreditCardIcon)
-                        .child(
-                          S.document()
-                            .schemaType("abonnements")
-                            .documentId("abonnements")
-                            .title("Formules & paiement")
-                        ),
-                    ])
-                ),
-
-              fichePage(S, "contact", "Infos pratiques"),
+              S.divider(),
+              texteDeLaPage(S, "contact"),
             ])
         ),
 
-      /* ---------------- Réglages ---------------- */
+      S.divider(),
+
+      /* ---------------- Le reste, qu'on ouvre rarement ---------------- */
       S.listItem()
+        .id("reglages")
         .title("Réglages du cinéma")
         .icon(CogIcon)
         .child(
@@ -267,11 +319,8 @@ export const deskStructure: StructureResolver = (S) =>
             .documentId("siteSettings")
             .title("Réglages du cinéma")
         ),
-
-      S.divider(),
-
-      /* ---------------- Billetterie ---------------- */
       S.listItem()
+        .id("billets")
         .title("Billets vendus")
         .icon(CreditCardIcon)
         .child(
@@ -280,13 +329,3 @@ export const deskStructure: StructureResolver = (S) =>
             .defaultOrdering([{ field: "_createdAt", direction: "desc" }])
         ),
     ]);
-
-/* Une fiche de page : titre de l'onglet, introduction, message
-   quand il n'y a rien, description pour Google. */
-function fichePage(S: StructureBuilder, id: string, titre: string) {
-  return S.listItem()
-    .id(id)
-    .title(titre)
-    .icon(DocumentTextIcon)
-    .child(S.document().schemaType("page").documentId(idDeLaFiche(id)).title(titre));
-}
