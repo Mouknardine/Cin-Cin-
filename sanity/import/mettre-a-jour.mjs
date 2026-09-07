@@ -179,6 +179,70 @@ async function traiterLesFilms() {
   }
 
   if (!aRetirer.length) dire("   Aucun film à retirer.");
+
+  return new Set([
+    ...aMettreAJour.map(({ existant }) => existant._id),
+    ...aCreer.map((film) => "film-" + film.slug),
+  ]);
+}
+
+/* ---------------- Les séances ----------------
+   Une séance survit à son film : la page Agenda les liste toutes, sans
+   regarder si le film est encore à l'affiche. Retirer un film sans
+   toucher à ses séances laisserait donc son titre à l'agenda. */
+async function traiterLesSeances(filmsDuProgramme) {
+  titre("Les séances à venir");
+
+  const seances = await client.fetch(
+    `*[_type == "screening" && date >= $aujourdhui && !(_id in path("drafts.**"))]
+     | order(date asc, time asc){_id, date, time, "filmId": film._ref, "titre": film->title}`,
+    { aujourdhui: new Date().toISOString().slice(0, 10) }
+  );
+
+  const aGarder = seances.filter((s) => filmsDuProgramme.has(s.filmId));
+  const aSupprimer = seances.filter((s) => !filmsDuProgramme.has(s.filmId));
+
+  if (!seances.length) {
+    dire("   Aucune séance à venir.");
+    return;
+  }
+  dire(`   ${seances.length} séance(s) à venir, dont ${aGarder.length} pour un film du programme.`);
+
+  for (const seance of aSupprimer) {
+    await client.delete(seance._id);
+    await client.delete("drafts." + seance._id).catch(() => {});
+  }
+  if (aSupprimer.length) {
+    const titres = [...new Set(aSupprimer.map((s) => s.titre || "film supprimé"))];
+    dire(`   ✗ ${aSupprimer.length} séance(s) supprimée(s), celles de films qui quittent l'affiche :`);
+    for (const t of titres) dire(`       ${t}`);
+  }
+}
+
+/* ---------------- Les citations de presse ----------------
+   Une citation rattachée à un film terminé ne s'affiche plus nulle
+   part, mais encombre le Studio. */
+async function traiterLesCritiques() {
+  titre("Les citations de presse");
+  /* Deux questions simples valent mieux qu'une requête savante : on
+     demande les citations, puis celles qui servent encore. */
+  const [critiques, encoreUtilisees] = await Promise.all([
+    client.fetch(`*[_type == "review" && !(_id in path("drafts.**"))]{_id, quote, source}`),
+    client.fetch(
+      `*[_type == "film" && status != "passe" && defined(review._ref)].review._ref`
+    ),
+  ]);
+  const gardees = new Set(encoreUtilisees || []);
+  const orphelines = critiques.filter((critique) => !gardees.has(critique._id));
+  if (!orphelines.length) {
+    dire("   Rien à retirer.");
+    return;
+  }
+  for (const critique of orphelines) {
+    await client.delete(critique._id);
+    await client.delete("drafts." + critique._id).catch(() => {});
+    dire(`   ✗ supprimée : « ${String(critique.quote || "").slice(0, 60)}… » (${critique.source || "?"})`);
+  }
 }
 
 async function traiterLesReglages() {
@@ -365,21 +429,18 @@ async function principal() {
       ? "MODE SIMULATION — rien ne sera écrit. Relancer avec « --appliquer » pour le faire vraiment.\n"
       : "MODE RÉEL — les modifications partent dans le Studio.\n"
   );
-  await traiterLesFilms();
+  const filmsDuProgramme = await traiterLesFilms();
+  await traiterLesSeances(filmsDuProgramme);
+  await traiterLesCritiques();
   await traiterLesReglages();
   await traiterLesPages();
   await remplacer("historyEntry", FRISE, "La frise de la page Histoire");
   await remplacer("evenement", INFORMATIONS, "Les informations en cours");
 
-  const seances = await client.fetch(
-    `count(*[_type == "screening" && date >= $aujourdhui])`,
-    { aujourdhui: new Date().toISOString().slice(0, 10) }
-  );
   titre("Il reste à faire à la main");
-  dire(seances
-    ? `   ${seances} séance(s) à venir sont programmées.`
-    : "   Aucune séance : la page Agenda restera vide tant que les horaires\n     ne seront pas saisis, depuis la fiche de chaque film.");
-  dire("   L'affiche de Drowak, si le Studio n'en a pas encore une.");
+  dire("   Les horaires des séances, depuis la fiche de chaque film.");
+  dire("   Tant qu'il n'y en a pas, la page Agenda affiche son message d'attente.");
+  dire("   Les citations de presse, si vous voulez en mettre une en avant.");
   dire(
     SIMULATION
       ? "\nSimulation terminée : rien n'a été modifié.\n"
