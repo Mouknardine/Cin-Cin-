@@ -45,7 +45,25 @@ jobs:
           echo "— contenu envoyé :"
           find site -type f | sort
 
+      # Tant que les trois secrets ne sont pas créés, on ne tente rien :
+      # une publication qui échoue à chaque envoi n'apprend rien à
+      # personne. Le récapitulatif de l'action dit quoi faire.
+      - name: Les identifiants FTP sont-ils renseignés ?
+        id: identifiants
+        env:
+          SERVEUR: ${{ secrets.INFOMANIAK_FTP_SERVEUR }}
+          UTILISATEUR: ${{ secrets.INFOMANIAK_FTP_UTILISATEUR }}
+          MOTDEPASSE: ${{ secrets.INFOMANIAK_FTP_MOTDEPASSE }}
+        run: |
+          if [ -z "$SERVEUR" ] || [ -z "$UTILISATEUR" ] || [ -z "$MOTDEPASSE" ]; then
+            echo "prets=non" >> "$GITHUB_OUTPUT"
+            echo "::warning::Publication ignorée : les identifiants FTP Infomaniak ne sont pas encore renseignés. Marche à suivre dans DEPLOIEMENT.md, étape 3."
+          else
+            echo "prets=oui" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Envoyer chez Infomaniak (FTPS)
+        if: steps.identifiants.outputs.prets == 'oui'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.INFOMANIAK_FTP_SERVEUR }}
