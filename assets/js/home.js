@@ -23,9 +23,137 @@
   var COPIES = 16;
   var JUMP = 8;
 
-  function filmForSlot(films, copyIndex, posterIndex, perCycle) {
-    var globalIndex = copyIndex * perCycle + posterIndex;
-    return films[globalIndex % films.length];
+  /* ---------------- Jamais deux fois la même affiche l'une sous l'autre
+     Le mur est une boucle : sous la dernière rangée d'un cycle vient la
+     première rangée du suivant. En choisissant l'affiche d'après le rang
+     de la case DANS LE CYCLE, deux cases voisines verticalement pouvaient
+     tomber sur la même affiche au raccord — c'est ce qu'on voyait avec
+     cinq films seulement.
+
+     Deux règles suffisent à l'empêcher :
+
+     1. L'affiche se choisit d'après la POSITION VERTICALE de la case dans
+        sa colonne, cycles compris. Deux cases l'une sous l'autre prennent
+        alors deux affiches voisines dans la liste : jamais la même.
+
+     2. La liste est allongée jusqu'à une longueur qui divise le saut du
+        défilement infini (huit cycles). Le mur se répète donc exactement
+        là où le défilement se recale, et le visiteur ne voit jamais une
+        affiche changer sous ses yeux.
+     ---------------------------------------------------------------- */
+
+  /** Les longueurs de mur acceptables : elles doivent contenir toutes
+      les affiches, et diviser le saut du défilement pour que la boucle
+      reste invisible. */
+  function longueursPossibles(nombre, parColonne) {
+    var saut = JUMP * parColonne; // le saut, compté en rangées
+    var possibles = [];
+    for (var l = 1; l <= saut; l++) {
+      if (saut % l === 0 && l >= nombre) possibles.push(l);
+    }
+    return possibles;
+  }
+
+  /* Compose une suite d'affiches en boucle où aucune ne se retrouve
+     collée à elle-même. « Collée » se lit dans les deux sens : à un
+     rang d'écart (l'une sous l'autre) et à « parColonne » rangs d'écart
+     (l'une à côté de l'autre, la grille étant remplie colonne par
+     colonne).
+
+     On pose les affiches une par une, en prenant à chaque fois la moins
+     utilisée qui ne fâche personne, et on revient sur ses pas quand on
+     se bloque. Les murs font au plus vingt-quatre cases : la recherche
+     est immédiate. Aucun tirage au sort — le mur doit être le même d'un
+     affichage à l'autre. */
+  function composerLaSuite(nombre, longueur, ecarts) {
+    var suite = [];
+    var compte = [];
+    var i;
+    for (i = 0; i < longueur; i++) suite.push(-1);
+    for (i = 0; i < nombre; i++) compte.push(0);
+
+    function fache(place, affiche) {
+      for (var e = 0; e < ecarts.length; e++) {
+        var d = ecarts[e];
+        var avant = ((place - d) % longueur + longueur) % longueur;
+        var apres = (place + d) % longueur;
+        if (avant !== place && suite[avant] === affiche) return true;
+        if (apres !== place && suite[apres] === affiche) return true;
+      }
+      return false;
+    }
+
+    function poser(place) {
+      if (place === longueur) return true;
+      var ordre = [];
+      for (var a = 0; a < nombre; a++) ordre.push(a);
+      ordre.sort(function (x, y) {
+        return compte[x] - compte[y] || x - y;
+      });
+      for (var k = 0; k < ordre.length; k++) {
+        var affiche = ordre[k];
+        if (fache(place, affiche)) continue;
+        suite[place] = affiche;
+        compte[affiche] += 1;
+        if (poser(place + 1)) return true;
+        suite[place] = -1;
+        compte[affiche] -= 1;
+      }
+      return false;
+    }
+
+    return poser(0) ? suite : null;
+  }
+
+  function construireLeMur(items, parColonne) {
+    var nombre = items.length;
+    if (nombre < 2) return items.slice();
+    var longueurs = longueursPossibles(nombre, parColonne);
+    /* On vise d'abord le mur idéal : ni voisine du dessus, ni voisine de
+       côté. Deux cas ne l'admettent pas, et ce n'est pas faute d'avoir
+       cherché — c'est arithmétique. Sur ordinateur, le mur a trois
+       colonnes :
+
+         · avec DEUX affiches, une rangée de trois cases en répète
+           forcément une ;
+         · avec TROIS, interdire les voisines des deux côtés revient à
+           exiger que trois cases consécutives soient toujours
+           différentes, ce qui force un motif qui se répète tous les
+           trois rangs — or la longueur du mur doit diviser le saut du
+           défilement (seize rangs), et aucun multiple de trois ne
+           divise seize.
+
+       Dans ces deux cas on garde la règle qui compte, celle qui saute
+       aux yeux : jamais deux fois la même affiche l'une sous l'autre. */
+    var exigences = [[1, parColonne], [1]];
+    for (var e = 0; e < exigences.length; e++) {
+      var horizontal = exigences[e].length > 1;
+      for (var l = 0; l < longueurs.length; l++) {
+        var longueur = longueurs[l];
+        /* Si l'écart entre deux colonnes retombe pile sur un tour de
+           mur, les deux colonnes lisent la même case : la voisine de
+           côté serait forcément identique. Cette longueur-là ne peut
+           pas tenir la promesse, on passe à la suivante. */
+        if (horizontal && parColonne % longueur === 0) continue;
+        var suite = composerLaSuite(nombre, longueur, exigences[e]);
+        if (suite) {
+          return suite.map(function (indice) {
+            return items[indice];
+          });
+        }
+      }
+    }
+    return items.slice();
+  }
+
+  function filmForSlot(mur, parColonne, copyIndex, posterIndex) {
+    var colonne = Math.floor(posterIndex / parColonne);
+    var rangee = posterIndex % parColonne;
+    /* La position de la case sur son axe vertical, en rangées, décalée
+       d'une colonne à l'autre pour que deux voisines de la même rangée
+       ne portent pas la même affiche non plus. */
+    var position = copyIndex * parColonne + rangee + colonne * parColonne;
+    return mur[position % mur.length];
   }
 
   function buildCanvas(items) {
@@ -80,7 +208,7 @@
       stageEl.style.height = c.cycleHeight * COPIES + "px";
       stageEl.style.transform = "scale(" + s + ")";
 
-      var postersPerCycle = c.slots.length;
+      var mur = items.length ? construireLeMur(items, c.perColumn) : [];
 
       var html = "";
       for (var copyIdx = 0; copyIdx < COPIES; copyIdx++) {
@@ -92,7 +220,7 @@
             /* Chargement immédiat pour la seule rangée visible à
                l'arrivée : celle du haut de la copie centrale. */
             var priority = copyIdx === JUMP && slot.top === 0;
-            content = G.caseHTML(root, filmForSlot(items, copyIdx, posterIdx, postersPerCycle), priority);
+            content = G.caseHTML(root, filmForSlot(mur, c.perColumn, copyIdx, posterIdx), priority);
             posterIdx += 1;
           } else {
             content = G.caseVideHTML();
