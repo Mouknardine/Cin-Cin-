@@ -286,26 +286,38 @@ async function traiterLeMenage(filmsDuProgramme) {
     return;
   }
 
-  /* Les séances d'un film supprimé n'auraient plus de film : elles
-     partent avec lui, passées comprises. */
+  /* L'ORDRE COMPTE : Sanity refuse de supprimer un document tant qu'un
+     autre le désigne. Les séances de ces films — passées comprises —
+     doivent donc partir AVANT eux, sinon la suppression est rejetée. */
   const identifiants = aSupprimer.map((f) => f._id.replace(/^drafts\./, ""));
   const seances = await client.fetch(
     `*[_type == "screening" && film._ref in $identifiants]._id`,
     { identifiants }
   );
-
-  for (const film of aSupprimer) {
-    await client.delete(film._id);
-    await client.delete(film._id.replace(/^drafts\./, "")).catch(() => {});
-    await client.delete("drafts." + film._id.replace(/^drafts\./, "")).catch(() => {});
-    const brouillon = film._id.startsWith("drafts.") ? " (brouillon jamais publié)" : "";
-    dire(`   ✗ supprimé : ${film.title || "fiche sans titre"} — ${film.director || "sans réalisation"}${brouillon}`);
-  }
   for (const id of seances) {
     await client.delete(id);
     await client.delete("drafts." + id).catch(() => {});
   }
-  if (seances.length) dire(`   ✗ ${seances.length} séance(s) de ces films supprimée(s).`);
+  if (seances.length) dire(`   ✗ ${seances.length} séance(s) de ces films supprimée(s) d'abord.`);
+
+  /* Une fiche qui résiste ne doit pas arrêter le ménage : on la
+     signale, on passe à la suivante, et on dit à la fin qui reste. */
+  const resistantes = [];
+  for (const film of aSupprimer) {
+    const nu = film._id.replace(/^drafts\./, "");
+    try {
+      await client.delete("drafts." + nu).catch(() => {});
+      await client.delete(nu);
+      const brouillon = film._id.startsWith("drafts.") ? " (brouillon jamais publié)" : "";
+      dire(`   ✗ supprimé : ${film.title || "fiche sans titre"} — ${film.director || "sans réalisation"}${brouillon}`);
+    } catch (erreur) {
+      resistantes.push({ film, raison: erreur.message });
+      dire(`   ⚠︎ gardé malgré tout : ${film.title} — ${erreur.message.split("\n")[0]}`);
+    }
+  }
+  if (resistantes.length) {
+    dire(`   ${resistantes.length} fiche(s) n'ont pas pu être supprimées : quelque chose les désigne encore.`);
+  }
 }
 
 async function traiterLesReglages() {
