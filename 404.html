@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adresse introuvable — Zinéma</title>
+<meta name="description" content="Cette adresse n'existe pas sur le site du Zinéma.">
+<meta name="robots" content="noindex">
+<!-- Cette page peut être servie depuis N'IMPORTE QUELLE adresse du
+     site (/films/quelquechose, /truc/machin…). Ses chemins sont donc
+     tous absolus — un chemin relatif chercherait ses fichiers à côté
+     de l'adresse fautive, et la page arriverait sans style. -->
+<link rel="icon" href="/assets/img/zinema-logo.png">
+<link rel="preload" href="/assets/fonts/Aileron-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/Aileron-Black.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/film-mondrian.css">
+</head>
+<body data-page="404" data-root="/">
+<main class="main-area">
+  <article class="mondrian">
+    <div class="m-bande">
+      <div class="m-cell m-info">
+        <p class="m-cell__label">Erreur 404</p>
+        <p class="m-cell__value">Cette adresse n'existe pas sur le site.</p>
+      </div>
+    </div>
+    <div class="m-bande">
+      <a class="m-cell m-info" href="/films/">
+        <p class="m-cell__label">Voir</p>
+        <p class="m-cell__value">Les films à l'affiche →</p>
+      </a>
+      <a class="m-cell m-info" href="/agenda/">
+        <p class="m-cell__label">Voir</p>
+        <p class="m-cell__value">L'agenda des séances →</p>
+      </a>
+      <a class="m-cell m-info" href="/">
+        <p class="m-cell__label">Revenir</p>
+        <p class="m-cell__value">À l'accueil →</p>
+      </a>
+    </div>
+  </article>
+</main>
+<div id="footer-root"></div>
+
+<script src="/assets/js/couleurs.js"></script>
+<script src="/assets/js/data.js"></script>
+<script src="/assets/js/render.js"></script>
+<script src="/assets/js/nav.js"></script>
+<script src="/assets/js/footer.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+# Zinéma — https://www.zinema.ch
+# Tout le site est public, sauf la page d'un billet acheté, qui ne
+# regarde que la personne qui l'a acheté.
+User-agent: *
+Allow: /
+Disallow: /billet/
+
+Sitemap: https://www.zinema.ch/sitemap.xml

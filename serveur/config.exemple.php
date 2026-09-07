@@ -39,7 +39,7 @@ return [
        À créer sur sanity.io → votre projet → API → Tokens,
        avec les droits « Editor ». */
     'sanity' => [
-        'projet' => 'g0k3smf3',
+        'projet' => 'vle63mzm',
         'dataset' => 'production',
         'jeton_ecriture' => 'skXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
     ],

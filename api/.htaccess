@@ -8,15 +8,19 @@
 # statut-paiement.php sont des portes d'entrée.
 # ============================================================
 
-<FilesMatch "^_">
-    Require all denied
-</FilesMatch>
+# « Require » n'existe qu'à partir d'Apache 2.4 : l'encadrer évite
+# une erreur 500 sur un serveur plus ancien.
+<IfModule mod_authz_core.c>
+    <FilesMatch "^_">
+        Require all denied
+    </FilesMatch>
 
-# Par sécurité : si un fichier de configuration se retrouvait un
-# jour ici par erreur, il resterait inaccessible.
-<FilesMatch "^config\.php$">
-    Require all denied
-</FilesMatch>
+    # Par sécurité : si un fichier de configuration se retrouvait un
+    # jour ici par erreur, il resterait inaccessible.
+    <FilesMatch "^config\.php$">
+        Require all denied
+    </FilesMatch>
+</IfModule>
 
 # Pas d'index de dossier : on ne montre pas la liste des fichiers.
 Options -Indexes

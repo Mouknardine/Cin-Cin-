@@ -79,6 +79,10 @@
         poserMeta("name", "twitter:card", "summary_large_image");
       }
       poserMeta("property", "og:type", "website");
+      /* L'adresse exacte de la page ouverte : sur une fiche de film,
+         elle porte le film (…/film/?s=…), ce que le fichier HTML seul
+         ne peut pas savoir. */
+      poserMeta("property", "og:url", window.location.href.split("#")[0]);
     });
   }
 

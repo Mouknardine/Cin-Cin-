@@ -1,0 +1,64 @@
+name: Déploiement Infomaniak
+
+# Publie le site chez Infomaniak à chaque envoi sur la branche
+# principale. Rien à faire à la main : on modifie, on envoie, c'est
+# en ligne.
+#
+# À régler UNE SEULE FOIS, dans GitHub → Settings → Secrets and
+# variables → Actions → New repository secret :
+#
+#   INFOMANIAK_FTP_SERVEUR   ex. ftp.zinema.ch
+#   INFOMANIAK_FTP_UTILISATEUR
+#   INFOMANIAK_FTP_MOTDEPASSE
+#
+# Ces trois valeurs se trouvent dans le Manager Infomaniak, sous
+# « Hébergement → FTP/SSH ». Voir DEPLOIEMENT.md.
+#
+# Un changement de contenu (un film ajouté dans le Studio) n'a PAS
+# besoin de ce workflow : il apparaît seul, sans redéploiement.
+
+on:
+  push:
+    branches:
+      - claude/zinema-cinema-redesign-ttcpaf
+  workflow_dispatch:
+
+concurrency:
+  group: infomaniak
+  cancel-in-progress: true
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # On n'envoie QUE le site public. Le Studio Sanity, les modes
+      # d'emploi, les dépendances et le modèle de fichier de
+      # configuration n'ont rien à faire sur un serveur public.
+      - name: Rassembler les fichiers du site
+        run: |
+          mkdir site
+          cp -r index.html 404.html robots.txt sitemap.xml .htaccess \
+                films film agenda evenements histoire membership contact billet \
+                assets api site/
+          echo "— contenu envoyé :"
+          find site -type f | sort
+
+      - name: Envoyer chez Infomaniak (FTPS)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.INFOMANIAK_FTP_SERVEUR }}
+          username: ${{ secrets.INFOMANIAK_FTP_UTILISATEUR }}
+          password: ${{ secrets.INFOMANIAK_FTP_MOTDEPASSE }}
+          protocol: ftps
+          local-dir: ./site/
+          # Le dossier public d'un hébergement Infomaniak. Si le
+          # compte FTP ouvre DÉJÀ sur « web/ », mettre « ./ ».
+          server-dir: web/
+          # Le fichier de configuration secret (config.php) vit à côté
+          # de web/, jamais dedans : il n'est donc jamais touché.
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**

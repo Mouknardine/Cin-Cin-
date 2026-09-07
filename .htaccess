@@ -1,0 +1,90 @@
+# ============================================================
+# Zinéma — réglages du serveur (hébergement Infomaniak, Apache).
+#
+# Ce fichier ne sert qu'en ligne : il n'a aucun effet quand on
+# ouvre le site depuis son ordinateur. Chaque bloc est encadré
+# d'un « IfModule » : si l'hébergeur ne propose pas le module,
+# la règle est simplement ignorée, jamais une erreur 500.
+# ============================================================
+
+# ---------- Une seule adresse pour le site ----------
+# Tout le monde arrive sur https://www.zinema.ch : les autres
+# adresses (sans https, sans www) y sont renvoyées une fois pour
+# toutes. Sans ça, Google verrait quatre sites au lieu d'un.
+#
+# Si le cinéma préfère l'adresse SANS www, inverser les deux
+# règles ci-dessous — et prévenir : les liens déjà partagés
+# continueront de fonctionner dans les deux cas.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # http → https
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+    # zinema.ch → www.zinema.ch
+    RewriteCond %{HTTP_HOST} ^zinema\.ch$ [NC]
+    RewriteRule ^ https://www.zinema.ch%{REQUEST_URI} [R=301,L]
+</IfModule>
+
+# ---------- La page « adresse introuvable » ----------
+ErrorDocument 404 /404.html
+
+# ---------- Le texte est en français, encodé en UTF-8 ----------
+AddDefaultCharset UTF-8
+
+# ---------- Ce qui ne doit jamais être servi ----------
+# Si un fichier de travail se retrouvait un jour sur le serveur
+# public (mode d'emploi, réglages, dépendances), il resterait
+# inaccessible depuis un navigateur.
+# « Require » n'existe qu'à partir d'Apache 2.4 : l'encadrer évite
+# une erreur 500 sur un serveur plus ancien.
+<IfModule mod_authz_core.c>
+    <FilesMatch "\.(md|ts|tsx|json|lock|yml|yaml|env|example)$">
+        Require all denied
+    </FilesMatch>
+    <FilesMatch "^\.">
+        Require all denied
+    </FilesMatch>
+</IfModule>
+Options -Indexes
+
+# ---------- Bonnes manières de sécurité ----------
+<IfModule mod_headers.c>
+    # Un fichier annoncé comme image ne sera pas exécuté comme autre chose.
+    Header set X-Content-Type-Options "nosniff"
+    # Le site ne peut pas être affiché dans le cadre d'un autre site.
+    Header set X-Frame-Options "SAMEORIGIN"
+    # On ne transmet pas l'adresse complète de la page en partant vers
+    # un autre site, seulement le nom de domaine.
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ---------- Vitesse : compression ----------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml
+    AddOutputFilterByType DEFLATE application/javascript application/json
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ---------- Vitesse : ce que le navigateur peut garder ----------
+# Les polices, images et feuilles de style ne changent qu'en cas de
+# refonte : on les garde longtemps. Les pages HTML, elles, sont
+# revérifiées à chaque visite — c'est ce qui permet à une
+# modification publiée dans le Studio d'apparaître tout de suite.
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/html                 "access plus 0 seconds"
+    ExpiresByType text/css                  "access plus 1 year"
+    ExpiresByType application/javascript    "access plus 1 year"
+    ExpiresByType font/woff2                "access plus 1 year"
+    ExpiresByType image/png                 "access plus 1 year"
+    ExpiresByType image/jpeg                "access plus 1 year"
+    ExpiresByType image/svg+xml             "access plus 1 year"
+</IfModule>
+<IfModule mod_headers.c>
+    <FilesMatch "\.(html)$">
+        Header set Cache-Control "no-cache, must-revalidate"
+    </FilesMatch>
+</IfModule>
