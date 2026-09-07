@@ -305,7 +305,7 @@ async function remplacer(type, documents, etiquette) {
 }
 
 /* ---------------- Déroulé ---------------- */
-try {
+async function principal() {
   dire(`Studio : projet ${client.config().projectId}, jeu de données ${client.config().dataset}`);
   await traiterLesFilms();
   await traiterLesReglages();
@@ -323,9 +323,11 @@ try {
     : "   Aucune séance : la page Agenda restera vide tant que les horaires\n     ne seront pas saisis, depuis la fiche de chaque film.");
   dire("   L'affiche de Drowak, si le Studio n'en a pas encore une.");
   dire("\nTerminé. Le site affiche le nouveau contenu immédiatement.\n");
-} catch (erreur) {
-  console.error("\n✗ Le script s'est arrêté :", erreur.message);
-  console.error("  Si Sanity refuse l'accès, relancez avec « --with-user-token »,");
-  console.error("  après « npx sanity login ».\n");
-  process.exit(1);
 }
+
+principal().catch((erreur) => {
+  console.error("\n✗ Le script s'est arrêté :", erreur.message);
+  console.error("  Si Sanity refuse l'accès, connectez-vous d'abord avec");
+  console.error("  « npx sanity login », puis relancez avec « --with-user-token ».\n");
+  process.exit(1);
+});

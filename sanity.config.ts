@@ -10,7 +10,7 @@ import { planification } from "./sanity/plugins/planification";
 // que de fichiers HTML/CSS/JS. D'où le préfixe SANITY_STUDIO_
 // (convention Sanity) plutôt que NEXT_PUBLIC_ — même valeur, deux
 // variables à définir dans .env.local.
-const projectId = process.env.SANITY_STUDIO_PROJECT_ID || "";
+const projectId = process.env.SANITY_STUDIO_PROJECT_ID || "vle63mzm";
 const dataset = process.env.SANITY_STUDIO_DATASET || "production";
 const apiVersion = process.env.SANITY_STUDIO_API_VERSION || "2024-06-01";
 
