@@ -222,15 +222,18 @@ async function traiterLesSeances(filmsDuProgramme) {
 /* ---------------- Les citations de presse ----------------
    Une citation rattachée à un film terminé ne s'affiche plus nulle
    part, mais encombre le Studio. */
-async function traiterLesCritiques() {
+async function traiterLesCritiques(filmsDuProgramme) {
   titre("Les citations de presse");
   /* Deux questions simples valent mieux qu'une requête savante : on
-     demande les citations, puis celles qui servent encore. */
+     demande les citations, puis celles qui servent encore. « Encore
+     utilisée » se juge sur les films du programme, pas sur ce qui est
+     à l'affiche à cet instant : les autres films sortent du site dans
+     la foulée, leurs citations avec eux. */
   const [critiques, encoreUtilisees] = await Promise.all([
     client.fetch(`*[_type == "review" && !(_id in path("drafts.**"))]{_id, quote, source}`),
-    client.fetch(
-      `*[_type == "film" && status != "passe" && defined(review._ref)].review._ref`
-    ),
+    client.fetch(`*[_type == "film" && _id in $ids && defined(review._ref)].review._ref`, {
+      ids: [...filmsDuProgramme],
+    }),
   ]);
   const gardees = new Set(encoreUtilisees || []);
   const orphelines = critiques.filter((critique) => !gardees.has(critique._id));
@@ -431,7 +434,7 @@ async function principal() {
   );
   const filmsDuProgramme = await traiterLesFilms();
   await traiterLesSeances(filmsDuProgramme);
-  await traiterLesCritiques();
+  await traiterLesCritiques(filmsDuProgramme);
   await traiterLesReglages();
   await traiterLesPages();
   await remplacer("historyEntry", FRISE, "La frise de la page Histoire");
