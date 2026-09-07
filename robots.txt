@@ -4,5 +4,8 @@
 User-agent: *
 Allow: /
 Disallow: /billet/
+# Les adresses de la caisse en ligne ne sont pas des pages : elles
+# répondent à des achats, pas à des visiteurs.
+Disallow: /api/
 
 Sitemap: https://www.zinema.ch/sitemap.xml

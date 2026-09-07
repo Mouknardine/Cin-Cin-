@@ -29,7 +29,11 @@
     });
     order.sort();
     return order.map(function (date) {
-      var list = map[date].slice().sort(function (a, b) { return a.time.localeCompare(b.time); });
+      /* Une seule séance sans heure ne doit pas emporter tout
+         l'agenda : on compare des chaînes, toujours. */
+      var list = map[date].slice().sort(function (a, b) {
+        return String(a.time || "").localeCompare(String(b.time || ""));
+      });
       return { date: date, screenings: list };
     });
   }

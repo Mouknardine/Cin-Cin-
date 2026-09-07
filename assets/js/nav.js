@@ -82,7 +82,18 @@
       /* L'adresse exacte de la page ouverte : sur une fiche de film,
          elle porte le film (…/film/?s=…), ce que le fichier HTML seul
          ne peut pas savoir. */
-      poserMeta("property", "og:url", window.location.href.split("#")[0]);
+      var adresse = window.location.href.split("#")[0];
+      poserMeta("property", "og:url", adresse);
+      /* Le canonical suit la page réellement ouverte. Sur une fiche de
+         film il porte le film ; sans cela toutes les fiches se
+         déclareraient identiques et Google n'en garderait qu'une. */
+      var canonique = document.head.querySelector('link[rel="canonical"]');
+      if (!canonique) {
+        canonique = document.createElement("link");
+        canonique.setAttribute("rel", "canonical");
+        document.head.appendChild(canonique);
+      }
+      canonique.setAttribute("href", adresse);
     });
   }
 

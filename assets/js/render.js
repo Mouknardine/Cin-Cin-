@@ -10,7 +10,10 @@
     });
   }
 
+  /* Accepte n'importe quoi : un film sans adresse ni titre ne doit pas
+     faire tomber la page qui l'affiche. */
   function hashString(input) {
+    input = String(input == null ? "" : input);
     var hash = 0;
     for (var i = 0; i < input.length; i++) {
       hash = (hash << 5) - hash + input.charCodeAt(i);
@@ -244,6 +247,32 @@
       "Vérifiez votre connexion et rechargez la page.</p>"
     );
   }
+
+  /* ---------------- Le filet de sécurité ----------------
+     Chaque page affiche « Chargement… », puis remplace ce mot par son
+     contenu. Si l'affichage échoue en route — une donnée d'une forme
+     inattendue, un champ manquant — la promesse est rompue sans que
+     personne l'attrape, et le visiteur reste devant un « Chargement… »
+     qui ne changera jamais. Rien n'est plus décourageant.
+
+     Ce filet écoute ces échecs pour toute page du site, et remplace
+     l'attente par le message d'erreur honnête. Il ne masque rien : la
+     cause reste écrite dans la console du navigateur. */
+  function poserLeMessageDErreur() {
+    var attentes = document.querySelectorAll(".etat--chargement");
+    for (var i = 0; i < attentes.length; i++) {
+      attentes[i].outerHTML = etatErreur();
+    }
+  }
+  global.addEventListener("unhandledrejection", function (evenement) {
+    if (global.console && console.error) {
+      console.error("Zinéma — affichage interrompu :", evenement.reason);
+    }
+    poserLeMessageDErreur();
+  });
+  global.addEventListener("error", function () {
+    poserLeMessageDErreur();
+  });
 
   global.ZinemaRender = {
     escapeHtml: escapeHtml,

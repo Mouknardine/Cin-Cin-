@@ -47,6 +47,11 @@ AddDefaultCharset UTF-8
     <FilesMatch "^\.">
         Require all denied
     </FilesMatch>
+    # config.php vit à côté du dossier public, jamais dedans. Si une
+    # fausse manœuvre l'y déposait, il resterait illisible.
+    <FilesMatch "^config\.php$">
+        Require all denied
+    </FilesMatch>
 </IfModule>
 Options -Indexes
 
@@ -64,27 +69,40 @@ Options -Indexes
 # ---------- Vitesse : compression ----------
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml
-    AddOutputFilterByType DEFLATE application/javascript application/json
+    # Apache 2.4.55 et suivants servent les .js en « text/javascript »,
+    # les versions antérieures en « application/javascript » : les deux
+    # sont listés, sinon les scripts partiraient non compressés.
+    AddOutputFilterByType DEFLATE application/javascript text/javascript application/json
+    AddOutputFilterByType DEFLATE application/xml
     AddOutputFilterByType DEFLATE image/svg+xml
 </IfModule>
 
 # ---------- Vitesse : ce que le navigateur peut garder ----------
-# Les polices, images et feuilles de style ne changent qu'en cas de
-# refonte : on les garde longtemps. Les pages HTML, elles, sont
-# revérifiées à chaque visite — c'est ce qui permet à une
-# modification publiée dans le Studio d'apparaître tout de suite.
+# Règle d'or : on ne garde longtemps que ce qui ne changera jamais
+# sous le même nom.
+#
+# Les polices et le logo sont dans ce cas : les garder un an est sans
+# danger, un nouveau fichier porterait un nouveau nom.
+#
+# Les feuilles de style et les scripts, eux, sont appelés sous un nom
+# FIXE (assets/css/style.css). Les garder un an voudrait dire qu'un
+# visiteur déjà venu continuerait de voir l'ancienne version du site
+# pendant un an après une correction, sans aucun moyen de s'en
+# apercevoir. On demande donc au navigateur de vérifier à chaque
+# visite : s'il n'y a rien de neuf, le serveur répond « pas changé »
+# en quelques octets. Le coût est nul, le risque disparaît.
 <IfModule mod_expires.c>
     ExpiresActive On
-    ExpiresByType text/html                 "access plus 0 seconds"
-    ExpiresByType text/css                  "access plus 1 year"
-    ExpiresByType application/javascript    "access plus 1 year"
     ExpiresByType font/woff2                "access plus 1 year"
-    ExpiresByType image/png                 "access plus 1 year"
-    ExpiresByType image/jpeg                "access plus 1 year"
-    ExpiresByType image/svg+xml             "access plus 1 year"
+    ExpiresByType image/png                 "access plus 1 month"
+    ExpiresByType image/jpeg                "access plus 1 month"
+    ExpiresByType image/svg+xml             "access plus 1 month"
 </IfModule>
 <IfModule mod_headers.c>
-    <FilesMatch "\.(html)$">
-        Header set Cache-Control "no-cache, must-revalidate"
+    <FilesMatch "\.(html|css|js)$">
+        Header set Cache-Control "no-cache"
+    </FilesMatch>
+    <FilesMatch "\.woff2$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
     </FilesMatch>
 </IfModule>

@@ -47,7 +47,15 @@
     "/data/query/" + SANITY_DATASET;
 
   function sanityFetch(query, params) {
-    var url = API_BASE + "?query=" + encodeURIComponent(query);
+    /* « perspective=published » : Sanity ne renvoie que les documents
+       publiés. Sans ce mot, le site sert AUSSI les brouillons — le
+       jeu de données est public en lecture, donc les brouillons le
+       sont aussi. Un film à moitié rempli s'afficherait, et un film
+       en cours de modification apparaîtrait deux fois : une fois
+       publié, une fois en brouillon. C'est ce qui garantit la
+       promesse faite dans SANITY.md — tant qu'on n'a pas cliqué sur
+       « Publish », personne ne voit rien. */
+    var url = API_BASE + "?perspective=published&query=" + encodeURIComponent(query);
     if (params) {
       Object.keys(params).forEach(function (key) {
         url += "&$" + key + "=" + encodeURIComponent(JSON.stringify(params[key]));
