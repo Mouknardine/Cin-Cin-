@@ -73,6 +73,14 @@
      poser sur celui du dessus — jamais un trait deux fois plus
      épais à la jonction. */
   --ligne: 4px;
+  /* LE format d'affiche du site. Toutes les affiches de film sont
+     montrées dans ce même rectangle, partout : sur l'accueil, sur la
+     page Films, sur la fiche du film, dans les événements. Une
+     affiche livrée dans un autre format est recadrée sur son point
+     important (choisi dans le Studio) — jamais deux cases de tailles
+     différentes côte à côte. C'est le format des affiches suisses et
+     françaises (A0, A1, F4 : 1 sur 1,41). */
+  --format-affiche: 1 / 1.41;
   --ease-editorial: cubic-bezier(0.65, 0, 0.35, 1);
   /* Les deux seules tailles de texte du site : titres et tout le reste.
      La hiérarchie se fait avec les graisses, jamais avec la taille. */

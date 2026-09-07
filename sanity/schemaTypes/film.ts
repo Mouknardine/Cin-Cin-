@@ -59,7 +59,7 @@ export const film = defineType({
       name: "director",
       title: "Réalisation",
       type: "string",
-      description: "Ex. Paolo Virzì. Plusieurs noms : séparez par « & ».",
+      description: "Ex. Francesco Sossai. Plusieurs noms : séparez par « & ».",
       validation: (Rule) => Rule.required().error("Indiquez qui a réalisé le film."),
     }),
     defineField({

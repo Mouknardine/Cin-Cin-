@@ -7,8 +7,9 @@
    aucune page du site ne porte de bandeau de titre. Chaque film
    est ensuite une colonne de cases : l'affiche, le titre, puis ses
    infos sur une seule ligne, dans leur propre case.
-   Les affiches ne sont jamais recadrées : les cases de texte
-   absorbent la hauteur restante de leur rangée, jamais de trou.
+   Toutes les affiches ont exactement le même format (voir
+   --format-affiche) : les cases de texte absorbent la hauteur
+   restante de leur rangée, jamais de trou.
    ============================================================ */
 
 /* ---------- Filtres : des cases-boutons. Leur couleur est tirée
@@ -58,9 +59,9 @@
   gap: var(--ligne);
   background: var(--ink);
 }
-/* Largeur fixe par rangée (jamais de croissance) : la hauteur de
-   chaque affiche est ainsi calculée sur sa largeur définitive —
-   aucune affiche n'est jamais rognée. */
+/* Largeur fixe par rangée (jamais de croissance) : toutes les
+   colonnes font la même largeur, et comme toutes les affiches ont le
+   même format, elles font aussi exactement la même hauteur. */
 .m-film {
   flex: none;
   width: 100%;
@@ -110,17 +111,15 @@
   overflow-wrap: break-word;
 }
 
-/* L'affiche garde toujours sa hauteur naturelle : elle n'est jamais
-   comprimée par la rangée, donc jamais rognée. */
+/* L'affiche garde le format du site : sa hauteur est celle de la
+   colonne, la même pour tous les films de la rangée. */
 .m-films .m-affiche {
   flex: none;
 }
-/* Les affiches générées (films sans visuel) ne dictent jamais la
-   hauteur de leur rangée : elles remplissent la place disponible. */
+/* Les films sans affiche ne font pas exception : leur affiche
+   typographique occupe exactement la même case. */
 .m-films .m-affiche--generee {
-  aspect-ratio: auto;
-  flex: 1;
-  min-height: 18rem;
+  flex: none;
 }
 
 /* Case « Agenda complet » : elle ferme le tableau et absorbe

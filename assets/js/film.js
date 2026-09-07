@@ -243,7 +243,7 @@
       "<h1>" + R.escapeHtml(film.title) + "</h1>" + original + realisation + "</header>";
 
     var afficheHTML =
-      '<div class="m-affiche' + (vraieAffiche ? "" : " m-affiche--generee") + '">' +
+      '<div class="m-affiche m-affiche--film' + (vraieAffiche ? "" : " m-affiche--generee") + '">' +
       R.posterHTML(film, { priority: true }) + "</div>";
 
     var infosHTML =

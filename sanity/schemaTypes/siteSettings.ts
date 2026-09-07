@@ -148,7 +148,7 @@ export const siteSettings = defineType({
       group: "tarifs",
       description:
         "Le prix d'une place normale. Attention : ce chiffre est celui réellement facturé par la caisse en ligne.",
-      initialValue: 14,
+      initialValue: 16,
       validation: (Rule) => Rule.required().positive().error("Indiquez le plein tarif."),
     }),
     defineField({
@@ -157,7 +157,7 @@ export const siteSettings = defineType({
       type: "number",
       group: "tarifs",
       description: "Le prix réduit. Lui aussi réellement facturé par la caisse en ligne.",
-      initialValue: 7,
+      initialValue: 10,
       validation: (Rule) =>
         Rule.required()
           .positive()
@@ -176,7 +176,7 @@ export const siteSettings = defineType({
       of: [{ type: "string" }],
       group: "tarifs",
       description:
-        "Une ligne par condition — tapez puis Entrée. Ex. Carte membre, Carte Culture, Étudiant·e·s HES-SO. Affiché sous les tarifs.",
+        "Une ligne par condition — tapez puis Entrée. Ex. Membres de soutien, Abonné·e·s au Courrier, Étudiant·e·s, Carte Culture Caritas. Affiché sous les tarifs.",
     }),
     defineField({
       name: "salles",

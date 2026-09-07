@@ -18,9 +18,9 @@
   var activeFilter = R.filtresFilms[0].statut;
 
   function filmHTML(film) {
-    /* Vraie affiche = image Sanity OU image locale (assets/img/affiches),
-       même critère que la fiche film. */
-    var vraieAffiche = Boolean(R.sanityImageUrl(film.poster, 1200));
+    /* Vraie affiche = affiche déposée dans le Studio. Sinon, le site
+       fabrique une affiche typographique à partir du titre. */
+    var vraieAffiche = Boolean(R.afficheUrl(film.poster));
     var realisation = film.director
       ? '<p class="m-film__real">' + R.escapeHtml(film.director) + "</p>"
       : "";
@@ -41,7 +41,8 @@
       : '<p class="m-film__statut">' + R.statusLabel(film.status) + "</p>";
     return (
       '<a href="' + root + "film/?s=" + encodeURIComponent(film.slug) + '" class="m-film">' +
-      '<div class="m-affiche' + (vraieAffiche ? "" : " m-affiche--generee") + '">' + R.posterHTML(film) + "</div>" +
+      '<div class="m-affiche m-affiche--film' + (vraieAffiche ? "" : " m-affiche--generee") + '">' +
+      R.posterHTML(film) + "</div>" +
       '<div class="m-cell m-film__entete ' + C.classe() + '">' +
       statut +
       '<p class="m-film__titre">' + R.escapeHtml(film.title) + "</p>" +

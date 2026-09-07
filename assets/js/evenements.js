@@ -9,7 +9,7 @@
      ┌──────────┬───────────────────────────────────┐
      │ VISUEL   │ LE TITRE DE L'ÉVÉNEMENT           │
      ├──────────┴──────────┬────────────┬───────────┤
-     │ ÉVÉNEMENT · 22 JUIL.│ Le texte…  │ EN SAVOIR │
+     │ ÉVÉNEMENT · DATE    │ Le texte…  │ EN SAVOIR │
      └─────────────────────┴────────────┴───────────┘
 
    Les événements suivants tiennent chacun sur une bande :
@@ -82,10 +82,10 @@
     if (!a.films || !a.films.length) return "";
     return a.films
       .map(function (f) {
-        var src = R.sanityImageUrl(f.poster, 600);
+        var src = R.afficheUrl(f.poster, 600);
         if (!src) return "";
         return (
-          '<a class="m-affiche m-annonce__film" href="../film/?s=' +
+          '<a class="m-affiche m-affiche--film m-annonce__film" href="../film/?s=' +
           encodeURIComponent(f.slug) + '"><div class="poster"><img src="' +
           R.escapeHtml(src) + '" alt="' + R.altDeLImage(f.poster, "Affiche de " + f.title) +
           '" loading="lazy"></div></a>'

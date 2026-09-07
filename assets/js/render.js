@@ -132,14 +132,34 @@
   /* Il n'existe plus d'image « locale » de secours : une image vient
      de Sanity, ou n'existe pas. C'est ce qui garantit qu'on voit
      toujours l'image que l'on vient de déposer, et jamais l'ancienne. */
-  function sanityImageUrl(img, width) {
+  function sanityImageUrl(img, width, height) {
     if (!hasRealImage(img) || !global.ZinemaData.projectId) return null;
     var ref = img.asset._ref || img.asset._id || "";
     var m = ref.match(/^image-([a-f0-9]+)-(\d+)x(\d+)-(\w+)$/);
     if (!m) return null;
     var id = m[1], w = m[2], h = m[3], format = m[4];
     var base = "https://cdn.sanity.io/images/" + global.ZinemaData.projectId + "/" + global.ZinemaData.dataset + "/" + id + "-" + w + "x" + h + "." + format;
-    return base + "?w=" + (width || 1200) + "&fit=crop&auto=format";
+    /* Avec une hauteur, l'image revient TOUJOURS aux mêmes dimensions,
+       quel que soit le fichier déposé dans le Studio : c'est ce qui
+       garantit que deux affiches côte à côte font la même taille.
+       Le recadrage suit le point important choisi sur l'image. */
+    return (
+      base + "?w=" + (width || 1200) +
+      (height ? "&h=" + height : "") +
+      "&fit=crop&auto=format"
+    );
+  }
+
+  /* ---------------- Le format des affiches ----------------
+     UNE seule taille d'affiche pour tout le site. Le rapport 1 / 1,41
+     est celui des affiches de cinéma suisses et françaises (A0, A1,
+     F4) ; il doit rester identique à --format-affiche dans style.css,
+     sinon l'image et sa case ne diraient pas la même chose. */
+  var AFFICHE_LARGEUR = 1000;
+  var AFFICHE_RAPPORT = 1.41;
+  function afficheUrl(poster, largeur) {
+    var w = largeur || AFFICHE_LARGEUR;
+    return sanityImageUrl(poster, w, Math.round(w * AFFICHE_RAPPORT));
   }
 
   /* ---------------- Affiches ---------------- */
@@ -191,7 +211,7 @@
 
   function posterHTML(film, opts) {
     opts = opts || {};
-    var src = sanityImageUrl(film.poster, 1200);
+    var src = afficheUrl(film.poster);
     if (src) {
       var loading = opts.priority ? "eager" : "lazy";
       return (
@@ -245,6 +265,7 @@
     toEmbedUrl: toEmbedUrl,
     hasRealImage: hasRealImage,
     sanityImageUrl: sanityImageUrl,
+    afficheUrl: afficheUrl,
     posterHTML: posterHTML,
     generatedPosterHTML: generatedPosterHTML,
   };

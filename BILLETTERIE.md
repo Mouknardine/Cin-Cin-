@@ -137,10 +137,6 @@ fonctionne donc normalement pendant toute la migration.
 3. **Le contrôle à l'entrée** : une page simple où saisir une
    référence pour vérifier un billet et le marquer comme utilisé
    (le champ existe déjà dans la commande).
-4. **Unifier les prix.** Les tarifs affichés sur le site sont encore
-   écrits dans `assets/js/data.js` (`16.-` / `10.-`), alors que ceux
-   qui facturent sont dans Sanity. Il faut les faire venir de Sanity
-   partout, pour n'avoir qu'un seul endroit à modifier.
-5. **Remboursements** : ils se font aujourd'hui depuis le compte
+4. **Remboursements** : ils se font aujourd'hui depuis le compte
    SumUp. Le statut « remboursée » existe dans la commande mais
    n'est pas encore mis à jour automatiquement.

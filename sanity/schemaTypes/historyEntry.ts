@@ -30,7 +30,7 @@ export const historyEntry = defineType({
       name: "title",
       title: "Titre de l'étape",
       type: "string",
-      description: "Quelques mots. Ex. « Ouverture, contre le courant ».",
+      description: "Quelques mots. Ex. « Ouverture de la salle ».",
       validation: (Rule) => Rule.required().error("Donnez un titre à l'étape."),
     }),
     defineField({

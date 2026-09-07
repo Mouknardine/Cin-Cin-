@@ -30,7 +30,7 @@ export const imageZinema = defineType({
       title: "Décrire l'image en une phrase",
       type: "string",
       description:
-        "Ce que l'on voit sur l'image, simplement. Ex. « Affiche du film Wolves : deux visages de profil sur fond rouge ». Sert aux personnes malvoyantes, à Google, et s'affiche si l'image ne charge pas.",
+        "Ce que l'on voit sur l'image, simplement. Ex. « Affiche du film Le Dernier pour la route : trois hommes marchent sur fond jaune ». Sert aux personnes malvoyantes, à Google, et s'affiche si l'image ne charge pas.",
       validation: (Rule) =>
         Rule.min(5).warning(
           "Sans cette phrase, l'image reste invisible pour les personnes malvoyantes et pour Google. À compléter quand vous avez un moment — cela n'empêche pas de publier."

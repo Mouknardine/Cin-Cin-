@@ -11,7 +11,14 @@
    dans « Réglages du cinéma → Tarifs & salles ».
    ============================================================ */
 
-export const SALLES = ["Salle 1", "Salle 2"] as const;
+/* Les trois espaces du cinéma, tels qu'ils apparaissent sur le
+   programme :
+     Salle 1  — parrainée Thierry Jobin (ex-Le Temps, fiff.ch)
+     Salle 2  — parrainée Norbert Creutz (Le Temps)
+     Hall-Bar — le bar, où se tiennent les séances particulières
+   Seul le nom court sert de clé : c'est lui qu'on retrouve dans les
+   séances et dans le comptage des places. */
+export const SALLES = ["Salle 1", "Salle 2", "Hall-Bar"] as const;
 
 export type NomDeSalle = (typeof SALLES)[number];
 
@@ -19,6 +26,7 @@ export type NomDeSalle = (typeof SALLES)[number];
 export const PLACES_PAR_DEFAUT: Record<NomDeSalle, number> = {
   "Salle 1": 18,
   "Salle 2": 14,
+  "Hall-Bar": 50,
 };
 
 /** Liste prête à l'emploi pour un champ `options.list` du Studio. */

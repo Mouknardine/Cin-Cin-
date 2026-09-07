@@ -127,8 +127,9 @@
   overflow: hidden;
   background: var(--paper);
 }
-/* L'image reprend le flux normal (la règle globale .poster img la met
-   en absolu) : c'est elle qui donne sa hauteur exacte à la case. */
+/* Par défaut la case épouse la hauteur de son image : c'est ce qu'il
+   faut pour les visuels d'événement et les photos d'archive, qui ne
+   sont pas des affiches et n'ont aucun format imposé. */
 .m-affiche .poster {
   height: auto;
 }
@@ -138,9 +139,29 @@
   width: 100%;
   height: auto;
 }
-/* Sans vraie affiche : l'affiche générée garde un format d'affiche. */
+
+/* Une AFFICHE DE FILM, elle, a toujours le même format — c'est la
+   règle du mur d'affiches : deux films voisins ne font jamais deux
+   cases de tailles différentes. L'affiche remplit sa case sans
+   jamais être déformée ; si elle n'est pas au format, elle est
+   recadrée sur son point important, celui choisi dans le Studio. */
+.m-affiche--film {
+  aspect-ratio: var(--format-affiche);
+}
+.m-affiche--film .poster {
+  height: 100%;
+}
+.m-affiche--film .poster img {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+/* Sans vraie affiche : l'affiche générée prend exactement le même
+   format que les autres. */
 .m-affiche--generee {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: var(--format-affiche);
 }
 .m-affiche--generee .generated-poster {
   width: 100%;
@@ -500,10 +521,9 @@ button.m-acheter:focus-visible { background: var(--vert-fonce); }
   .mondrian--film > .m-ba             { grid-area: ba; }
   .mondrian--film > .m-seances        { grid-area: seances; }
 
-  /* L'affiche est montrée ENTIÈRE — jamais recadrée, le titre du
-     film reste lisible — centrée dans sa colonne. L'image est en
+  /* L'affiche remplit sa colonne, au format du site. L'image est en
      position absolue : elle remplit la case sans jamais imposer sa
-     hauteur au tableau, quel que soit le format de l'affiche. */
+     hauteur au tableau, quel que soit le format du fichier livré. */
   .mondrian--film > .m-affiche { position: relative; }
   .mondrian--film > .m-affiche .poster,
   .mondrian--film > .m-affiche .generated-poster,
@@ -513,9 +533,10 @@ button.m-acheter:focus-visible { background: var(--vert-fonce); }
     width: 100%;
     height: 100%;
   }
-  .mondrian--film > .m-affiche .poster img { object-fit: contain; }
-  /* L'affiche générée, elle, n'a pas de format à respecter :
-     elle remplit sa case exactement. */
+  .mondrian--film > .m-affiche .poster img { object-fit: cover; }
+  /* Un film sans affiche n'a pas de fichier à respecter : son
+     affiche typographique remplit simplement sa case, dont la
+     hauteur est donnée par la rangée. */
   .mondrian--film > .m-affiche--generee { aspect-ratio: auto; }
 
   /* Le bouton d'achat tient toute la hauteur du titre : c'est le
@@ -573,11 +594,11 @@ button.m-acheter:focus-visible { background: var(--vert-fonce); }
       "affiche  ba       seances"
       "bas      bas      bas";
   }
-  /* La case de l'affiche garde un format d'affiche de cinéma : c'est
+  /* La case de l'affiche garde le format d'affiche du site : c'est
      elle qui fixe la hauteur de sa rangée, et l'image la remplit donc
      exactement. Sans ça, l'affiche serait bridée par la hauteur des
      séances et flotterait dans du papier blanc. */
-  .mondrian--film > .m-affiche { aspect-ratio: 1 / 1.41; }
+  .mondrian--film > .m-affiche { aspect-ratio: var(--format-affiche); }
   /* Sans bande-annonce, plus rien ne fixe la hauteur de la rangée
      de l'affiche : on lui en donne deux pour qu'elle garde une
      présence. */

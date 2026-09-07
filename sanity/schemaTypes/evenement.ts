@@ -30,7 +30,7 @@ export const evenement = defineType({
       name: "title",
       title: "Titre de l'événement",
       type: "string",
-      description: "Ex. « Cycle Cinéastes suisses oubliées », « Brunch du dimanche ».",
+      description: "Ex. « Projections privées et anniversaires », « Fermeture estivale ».",
       validation: (Rule) => Rule.required().error("Donnez un titre à l'événement."),
     }),
     defineField({
@@ -124,7 +124,7 @@ export const evenement = defineType({
       name: "linkLabel",
       title: "Texte du bouton",
       type: "string",
-      description: "Ex. « Réserver le brunch ». Par défaut : « En savoir plus ».",
+      description: "Ex. « Réserver la salle ». Par défaut : « En savoir plus ».",
       hidden: ({ document }) => !document?.linkUrl,
     }),
     defineField({

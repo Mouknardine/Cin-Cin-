@@ -55,6 +55,13 @@ titre, l'affiche, la durée, la version et le prix viennent du film.
 ### Modifier un texte de page
 **Textes des pages → le nom de la page.**
 
+### Charger d'un coup la programmation
+Le dossier [`sanity/import/`](sanity/import/) contient le contenu réel du
+cinéma prêt à être versé dans le Studio en une commande — les films du
+programme, les tarifs, les coordonnées, la frise et les textes des pages.
+Voir [sanity/import/LISEZ-MOI.md](sanity/import/LISEZ-MOI.md). Utile pour
+repartir d'une base propre ; au quotidien, tout se saisit dans le Studio.
+
 ## Deux règles qui gouvernent tout
 
 **1. Ce qui est publié est ce qui s'affiche. Rien d'autre.**

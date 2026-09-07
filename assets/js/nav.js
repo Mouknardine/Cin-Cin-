@@ -140,7 +140,7 @@
     nav.innerHTML =
       '<ul class="main-nav__list">' + itemsHTML + "</ul>" +
       '<div class="main-nav__footer font-display">' +
-      "<span>Zinéma — Lausanne, cinéma indépendant depuis 2001</span>" +
+      "<span>Zinéma — Lausanne, salle de cinéma fondée en juin 2001</span>" +
       '<a href="' + root + 'agenda/" class="underline-hover">Voir les séances de la semaine →</a>' +
       "</div>";
 
