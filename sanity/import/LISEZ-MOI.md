@@ -1,57 +1,84 @@
-# Charger la vraie programmation dans le Studio
+# Mettre le Studio à l'heure du programme réel
 
-Ce dossier contient **le contenu réel du cinéma**, prêt à être versé dans
-Sanity en une seule commande : les cinq films du programme, les tarifs,
-l'adresse et les téléphones, les deux étapes de la frise, les deux
-informations en cours, et les textes des sept pages du site.
+Le site n'affiche que ce qui est publié dans Sanity. Modifier le code
+ne change donc rien à ce qu'on voit : les films, les tarifs et les
+textes vivent dans le Studio.
 
-Rien de tout cela n'est affiché depuis le code : une fois chargé, tout
-se modifie normalement dans le Studio.
+Ce dossier contient de quoi y verser **le contenu réel du cinéma** en
+une seule commande.
 
-## 1. Déposer les affiches
+## La commande
 
-Glissez les cinq affiches dans le dossier `affiches/`, avec **exactement**
-ces noms de fichiers :
-
-| Fichier attendu                        | Film                            |
-| -------------------------------------- | ------------------------------- |
-| `le-dernier-pour-la-route.jpg`         | Le Dernier pour la route        |
-| `de-la-comedie-francaise.jpg`          | De la Comédie Française         |
-| `les-matins-merveilleux.jpg`           | Les Matins merveilleux          |
-| `ah-que-le-bonheur-est-proche.jpg`     | Ah que le bonheur est proche !  |
-
-Prenez à chaque fois **le plus grand fichier** dont vous disposez : le site
-se charge lui-même de les ramener toutes à la même taille, mais il ne peut
-pas inventer des pixels qui manquent.
-
-`Drowak` n'a pas d'affiche pour l'instant : le film sera chargé sans, et le
-site affichera une affiche typographique fabriquée à partir de son titre,
-jusqu'à ce qu'on dépose la vraie dans le Studio.
-
-## 2. Lancer l'import
-
-Depuis ce dossier :
+Depuis la racine du dépôt :
 
 ```sh
-cd sanity/import
-npx sanity dataset import programme.ndjson production --replace
+npx sanity login          # la première fois seulement
+npx sanity exec sanity/import/mettre-a-jour.mjs --with-user-token
 ```
 
-Sanity demandera de se connecter la première fois (`npx sanity login`).
+Le script raconte tout ce qu'il fait, ligne par ligne. Le relancer ne
+crée jamais de doublon : il compare avant d'écrire.
 
-- `--replace` remplace les fiches portant le même identifiant : relancer la
-  commande deux fois ne crée jamais de doublon.
-- Les affiches sont téléversées automatiquement avec les films.
+## Ce qu'il fait
 
-## 3. Ce qu'il reste à faire à la main
+**Les films.** Il reconnaît ceux du programme qui sont déjà saisis —
+même sous un autre titre, en capitales, ou avec une autre adresse de
+page — et les corrige au lieu d'en créer un deuxième. C'est le cas de
+*Drowak*, présent sous son titre allemand *Sie glauben an Engel, Herr
+Drowak?* : son affiche est conservée. Les quatre autres sont créés avec
+l'affiche déposée dans `affiches/`.
 
-- **Les séances.** Le programme ne donnait aucun horaire (le cinéma était
-  en fermeture estivale jusqu'au 8 septembre). Elles se saisissent dans le
-  Studio, depuis la fiche de chaque film, rubrique « Séances de ce film ».
-  Tant qu'il n'y en a pas, la page Agenda affiche son message d'attente.
-- **L'affiche de Drowak**, quand elle sera disponible.
+**Les anciens films** passent en « Terminé » : ils quittent le site et
+restent consultables dans le Studio. Rien n'est supprimé.
+
+**Les tarifs, les coordonnées, les formules et les textes des sept
+pages** sont remis d'après ce que le cinéma publie : 16.- / 10.-, carte
+annuelle 60.-, rue du Maupas 4, les deux téléphones, l'IBAN, les trois
+salles. Le logo et l'image de partage déjà déposés ne sont pas touchés.
+
+**La frise et les informations** sont remplacées par les vraies (2001 et
+2005 avec leurs architectes, designers et graphistes ; les projections
+privées ; la fermeture estivale). Celles qui avaient été inventées
+pendant la mise au point du site sont supprimées — la frise n'a pas
+d'état « Terminé ». Le script les nomme une par une avant de le faire,
+et Sanity garde un historique : une suppression se rattrape depuis le
+Studio.
+
+> Si vous avez déjà saisi vous-même des étapes de frise ou des
+> événements dans le Studio, dites-le avant de lancer : ce sont les
+> deux seuls endroits où le script supprime.
+
+## Les affiches
+
+Elles sont dans `affiches/`, au nom du film :
+
+| Fichier                              | Film                           |
+| ------------------------------------ | ------------------------------ |
+| `le-dernier-pour-la-route.jpg`       | Le Dernier pour la route       |
+| `de-la-comedie-francaise.jpg`        | De la Comédie Française        |
+| `les-matins-merveilleux.jpg`         | Les Matins merveilleux         |
+| `ah-que-le-bonheur-est-proche.jpg`   | Ah que le bonheur est proche ! |
+
+Elles font 400 × 570 px, la plus petite taille disponible : la mise en
+page est juste, mais elles seront un peu douces sur un grand écran. Les
+remplacer par des fichiers plus grands **sous le même nom** et relancer
+la commande suffit à les rendre nettes.
+
+*Drowak* garde l'affiche déjà déposée dans le Studio.
+
+## Ce qui reste à saisir à la main
+
+- **Les séances.** Le programme du cinéma ne donnait aucun horaire (la
+  salle était en fermeture estivale). Elles se créent depuis la fiche de
+  chaque film, rubrique « Séances de ce film ». Tant qu'il n'y en a pas,
+  la page Agenda affiche son message d'attente.
 - **Les citations de presse.** Les articles sont connus (La Liberté,
-  Cineuropa, RTS, Le Temps) mais une citation ne s'invente pas : recopiez
-  la phrase que vous voulez mettre en avant dans « Critiques presse », puis
+  Cineuropa, RTS, Le Temps) mais une citation ne s'invente pas :
+  recopiez la phrase à mettre en avant dans « Critiques presse », puis
   choisissez-la depuis la fiche du film.
-- **Les réseaux sociaux**, s'il y en a, dans « Réglages du cinéma ».
+
+## Les deux fichiers
+
+- `programme.data.mjs` — les textes, rien que les textes. C'est là qu'on
+  corrige un synopsis ou une durée.
+- `mettre-a-jour.mjs` — le script qui parle à Sanity.

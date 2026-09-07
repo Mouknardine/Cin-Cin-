@@ -56,9 +56,15 @@ titre, l'affiche, la durée, la version et le prix viennent du film.
 **Textes des pages → le nom de la page.**
 
 ### Charger d'un coup la programmation
-Le dossier [`sanity/import/`](sanity/import/) contient le contenu réel du
-cinéma prêt à être versé dans le Studio en une commande — les films du
-programme, les tarifs, les coordonnées, la frise et les textes des pages.
+Une commande verse dans le Studio le contenu réel du cinéma — les films
+du programme avec leurs affiches, les tarifs, les coordonnées, la frise
+et les textes des pages — et retire de l'affiche les films qui n'y sont
+plus :
+
+```sh
+npx sanity exec sanity/import/mettre-a-jour.mjs --with-user-token
+```
+
 Voir [sanity/import/LISEZ-MOI.md](sanity/import/LISEZ-MOI.md). Utile pour
 repartir d'une base propre ; au quotidien, tout se saisit dans le Studio.
 

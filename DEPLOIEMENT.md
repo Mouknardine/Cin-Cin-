@@ -34,10 +34,16 @@ autorisée tant que cette version-là est en ligne.
 
 ## 2. Charger le contenu du cinéma
 
-Voir [sanity/import/LISEZ-MOI.md](sanity/import/LISEZ-MOI.md) : une
-commande verse les films, les tarifs, les coordonnées et les textes des
-pages dans le Studio. À faire une fois ; ensuite tout se saisit
-normalement dans le Studio.
+Une commande verse les films du programme avec leurs affiches, les
+tarifs, les coordonnées et les textes des pages dans le Studio, et
+retire de l'affiche les films qui n'y sont plus :
+
+```sh
+npx sanity exec sanity/import/mettre-a-jour.mjs --with-user-token
+```
+
+Voir [sanity/import/LISEZ-MOI.md](sanity/import/LISEZ-MOI.md). À faire
+une fois ; ensuite tout se saisit normalement dans le Studio.
 
 ## 3. Publier le site
 
