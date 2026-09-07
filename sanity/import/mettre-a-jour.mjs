@@ -248,6 +248,66 @@ async function traiterLesCritiques(filmsDuProgramme) {
   }
 }
 
+/* ---------------- Le ménage ----------------
+   Une fiche de film ne contient rien d'irremplaçable, SAUF son
+   affiche : le titre, la réalisation et le synopsis se retapent en
+   trente secondes, une affiche non. La règle est donc simple et sans
+   risque : une fiche qui ne porte AUCUNE affiche déposée et qui n'est
+   pas au programme s'en va pour de bon. Celles qui en portent une
+   restent, en « Terminé » — invisibles sur le site, prêtes à revenir.
+
+   Cela emporte aussi les brouillons jamais publiés, ces fiches vides
+   nées d'un clic malheureux, que rien d'autre ne signale. */
+async function traiterLeMenage(filmsDuProgramme) {
+  titre("Le ménage dans les fiches");
+
+  const garder = [...filmsDuProgramme];
+  const garderBrouillons = garder.map((id) => "drafts." + id);
+
+  const [aSupprimer, gardees] = await Promise.all([
+    client.fetch(
+      `*[_type == "film" && !(_id in $garder) && !(_id in $garderBrouillons)
+         && !defined(poster.asset)]{_id, title, director, status}`,
+      { garder, garderBrouillons }
+    ),
+    client.fetch(
+      `*[_type == "film" && !(_id in $garder) && defined(poster.asset)]{
+         _id, title, "affiche": poster.asset->originalFilename}`,
+      { garder }
+    ),
+  ]);
+
+  for (const film of gardees) {
+    dire(`   = gardé : ${film.title} — porte une affiche (${film.affiche})`);
+  }
+
+  if (!aSupprimer.length) {
+    dire("   Aucune fiche vide à retirer.");
+    return;
+  }
+
+  /* Les séances d'un film supprimé n'auraient plus de film : elles
+     partent avec lui, passées comprises. */
+  const identifiants = aSupprimer.map((f) => f._id.replace(/^drafts\./, ""));
+  const seances = await client.fetch(
+    `*[_type == "screening" && film._ref in $identifiants]._id`,
+    { identifiants }
+  );
+
+  for (const film of aSupprimer) {
+    await client.delete(film._id);
+    await client.delete(film._id.replace(/^drafts\./, "")).catch(() => {});
+    await client.delete("drafts." + film._id.replace(/^drafts\./, "")).catch(() => {});
+    const brouillon = film._id.startsWith("drafts.") ? " (brouillon jamais publié)" : "";
+    dire(`   ✗ supprimé : ${film.title || "fiche sans titre"} — ${film.director || "sans réalisation"}${brouillon}`);
+  }
+  for (const id of seances) {
+    await client.delete(id);
+    await client.delete("drafts." + id).catch(() => {});
+  }
+  if (seances.length) dire(`   ✗ ${seances.length} séance(s) de ces films supprimée(s).`);
+}
+
 async function traiterLesReglages() {
   titre("Tarifs, coordonnées et formules");
 
@@ -435,6 +495,7 @@ async function principal() {
   const filmsDuProgramme = await traiterLesFilms();
   await traiterLesSeances(filmsDuProgramme);
   await traiterLesCritiques(filmsDuProgramme);
+  await traiterLeMenage(filmsDuProgramme);
   await traiterLesReglages();
   await traiterLesPages();
   await remplacer("historyEntry", FRISE, "La frise de la page Histoire");
