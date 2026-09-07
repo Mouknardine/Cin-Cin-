@@ -26,11 +26,37 @@ on:
           - simulation    # dit ce qui changerait, sans rien écrire
           - appliquer     # écrit vraiment dans le Studio
 
+  # Deuxième porte d'entrée, pour qui n'a pas le bouton « Run workflow »
+  # (un assistant travaillant sur le dépôt, par exemple) : créer l'une
+  # de ces trois branches déclenche le mode correspondant. Elles ne
+  # servent qu'à ça et peuvent être supprimées juste après.
+  push:
+    branches:
+      - sanity/voir
+      - sanity/simulation
+      - sanity/appliquer
+
 jobs:
   sanity:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # Le mode vient soit du menu « Run workflow », soit du nom de la
+      # branche qui a déclenché l'exécution.
+      - name: Quel mode ?
+        id: mode
+        run: |
+          MODE="${{ inputs.mode }}"
+          if [ -z "$MODE" ]; then
+            case "${{ github.ref_name }}" in
+              sanity/appliquer)  MODE=appliquer ;;
+              sanity/simulation) MODE=simulation ;;
+              *)                 MODE=voir ;;
+            esac
+          fi
+          echo "valeur=$MODE" >> "$GITHUB_OUTPUT"
+          echo "Mode : $MODE"
 
       - uses: actions/setup-node@v4
         with:
@@ -55,19 +81,19 @@ jobs:
         run: node sanity/import/etat.mjs
 
       - name: Simuler la mise à jour
-        if: inputs.mode == 'simulation'
+        if: steps.mode.outputs.valeur == 'simulation'
         env:
           SANITY_WRITE_TOKEN: ${{ secrets.SANITY_WRITE_TOKEN }}
         run: node sanity/import/mettre-a-jour.mjs
 
       - name: Appliquer la mise à jour
-        if: inputs.mode == 'appliquer'
+        if: steps.mode.outputs.valeur == 'appliquer'
         env:
           SANITY_WRITE_TOKEN: ${{ secrets.SANITY_WRITE_TOKEN }}
         run: node sanity/import/mettre-a-jour.mjs --appliquer
 
       - name: Ce que le Studio contient APRÈS
-        if: inputs.mode == 'appliquer'
+        if: steps.mode.outputs.valeur == 'appliquer'
         env:
           SANITY_WRITE_TOKEN: ${{ secrets.SANITY_WRITE_TOKEN }}
         run: node sanity/import/etat.mjs
