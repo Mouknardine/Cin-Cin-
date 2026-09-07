@@ -34,13 +34,10 @@ autorisée tant que cette version-là est en ligne.
 
 ## 2. Charger le contenu du cinéma
 
-Une commande verse les films du programme avec leurs affiches, les
-tarifs, les coordonnées et les textes des pages dans le Studio, et
-retire de l'affiche les films qui n'y sont plus :
-
-```sh
-npx sanity exec sanity/import/mettre-a-jour.mjs --with-user-token
-```
+Onglet **Actions → Mettre Sanity à jour**, mode `appliquer` : les films
+du programme et leurs affiches, les tarifs, les coordonnées et les
+textes des pages partent dans le Studio, et les films qui ne sont plus
+à l'affiche en sortent. Rien à installer.
 
 Voir [sanity/import/LISEZ-MOI.md](sanity/import/LISEZ-MOI.md). À faire
 une fois ; ensuite tout se saisit normalement dans le Studio.

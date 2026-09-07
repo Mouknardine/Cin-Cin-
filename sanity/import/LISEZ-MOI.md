@@ -7,17 +7,43 @@ textes vivent dans le Studio.
 Ce dossier contient de quoi y verser **le contenu réel du cinéma** en
 une seule commande.
 
-## La commande
+## Comment lancer — depuis GitHub, sans rien installer
 
-Depuis la racine du dépôt :
+Le contenu du site vit dans Sanity, pas dans le code : pousser du code
+ne change donc jamais les films affichés. Tout se pilote depuis
+l'onglet **Actions** du dépôt.
+
+### Une seule fois : donner la clé à GitHub
+
+1. Aller sur <https://www.sanity.io/manage> → projet **`vle63mzm`**
+2. **API → Tokens → Add API token** — nom : `GitHub Actions`,
+   droits : **Editor**. Copier le jeton (il ne se réaffiche plus).
+3. Dans GitHub : **Settings → Secrets and variables → Actions →
+   New repository secret**, nom `SANITY_WRITE_TOKEN`, coller le jeton.
+
+Ce jeton se révoque à tout moment au même endroit dans Sanity.
+
+### Ensuite, à volonté
+
+**Actions → Mettre Sanity à jour → Run workflow**, puis choisir :
+
+| Mode         | Ce que ça fait                                                        |
+| ------------ | --------------------------------------------------------------------- |
+| `voir`       | lit et affiche ce que le Studio contient. N'écrit rien.               |
+| `simulation` | dit exactement ce qui changerait. N'écrit rien.                        |
+| `appliquer`  | écrit vraiment, puis réaffiche l'état obtenu.                          |
+
+Le résultat s'affiche dans le journal de l'exécution. Le mode
+`simulation` avant `appliquer` évite toute surprise.
+
+### Ou en ligne de commande, si on a le dépôt en local
 
 ```sh
-npx sanity login          # la première fois seulement
-npx sanity exec sanity/import/mettre-a-jour.mjs --with-user-token
+export SANITY_WRITE_TOKEN='le-jeton'
+node sanity/import/etat.mjs                        # voir
+node sanity/import/mettre-a-jour.mjs               # simulation
+node sanity/import/mettre-a-jour.mjs --appliquer   # pour de vrai
 ```
-
-Le script raconte tout ce qu'il fait, ligne par ligne. Le relancer ne
-crée jamais de doublon : il compare avant d'écrire.
 
 ## Ce qu'il fait
 
@@ -77,8 +103,9 @@ la commande suffit à les rendre nettes.
   recopiez la phrase à mettre en avant dans « Critiques presse », puis
   choisissez-la depuis la fiche du film.
 
-## Les deux fichiers
+## Les trois fichiers
 
 - `programme.data.mjs` — les textes, rien que les textes. C'est là qu'on
   corrige un synopsis ou une durée.
-- `mettre-a-jour.mjs` — le script qui parle à Sanity.
+- `mettre-a-jour.mjs` — le script qui corrige le Studio.
+- `etat.mjs` — dit ce que le Studio contient. Ne sait que lire.

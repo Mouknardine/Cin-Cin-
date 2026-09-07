@@ -1,7 +1,19 @@
 /* ============================================================
-   Met le Studio à l'heure du programme réel, en une commande :
+   Met le Studio à l'heure du programme réel.
 
-       npx sanity exec sanity/import/mettre-a-jour.mjs --with-user-token
+   Deux façons de le lancer, l'une sûre, l'autre définitive :
+
+     node sanity/import/mettre-a-jour.mjs              → SIMULATION
+     node sanity/import/mettre-a-jour.mjs --appliquer  → pour de vrai
+
+   Sans « --appliquer », le script lit Sanity, dit exactement ce
+   qu'il ferait, et n'écrit rien. C'est le mode par défaut : on
+   regarde d'abord, on décide ensuite.
+
+   Il lui faut un jeton d'écriture dans SANITY_WRITE_TOKEN. Le plus
+   simple est de passer par l'onglet Actions de GitHub, où le jeton
+   est déjà rangé : workflow « Mettre Sanity à jour ». Rien à
+   installer sur son ordinateur.
 
    Ce que le script fait, dans l'ordre, en disant tout ce qu'il fait :
 
@@ -27,14 +39,53 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { getCliClient } from "sanity/cli";
+import { createClient } from "@sanity/client";
 
 import { FILMS, trierLesFilms } from "./programme.data.mjs";
 
+/* Sans « --appliquer », on ne fait que regarder. */
+const SIMULATION = !process.argv.includes("--appliquer");
+
+const jeton = process.env.SANITY_WRITE_TOKEN;
+if (!jeton) {
+  console.error(
+    "\n✗ Il manque le jeton d'écriture Sanity (SANITY_WRITE_TOKEN).\n" +
+      "  Il se crée sur https://www.sanity.io/manage → projet vle63mzm →\n" +
+      "  API → Tokens → Add API token, avec les droits « Editor ».\n"
+  );
+  process.exit(1);
+}
+
+const vraiClient = createClient({
+  projectId: process.env.SANITY_PROJECT_ID || "vle63mzm",
+  dataset: process.env.SANITY_DATASET || "production",
+  apiVersion: "2024-06-01",
+  token: jeton,
+  useCdn: false, // on veut l'état réel, pas une copie de cache
+});
+
+/* En simulation, la lecture est vraie et l'écriture ne part jamais :
+   même déroulé, même affichage, aucune conséquence. */
+function clientDeSimulation(reel) {
+  const patchSimule = () => {
+    const api = { set: () => api, unset: () => api, commit: async () => {} };
+    return api;
+  };
+  return {
+    config: () => reel.config(),
+    fetch: (...arguments_) => reel.fetch(...arguments_),
+    assets: { upload: async (_type, _flux, o) => ({ _id: "simulation-" + o.filename }) },
+    patch: patchSimule,
+    createOrReplace: async () => {},
+    createIfNotExists: async () => {},
+    delete: async () => {},
+  };
+}
+
+const client = SIMULATION ? clientDeSimulation(vraiClient) : vraiClient;
+
 const ICI = path.dirname(fileURLToPath(import.meta.url));
 const DOSSIER_AFFICHES = path.join(ICI, "affiches");
-
-const client = getCliClient({ apiVersion: "2024-06-01" });
 
 const dire = (...mots) => console.log(...mots);
 const titre = (texte) => dire("\n" + texte + "\n" + "─".repeat(texte.length));
@@ -306,7 +357,14 @@ async function remplacer(type, documents, etiquette) {
 
 /* ---------------- Déroulé ---------------- */
 async function principal() {
-  dire(`Studio : projet ${client.config().projectId}, jeu de données ${client.config().dataset}`);
+  dire(
+    `Studio : projet ${client.config().projectId}, jeu de données ${client.config().dataset}`
+  );
+  dire(
+    SIMULATION
+      ? "MODE SIMULATION — rien ne sera écrit. Relancer avec « --appliquer » pour le faire vraiment.\n"
+      : "MODE RÉEL — les modifications partent dans le Studio.\n"
+  );
   await traiterLesFilms();
   await traiterLesReglages();
   await traiterLesPages();
@@ -322,12 +380,16 @@ async function principal() {
     ? `   ${seances} séance(s) à venir sont programmées.`
     : "   Aucune séance : la page Agenda restera vide tant que les horaires\n     ne seront pas saisis, depuis la fiche de chaque film.");
   dire("   L'affiche de Drowak, si le Studio n'en a pas encore une.");
-  dire("\nTerminé. Le site affiche le nouveau contenu immédiatement.\n");
+  dire(
+    SIMULATION
+      ? "\nSimulation terminée : rien n'a été modifié.\n"
+      : "\nTerminé. Le site affiche le nouveau contenu immédiatement.\n"
+  );
 }
 
 principal().catch((erreur) => {
   console.error("\n✗ Le script s'est arrêté :", erreur.message);
-  console.error("  Si Sanity refuse l'accès, connectez-vous d'abord avec");
-  console.error("  « npx sanity login », puis relancez avec « --with-user-token ».\n");
+  console.error("  Si Sanity refuse l'accès, le jeton est absent, expiré, ou");
+  console.error("  n'a pas les droits « Editor ».\n");
   process.exit(1);
 });

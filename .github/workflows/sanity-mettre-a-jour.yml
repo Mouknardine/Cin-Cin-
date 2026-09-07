@@ -1,0 +1,73 @@
+name: Mettre Sanity à jour
+
+# Le contenu du site (films, tarifs, textes) vit dans Sanity, pas dans
+# le code. Ce workflow permet de le lire et de le corriger depuis
+# l'onglet Actions, sans rien installer sur son ordinateur.
+#
+# À régler UNE SEULE FOIS, dans Settings → Secrets and variables →
+# Actions → New repository secret :
+#
+#   SANITY_WRITE_TOKEN
+#
+# Le jeton se crée sur https://www.sanity.io/manage → projet vle63mzm
+# → API → Tokens → Add API token, avec les droits « Editor ».
+# Il se révoque au même endroit, à tout moment.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Que faire ?"
+        type: choice
+        required: true
+        default: voir
+        options:
+          - voir          # lire seulement : dit ce que le Studio contient
+          - simulation    # dit ce qui changerait, sans rien écrire
+          - appliquer     # écrit vraiment dans le Studio
+
+jobs:
+  sanity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Le jeton Sanity est-il renseigné ?
+        env:
+          JETON: ${{ secrets.SANITY_WRITE_TOKEN }}
+        run: |
+          if [ -z "$JETON" ]; then
+            echo "::error::Le secret SANITY_WRITE_TOKEN n'existe pas encore. Le créer dans Settings → Secrets and variables → Actions, à partir d'un jeton « Editor » de https://www.sanity.io/manage (projet vle63mzm → API → Tokens)."
+            exit 1
+          fi
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Ce que le Studio contient AVANT
+        env:
+          SANITY_WRITE_TOKEN: ${{ secrets.SANITY_WRITE_TOKEN }}
+        run: node sanity/import/etat.mjs
+
+      - name: Simuler la mise à jour
+        if: inputs.mode == 'simulation'
+        env:
+          SANITY_WRITE_TOKEN: ${{ secrets.SANITY_WRITE_TOKEN }}
+        run: node sanity/import/mettre-a-jour.mjs
+
+      - name: Appliquer la mise à jour
+        if: inputs.mode == 'appliquer'
+        env:
+          SANITY_WRITE_TOKEN: ${{ secrets.SANITY_WRITE_TOKEN }}
+        run: node sanity/import/mettre-a-jour.mjs --appliquer
+
+      - name: Ce que le Studio contient APRÈS
+        if: inputs.mode == 'appliquer'
+        env:
+          SANITY_WRITE_TOKEN: ${{ secrets.SANITY_WRITE_TOKEN }}
+        run: node sanity/import/etat.mjs

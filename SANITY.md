@@ -56,14 +56,12 @@ titre, l'affiche, la durée, la version et le prix viennent du film.
 **Textes des pages → le nom de la page.**
 
 ### Charger d'un coup la programmation
-Une commande verse dans le Studio le contenu réel du cinéma — les films
-du programme avec leurs affiches, les tarifs, les coordonnées, la frise
-et les textes des pages — et retire de l'affiche les films qui n'y sont
-plus :
-
-```sh
-npx sanity exec sanity/import/mettre-a-jour.mjs --with-user-token
-```
+Depuis l'onglet **Actions** du dépôt, workflow **« Mettre Sanity à
+jour »** : il lit le Studio (`voir`), dit ce qui changerait
+(`simulation`), ou verse le contenu réel du cinéma — films du programme
+avec leurs affiches, tarifs, coordonnées, frise, textes des pages — en
+retirant de l'affiche les films qui n'y sont plus (`appliquer`).
+Rien à installer.
 
 Voir [sanity/import/LISEZ-MOI.md](sanity/import/LISEZ-MOI.md). Utile pour
 repartir d'une base propre ; au quotidien, tout se saisit dans le Studio.
