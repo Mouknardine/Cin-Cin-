@@ -57,9 +57,15 @@
      (8,2:1 au repos, 11,7:1 au survol). */
   --vert: #275a1b;
   --vert-fonce: #1b4014;
-  /* Le rose de We Are Brothers : il ne sert qu'à leur signature,
-     tout en bas du pied de page. */
-  --rose: #e0218a;
+  /* Le rose fluo : la seule couleur du site qui ne vienne pas du
+     tirage au sort des cases. Elle ne sert qu'au survol de deux
+     choses, le logo en haut et la signature de l'agence en bas —
+     les deux bornes de la page.
+
+     Le texte posé dessus est l'encre du site, pas du blanc : noir
+     sur ce rose tient 5,8:1, blanc n'en tiendrait que 3,7 et
+     passerait sous le seuil de lisibilité. */
+  --rose-fluo: #ff00a0;
   /* Le trait du site. Il n'y en a qu'un : la même épaisseur pour
      TOUS les traits, partout — le quadrillage des tableaux, la
      barre de navigation, le pied de page, les cases de l'accueil,
@@ -267,12 +273,20 @@ button {
   }
 }
 
+/* Le logo ramène à l'accueil. Au survol, sa case se remplit de rose
+   fluo — comme la signature de l'agence tout en bas : les deux
+   bornes de la page réagissent de la même façon. */
 .site-header__logo {
   display: flex;
   position: relative;
   z-index: 10;
   align-items: center;
   gap: 0.75rem;
+  transition: background 0.2s ease-out;
+}
+.site-header__logo:hover,
+.site-header__logo:focus-visible {
+  background: var(--rose-fluo);
 }
 .site-header__logo img { height: 2rem; width: auto; }
 @media (min-width: 768px) {
@@ -609,9 +623,10 @@ body:not([data-page="home"]) .main-area {
 .home-canvas__copy { position: absolute; left: 0; }
 .home-canvas__slot { position: absolute; }
 
-/* Une case du mur : l'affiche, puis la bande du titre en dessous.
-   Le titre vit hors de l'image, sur le papier — jamais posé
-   par-dessus l'affiche, qui reste entièrement visible. */
+/* Une case du mur : rien que l'affiche. Le titre y figure déjà,
+   dessiné par le distributeur, souvent mieux que nous ne saurions
+   l'écrire — le répéter en dessous doublait l'information et
+   volait de la place à l'image. */
 .canvas-poster {
   position: relative;
   display: flex;
@@ -657,29 +672,6 @@ body:not([data-page="home"]) .main-area {
   transition: opacity 0.2s;
 }
 .canvas-poster:hover .canvas-poster__plus { opacity: 1; }
-
-/* Le titre du film, toujours visible sous son affiche — sur
-   ordinateur comme sur mobile, où il n'y a pas de survol possible.
-   La bande a une hauteur fixe et le titre s'y limite à deux
-   lignes : toutes les affiches gardent ainsi exactement la même
-   hauteur, quel que soit le titre, et le mur reste d'aplomb. */
-.canvas-poster__title {
-  flex: none;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-  height: 54px;
-  padding-top: 10px;
-  color: var(--ink);
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 18px;
-  line-height: 1.15;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
 
 /* Case de secours (aucun film avec affiche) : le mur reste plein. */
 .canvas-block {
@@ -755,15 +747,15 @@ body:not([data-page="home"]) .main-area {
 
 /* La signature de l'agence : une case comme les autres, même
    graisse que ses voisines. Elle ne s'en distingue que d'une
-   façon — c'est la seule case du site qui échappe au tirage des
-   couleurs : elle se remplit du rose de We Are Brothers au survol. */
+   façon — c'est la seule case du site, avec le logo, qui échappe
+   au tirage des couleurs : elle se remplit de rose fluo au survol. */
 .site-footer__signature {
   transition: background 0.2s ease-out, color 0.2s ease-out;
 }
 .site-footer__signature:hover,
 .site-footer__signature:focus-visible {
-  background: var(--rose);
-  color: #fff;
+  background: var(--rose-fluo);
+  color: var(--ink);
 }
 
 /* ============================================================
@@ -803,11 +795,17 @@ body:not([data-page="home"]) .main-area {
   line-height: 1.5;
 }
 
-/* La liste d'avantages d'une formule d'abonnement. */
+/* La liste d'avantages d'une formule d'abonnement. Elle s'écrit
+   exactement comme le paragraphe juste au-dessus : même fonte, même
+   corps, même graisse. Elle était plus petite, ce qui la faisait
+   passer pour une note de bas de page alors qu'elle dit l'essentiel
+   — ce que la formule donne droit. */
 .m-formule__avantages {
   margin: 0.5rem 0 0;
   padding: 0 0 0 1.1rem;
-  font-size: 0.95rem;
+  font-family: var(--font-body);
+  font-size: inherit;
+  font-weight: 400;
   line-height: 1.45;
 }
 .m-formule__avantages li {

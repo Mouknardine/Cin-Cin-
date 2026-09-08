@@ -15,12 +15,11 @@
      barre de navigation, aucune affiche n'est coupée en haut de
      l'écran.
 
-     Une case = l'affiche, puis la bande du titre en dessous. La
-     bande a une hauteur fixe (voir .canvas-poster__title) : toutes
-     les affiches ont donc exactement la même hauteur, qu'un titre
-     tienne sur une ligne ou sur deux. Les valeurs sont en pixels
-     de la grille de référence (designWidth), mise à l'échelle de
-     l'écran ensuite.
+     Une case = une affiche, rien d'autre. Sa hauteur suit le format
+     d'une affiche de cinéma : c'est ce rapport qui fixe caseHeight
+     à partir de columnWidth, pour qu'aucune affiche ne soit rognée
+     sur les côtés. Les valeurs sont en pixels de la grille de
+     référence (designWidth), mise à l'échelle de l'écran ensuite.
 
      Règle à respecter si l'on retouche ces chiffres :
      perColumn × (caseHeight + gap) doit valoir exactement
@@ -29,11 +28,11 @@
   /* Ordinateur : trois colonnes, deux rangées par cycle. */
   var desktop = {
     designWidth: 1200,
-    cycleHeight: 1054,
+    cycleHeight: 946, // 2 × (441 + 32)
     gap: 32,
     columnLefts: [106, 446, 786],
     columnWidth: 308,
-    caseHeight: 495,
+    caseHeight: 441, // 308 de large : le format d'une affiche
     perColumn: 2,
   };
 
@@ -41,11 +40,11 @@
      marge blanche de chaque côté de l'écran. */
   var mobile = {
     designWidth: 400,
-    cycleHeight: 942,
+    cycleHeight: 780, // 3 × (244 + 16)
     gap: 16,
     columnLefts: [16, 208],
     columnWidth: 176,
-    caseHeight: 298,
+    caseHeight: 244, // 176 de large : le même format d'affiche
     perColumn: 3,
   };
 
@@ -64,18 +63,16 @@
   desktop.slots = buildSlots(desktop);
   mobile.slots = buildSlots(mobile);
 
-  /* Chaque affiche porte le titre du film juste en dessous, en
-     permanence : on sait ce qu'on regarde sans avoir à survoler —
-     et sur mobile, où l'on ne survole rien, c'est la seule façon
-     de le savoir. */
+  /* L'affiche seule. Le titre reste porté par l'attribut « alt » de
+     l'image : invisible à l'œil, il reste lu par les lecteurs
+     d'écran et par les moteurs de recherche. */
   function caseHTML(root, item, priority) {
     var R = global.ZinemaRender;
     return (
       '<a href="' + root + item.href + '" class="canvas-poster">' +
       '<div class="canvas-poster__image">' +
       R.posterHTML(item, { priority: priority }) +
-      '<span class="canvas-poster__plus">+</span></div>' +
-      '<div class="canvas-poster__title">' + R.escapeHtml(item.title) + "</div></a>"
+      '<span class="canvas-poster__plus">+</span></div></a>'
     );
   }
 

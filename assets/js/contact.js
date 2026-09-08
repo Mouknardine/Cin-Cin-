@@ -45,41 +45,6 @@
     );
   }
 
-  /* Une case qui porte DEUX adresses pour un même besoin : l'intitulé
-     est écrit une fois, les adresses se suivent, chacune cliquable.
-     Répéter la ligne « Louer une salle » deux fois de suite aurait
-     donné l'impression d'un doublon plutôt que d'un choix.
-
-     Une seule adresse renseignée, ou deux fois la même : on retombe
-     sur la case-lien ordinaire, entièrement cliquable. */
-  function caseDeuxLiens(label, adresses) {
-    var liste = adresses
-      .map(function (adresse) {
-        return String(adresse || "").trim();
-      })
-      .filter(Boolean)
-      .filter(function (adresse, i, tout) {
-        return tout.indexOf(adresse) === i;
-      });
-
-    if (liste.length === 0) return "";
-    if (liste.length === 1) return caseLien(label, liste[0], "mailto:" + liste[0]);
-
-    var liens = liste
-      .map(function (adresse) {
-        return (
-          '<a href="mailto:' + R.escapeHtml(adresse) + '">' + R.escapeHtml(adresse) + "</a>"
-        );
-      })
-      .join(" ou ");
-
-    return (
-      '<div class="m-cell m-info m-cell--ligne ' + C.classe() + '">' +
-      '<p class="m-cell__label">' + R.escapeHtml(label) + "</p>" +
-      '<p class="m-cell__value">' + liens + "</p></div>"
-    );
-  }
-
   /* Une case-lien qui sort du site. */
   function caseAction(libelle, href) {
     return (
@@ -192,11 +157,16 @@
         caseLien("Cinéma", reglages.phone, numeroVersLien(reglages.phone || "")),
         caseLien("Bureau", reglages.phoneSecondary, numeroVersLien(reglages.phoneSecondary || "")),
         caseLien("E-mail", reglages.email, "mailto:" + (reglages.email || "")),
-        /* Une demande de location aboutit aussi bien à l'adresse
-           dédiée qu'à l'adresse générale : les deux sont relevées.
-           Autant le dire, plutôt que de laisser croire qu'écrire au
-           mauvais endroit resterait sans réponse. */
-        caseDeuxLiens("Louer une salle", [reglages.emailLocation, reglages.email]),
+        /* Les locations passent par l'adresse générale, sauf si une
+           adresse dédiée est renseignée dans le Studio. L'intitulé
+           reste affiché même quand les deux se confondent : c'est
+           lui qui répond à la question « à qui écrire pour
+           privatiser la salle ? ». */
+        caseLien(
+          "Louer une salle",
+          reglages.emailLocation || reglages.email,
+          "mailto:" + (reglages.emailLocation || reglages.email || "")
+        ),
       ]) +
       bande("m-bande--acces", [caseAcces]) +
       /* Les réseaux sociaux, « nous écrire » et le retour vers
