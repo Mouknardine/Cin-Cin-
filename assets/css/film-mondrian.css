@@ -401,6 +401,19 @@ button.m-seances__chip:focus-visible {
     flex: 1 1 auto;
     min-width: 0;
   }
+  /* La case de presse se dimensionne sur son texte, comme ses
+     voisines. Mais quand il n'y a pas de citation, elle ne porte que
+     « Article de presse » : à côté d'un synopsis de dix lignes, sa
+     part devenait une colonne de deux lettres écrasée contre le bord
+     droit, avec le mot « PRESSE » coupé.
+
+     Un plancher la garde lisible. Elle peut toujours s'élargir
+     au-delà quand une citation lui donne de quoi la remplir ; c'est
+     le synopsis qui absorbe la différence, il en a les moyens. */
+  .m-bande--bas > .m-presse {
+    flex: 0 1 auto;
+    min-width: 15rem;
+  }
   /* Le retour ouvre la rangée, tout à gauche : sa flèche pointe
      vers la gauche, elle ne doit pas partir du bord droit. */
   .m-bande--bas > .m-lien-retour {
