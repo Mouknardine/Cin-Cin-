@@ -86,11 +86,16 @@
           caseTexte("Billets", detailBillets(billet), "m-info m-cell--ligne") +
           caseTexte("Payé", billet.montant.toFixed(2).replace(/\.00$/, ".-"), "m-info m-cell--ligne")
       ) +
+      /* On n'annonce QUE ce que le site fait réellement. La phrase
+         précédente promettait un exemplaire par e-mail alors que rien
+         ne l'envoie : un client qui fermait la page se retrouvait sans
+         billet et sans le savoir, en croyant l'avoir reçu. */
       bande(
         "m-bande--rappel",
         '<p class="m-cell m-billet__rappel ' + C.classe() + '">' +
-          "Un exemplaire a été envoyé à " + R.escapeHtml(billet.email) +
-          ". Conservez cette page ou notez la référence : elle suffit à entrer." +
+          "Notez la référence ou gardez cette page ouverte : elle seule " +
+          "suffit à entrer. Vous pouvez aussi ajouter cette adresse à vos " +
+          "favoris pour la retrouver." +
           "</p>"
       ) +
       retourHTML() +
