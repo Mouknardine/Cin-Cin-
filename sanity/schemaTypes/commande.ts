@@ -85,6 +85,13 @@ export const commande = defineType({
       type: "datetime",
     }),
     defineField({
+      name: "billetEnvoyeLe",
+      title: "Billet envoyé par e-mail le",
+      type: "datetime",
+      description:
+        "Rempli automatiquement au moment du paiement. Vide alors que la commande est payée : l'e-mail n'est pas parti, le client n'a que la page du billet — sa référence reste valable.",
+    }),
+    defineField({
       name: "utiliseeLe",
       title: "Billet scanné le",
       type: "datetime",

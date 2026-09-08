@@ -15,6 +15,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/_billetterie.php';
+require_once __DIR__ . '/_courriel.php';
 require_once __DIR__ . '/_sumup.php';
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET') {
@@ -31,7 +32,8 @@ if (!preg_match('/^ZIN-[A-Z2-9]{6}$/', $reference)) {
 $commande = sanityLire(
     '*[_type == "commande" && reference == $r][0]{
        _id, reference, statut, filmTitre, seanceDate, seanceHeure, seanceSalle,
-       billetsPlein, billetsReduit, montant, email, sumupCheckoutId, payeeLe
+       billetsPlein, billetsReduit, montant, email, sumupCheckoutId, payeeLe,
+       billetEnvoyeLe
      }',
     ['r' => $reference]
 );
@@ -71,6 +73,25 @@ if ($statut === 'en-attente' && !empty($commande['sumupCheckoutId'])) {
         $commande['statut'] = $nouveau;
         $commande['payeeLe'] = $champs['payeeLe'] ?? ($commande['payeeLe'] ?? null);
         $statut = $nouveau;
+
+        /* Le billet part par e-mail au moment précis où la commande
+           devient payée, et une seule fois : on n'entre dans cette
+           branche que si le statut vient de changer.
+
+           « billetEnvoyeLe » sert de trace, pas de garde-fou : si
+           l'envoi échoue, le client a déjà son billet à l'écran et
+           l'échec part dans le journal du serveur. On ne lui gâche
+           pas son achat pour un e-mail. */
+        if ($nouveau === 'payee') {
+            $envoye = courrielEnvoyerBillet($commande);
+            $commande['billetEnvoyeLe'] = $envoye ? gmdate('Y-m-d\TH:i:s\Z') : null;
+            if ($envoye) {
+                sanityModifier(
+                    (string) $commande['_id'],
+                    ['billetEnvoyeLe' => $commande['billetEnvoyeLe']]
+                );
+            }
+        }
     }
 }
 
@@ -89,5 +110,7 @@ reussite([
         'nombre' => $nombre,
         'montant' => (float) ($commande['montant'] ?? 0),
         'email' => $commande['email'] ?? '',
+        /* Le site n'annonce l'envoi que si l'envoi a eu lieu. */
+        'courrielEnvoye' => !empty($commande['billetEnvoyeLe']),
     ],
 ]);

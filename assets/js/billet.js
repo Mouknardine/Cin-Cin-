@@ -86,16 +86,20 @@
           caseTexte("Billets", detailBillets(billet), "m-info m-cell--ligne") +
           caseTexte("Payé", billet.montant.toFixed(2).replace(/\.00$/, ".-"), "m-info m-cell--ligne")
       ) +
-      /* On n'annonce QUE ce que le site fait réellement. La phrase
-         précédente promettait un exemplaire par e-mail alors que rien
-         ne l'envoie : un client qui fermait la page se retrouvait sans
-         billet et sans le savoir, en croyant l'avoir reçu. */
+      /* On n'annonce QUE ce que le site a réellement fait. Le serveur
+         dit si l'e-mail est parti ; tant qu'il ne le dit pas, la page
+         se garde de le promettre. Un client qui croit avoir reçu son
+         billet et ferme la page se retrouverait sans rien, et ne le
+         découvrirait qu'à l'entrée de la salle. */
       bande(
         "m-bande--rappel",
         '<p class="m-cell m-billet__rappel ' + C.classe() + '">' +
+          (billet.courrielEnvoye
+            ? "Un exemplaire vient d'être envoyé à " + R.escapeHtml(billet.email) +
+              ". Pensez à regarder vos indésirables. "
+            : "") +
           "Notez la référence ou gardez cette page ouverte : elle seule " +
-          "suffit à entrer. Vous pouvez aussi ajouter cette adresse à vos " +
-          "favoris pour la retrouver." +
+          "suffit à entrer." +
           "</p>"
       ) +
       retourHTML() +
