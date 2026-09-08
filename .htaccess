@@ -13,24 +13,24 @@
 DirectoryIndex index.html
 
 # ---------- Une seule adresse pour le site ----------
-# Tout le monde arrive sur https://www.zinema.ch : les autres
-# adresses (sans https, sans www) y sont renvoyées une fois pour
-# toutes. Sans ça, Google verrait quatre sites au lieu d'un.
+# Tout le monde arrive sur https://www.zinema.ch. Mais cette
+# redirection n'est PAS faite ici : elle vit dans le .htaccess à la
+# racine de l'hébergement, un cran au-dessus.
 #
-# Si le cinéma préfère l'adresse SANS www, inverser les deux
-# règles ci-dessous — et prévenir : les liens déjà partagés
-# continueront de fonctionner dans les deux cas.
+# Pourquoi : ce serveur héberge aussi les sites d'Oron, du CDD, du
+# Minimum et des Mutins. Un aiguilleur, à la racine, envoie chaque
+# nom de domaine vers son contenu — et zinema.ch vers ce dossier.
+# Une redirection écrite ici s'appliquerait APRÈS cet aiguillage :
+# elle verrait le chemin interne et le recopierait dans la barre du
+# navigateur. Le visiteur verrait le nom du dossier technique.
+#
+# La redirection doit donc être faite avant, à la racine. C'est le
+# cas, et elle ne concerne que zinema.ch.
 <IfModule mod_rewrite.c>
-    RewriteEngine On
-
-    # http → https
-    RewriteCond %{HTTPS} !=on
-    RewriteCond %{HTTP:X-Forwarded-Proto} !https
-    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
-
-    # zinema.ch → www.zinema.ch
-    RewriteCond %{HTTP_HOST} ^zinema\.ch$ [NC]
-    RewriteRule ^ https://www.zinema.ch%{REQUEST_URI} [R=301,L]
+    # Aucune réécriture dans ce dossier. La couper explicitement
+    # évite que les règles de l'ancien CMS, définies à la racine,
+    # ne viennent s'appliquer ici par héritage.
+    RewriteEngine Off
 </IfModule>
 
 # ---------- La page « adresse introuvable » ----------
