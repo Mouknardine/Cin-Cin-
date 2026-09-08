@@ -81,17 +81,6 @@ export const siteSettings = defineType({
           .error("Écrivez une adresse e-mail valable, ex. admin@zinema.ch."),
     }),
     defineField({
-      name: "emailLocation",
-      title: "E-mail pour les locations de salle",
-      type: "string",
-      group: "pratique",
-      description: "Facultatif. Pour les demandes de privatisation, séances scolaires, etc.",
-      validation: (Rule) =>
-        Rule.regex(/^[^@\s]+@[^@\s]+\.[^@\s]+$/, {
-          name: "adresse e-mail",
-        }).error("Écrivez une adresse e-mail valable."),
-    }),
-    defineField({
       name: "openingHours",
       title: "Horaires",
       type: "array",

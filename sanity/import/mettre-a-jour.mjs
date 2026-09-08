@@ -341,7 +341,6 @@ async function traiterLesReglages() {
       ],
       openingHours: [
         { _type: "horaire", _key: "caisse", label: "Billetterie", value: "Au bar, 15 minutes avant la séance" },
-        { _type: "horaire", _key: "reservation", label: "Réservation", value: "Nous ne prenons pas de réservations" },
         { _type: "horaire", _key: "paiement", label: "Paiement", value: "Espèces, TWINT ou carte bancaire" },
       ],
       salles: [

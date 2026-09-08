@@ -145,6 +145,10 @@
       bande("m-bande--intro", [caseIntro]) +
       bande("m-bande--adresse", [caseAdresse]) +
       bande("m-bande--carte", [caseCarte]) +
+      /* Le lien vers Google Maps suit immédiatement la carte : c'est
+         en la regardant qu'on a envie de l'ouvrir en grand, pas trois
+         bandes plus bas une fois les horaires lus. */
+      bande("m-bande--actions", adresse ? [caseAction("Voir sur Google Maps", lienCarte)] : []) +
       bande(
         "m-bande--horaires",
         (reglages.openingHours || []).map(function (horaire) {
@@ -155,24 +159,13 @@
         caseLien("Cinéma", reglages.phone, numeroVersLien(reglages.phone || "")),
         caseLien("Bureau", reglages.phoneSecondary, numeroVersLien(reglages.phoneSecondary || "")),
         caseLien("E-mail", reglages.email, "mailto:" + (reglages.email || "")),
-        /* Les locations passent par l'adresse générale, sauf si une
-           adresse dédiée est renseignée dans le Studio. L'intitulé
-           reste affiché même quand les deux se confondent : c'est
-           lui qui répond à la question « à qui écrire pour
-           privatiser la salle ? ». */
-        caseLien(
-          "Louer une salle",
-          reglages.emailLocation || reglages.email,
-          "mailto:" + (reglages.emailLocation || reglages.email || "")
-        ),
       ]) +
-      bande("m-bande--acces", [caseAcces]) +
       /* Les réseaux sociaux, « nous écrire » et le retour vers
          l'agenda ne sont pas repris ici : le pied de page les porte
          déjà, sur toutes les pages du site, et il s'affiche juste
          en dessous. Les répéter allongeait la page d'un écran
          entier sur mobile, avec Instagram et Facebook deux fois. */
-      bande("m-bande--actions", adresse ? [caseAction("Voir sur Google Maps", lienCarte)] : []) +
+      bande("m-bande--acces", [caseAcces]) +
       "</article>";
   });
 })();
