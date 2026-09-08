@@ -40,7 +40,12 @@ export interface SeanceCandidate extends NouvelleSeance {
   duree: number | null
 }
 
-/** Un créneau hebdomadaire : jour de la semaine (0 = lundi), heure et salle. */
+/**
+ * Un créneau hebdomadaire : jour, heure de début et salle.
+ *
+ * « jour » compte les jours depuis le mercredi qui ouvre la semaine de cinéma.
+ * Mercredi vaut donc 0, jeudi 1… et mardi 6.
+ */
 export interface Creneau {
   jour: number
   heure: string

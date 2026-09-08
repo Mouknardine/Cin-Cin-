@@ -1,18 +1,35 @@
 /**
  * Manipulation de dates au format ISO « AAAA-MM-JJ », sans problème de fuseau horaire :
  * tous les calculs passent par UTC, seul « aujourdHui » lit l'heure locale.
+ *
+ * ---------------------------------------------------------------------------
+ * LA SEMAINE DE CINÉMA VA DU MERCREDI AU MARDI.
+ *
+ * C'est le rythme du métier : les nouveaux films sortent le mercredi, et la
+ * programmation d'une semaine se pense d'un mercredi au mardi suivant. Tout
+ * l'outil suit cette convention — la grille, les périodes affichées, l'ordre
+ * des jours proposés et la duplication d'une semaine sur l'autre.
+ * ---------------------------------------------------------------------------
  */
 
-/** Jours de la semaine proposés dans les formulaires (0 = lundi). */
+/**
+ * Les jours proposés dans les formulaires, dans l'ordre de la semaine de cinéma.
+ *
+ * La valeur n'est pas le jour au sens du calendrier : c'est le NOMBRE DE JOURS
+ * depuis le mercredi d'ouverture. Mercredi vaut donc 0, et mardi 6.
+ */
 export const JOURS_SEMAINE = [
-  {titre: 'Lundi', valeur: 0},
-  {titre: 'Mardi', valeur: 1},
-  {titre: 'Mercredi', valeur: 2},
-  {titre: 'Jeudi', valeur: 3},
-  {titre: 'Vendredi', valeur: 4},
-  {titre: 'Samedi', valeur: 5},
-  {titre: 'Dimanche', valeur: 6},
+  {titre: 'Mercredi', valeur: 0},
+  {titre: 'Jeudi', valeur: 1},
+  {titre: 'Vendredi', valeur: 2},
+  {titre: 'Samedi', valeur: 3},
+  {titre: 'Dimanche', valeur: 4},
+  {titre: 'Lundi', valeur: 5},
+  {titre: 'Mardi', valeur: 6},
 ] as const
+
+/** Jours entre le mercredi et la fin de la semaine de cinéma (le mardi). */
+export const DUREE_SEMAINE_JOURS = 7
 
 function enDateUTC(dateISO: string): Date {
   const [annee, mois, jour] = dateISO.split('-').map(Number)
@@ -38,10 +55,19 @@ export function ajouterJours(dateISO: string, nbJours: number): string {
   return enISO(date)
 }
 
-/** Le lundi de la semaine contenant la date donnée. */
-export function lundiDeLaSemaine(dateISO: string): string {
-  const indexDepuisLundi = (enDateUTC(dateISO).getUTCDay() + 6) % 7
-  return ajouterJours(dateISO, -indexDepuisLundi)
+/**
+ * Le mercredi qui ouvre la semaine de cinéma contenant la date donnée.
+ * Un mardi appartient donc à la semaine ouverte six jours plus tôt.
+ */
+export function debutDeSemaine(dateISO: string): string {
+  const MERCREDI = 3 // getUTCDay() : 0 = dimanche
+  const joursDepuisMercredi = (enDateUTC(dateISO).getUTCDay() - MERCREDI + 7) % 7
+  return ajouterJours(dateISO, -joursDepuisMercredi)
+}
+
+/** Le mardi qui referme la semaine ouverte ce mercredi-là. */
+export function finDeSemaine(debutISO: string): string {
+  return ajouterJours(debutISO, DUREE_SEMAINE_JOURS - 1)
 }
 
 /** Ex. « mer. 16 juil. » */
@@ -54,20 +80,20 @@ export function formatJourCourt(dateISO: string): string {
   }).format(enDateUTC(dateISO))
 }
 
-/** Ex. « Semaine du 14 au 20 juillet 2026 » (ou « du 30 juin au 6 juillet » à cheval sur deux mois). */
-export function formatPeriodeSemaine(lundiISO: string): string {
-  const dimancheISO = ajouterJours(lundiISO, 6)
-  const memeMois = lundiISO.slice(0, 7) === dimancheISO.slice(0, 7)
+/** Ex. « Semaine du 16 au 22 juillet 2026 » (ou « du 30 juin au 6 juillet » à cheval sur deux mois). */
+export function formatPeriodeSemaine(debutISO: string): string {
+  const finISO = finDeSemaine(debutISO)
+  const memeMois = debutISO.slice(0, 7) === finISO.slice(0, 7)
   const debut = new Intl.DateTimeFormat('fr-FR', {
     day: 'numeric',
     ...(memeMois ? {} : {month: 'long'}),
     timeZone: 'UTC',
-  }).format(enDateUTC(lundiISO))
+  }).format(enDateUTC(debutISO))
   const fin = new Intl.DateTimeFormat('fr-FR', {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
     timeZone: 'UTC',
-  }).format(enDateUTC(dimancheISO))
+  }).format(enDateUTC(finISO))
   return `Semaine du ${debut} au ${fin}`
 }

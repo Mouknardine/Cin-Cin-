@@ -12,9 +12,10 @@ import {API_VERSION, type SeancePlanning} from '../types'
 import {
   ajouterJours,
   aujourdHui,
+  debutDeSemaine,
+  finDeSemaine,
   formatJourCourt,
   formatPeriodeSemaine,
-  lundiDeLaSemaine,
 } from '../utils/dates'
 import {supprimerSeance} from '../utils/mutations'
 import {DialogDupliquerSemaine} from './DialogDupliquerSemaine'
@@ -27,17 +28,24 @@ export function PlanificationTool(): React.JSX.Element {
   const client = useClient({apiVersion: API_VERSION})
   const toast = useToast()
 
-  const [lundi, setLundi] = useState(() => lundiDeLaSemaine(aujourdHui()))
+  /* La semaine de cinéma va du mercredi au mardi : c'est ce mercredi-là. */
+  const [debutSemaine, setDebutSemaine] = useState(() => debutDeSemaine(aujourdHui()))
   const [dialogOuvert, setDialogOuvert] = useState<DialogOuvert>(null)
   const [seanceASupprimer, setSeanceASupprimer] = useState<SeancePlanning | null>(null)
   const [suppressionEnCours, setSuppressionEnCours] = useState(false)
 
-  const dimanche = useMemo(() => ajouterJours(lundi, 6), [lundi])
-  const {films, seances, chargement, erreur, recharger} = useDonneesPlanning(lundi, dimanche)
+  const finSemaine = useMemo(() => finDeSemaine(debutSemaine), [debutSemaine])
+  const {films, seances, chargement, erreur, recharger} = useDonneesPlanning(debutSemaine, finSemaine)
 
-  const semainePrecedente = useCallback(() => setLundi((l) => ajouterJours(l, -7)), [])
-  const semaineSuivante = useCallback(() => setLundi((l) => ajouterJours(l, 7)), [])
-  const semaineActuelle = useCallback(() => setLundi(lundiDeLaSemaine(aujourdHui())), [])
+  const semainePrecedente = useCallback(
+    () => setDebutSemaine((jour: string) => ajouterJours(jour, -7)),
+    [],
+  )
+  const semaineSuivante = useCallback(
+    () => setDebutSemaine((jour: string) => ajouterJours(jour, 7)),
+    [],
+  )
+  const semaineActuelle = useCallback(() => setDebutSemaine(debutDeSemaine(aujourdHui())), [])
   const fermerDialog = useCallback(() => setDialogOuvert(null), [])
 
   const confirmerSuppression = useCallback(async () => {
@@ -64,7 +72,7 @@ export function PlanificationTool(): React.JSX.Element {
               Planification des séances
             </Text>
             <Text size={1} muted>
-              {formatPeriodeSemaine(lundi)} · {seances.length} séance{seances.length > 1 ? 's' : ''}
+              {formatPeriodeSemaine(debutSemaine)} · {seances.length} séance{seances.length > 1 ? 's' : ''}
             </Text>
           </Stack>
           <Flex gap={2} wrap="wrap">
@@ -94,24 +102,31 @@ export function PlanificationTool(): React.JSX.Element {
         )}
 
         <GrilleSemaine
-          lundi={lundi}
+          debutSemaine={debutSemaine}
           seances={seances}
           chargement={chargement}
           onSupprimer={setSeanceASupprimer}
         />
 
         <Text size={1} muted>
-          Les séances en rouge se chevauchent dans la même salle (durée du film + 15 min de pause).
-          Tout ce qui est créé ici est publié immédiatement sur le site.
+          La semaine de cinéma va du mercredi au mardi. Une salle est occupée de l'heure de début
+          jusqu'à la minute exacte de fin du film : deux séances peuvent donc s'enchaîner sans
+          battement, et seul un vrai chevauchement s'affiche en rouge. Tout ce qui est créé ici est
+          publié immédiatement sur le site.
         </Text>
       </Stack>
 
       {dialogOuvert === 'programmer' && (
-        <DialogProgrammerFilm films={films} lundi={lundi} onFermer={fermerDialog} onCree={recharger} />
+        <DialogProgrammerFilm
+          films={films}
+          debutSemaine={debutSemaine}
+          onFermer={fermerDialog}
+          onCree={recharger}
+        />
       )}
       {dialogOuvert === 'dupliquer' && (
         <DialogDupliquerSemaine
-          lundi={lundi}
+          debutSemaine={debutSemaine}
           seancesSemaine={seances}
           onFermer={fermerDialog}
           onCree={recharger}

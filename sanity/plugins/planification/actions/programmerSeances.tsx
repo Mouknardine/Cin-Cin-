@@ -12,7 +12,7 @@ import {useCallback, useState} from 'react'
 import type {DocumentActionComponent} from 'sanity'
 
 import {DialogProgrammerFilm} from '../components/DialogProgrammerFilm'
-import {lundiDeLaSemaine} from '../utils/dates'
+import {debutDeSemaine} from '../utils/dates'
 
 function aujourdhui(): string {
   const d = new Date()
@@ -61,7 +61,7 @@ export const programmerSeances: DocumentActionComponent = (props) => {
             titre: titre || 'Ce film',
             duree: typeof publie.duration === 'number' ? publie.duration : null,
           }}
-          lundi={lundiDeLaSemaine(aujourdhui())}
+          debutSemaine={debutDeSemaine(aujourdhui())}
           onFermer={fermer}
           onCree={() => undefined}
         />

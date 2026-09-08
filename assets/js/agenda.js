@@ -17,6 +17,38 @@
 
   var statusText = { disponible: "", complet: "Complet", annule: "Annulé" };
 
+  /* --------------------------------------------------------------
+     La semaine de cinéma va du MERCREDI au MARDI : c'est le rythme
+     des sorties, et celui sur lequel la programmation est pensée
+     dans le Studio. La vue Semaine suit la même découpe, sinon les
+     deux ne parleraient pas de la même chose.
+     -------------------------------------------------------------- */
+  var MERCREDI = 3; // getUTCDay() : 0 = dimanche
+
+  function enDateUTC(dateISO) {
+    var p = String(dateISO).split("-");
+    return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2]));
+  }
+
+  function enISO(date) {
+    return date.toISOString().slice(0, 10);
+  }
+
+  /* Le mercredi qui ouvre la semaine contenant cette date. */
+  function debutSemaineCinema(dateISO) {
+    var date = enDateUTC(dateISO);
+    var depuisMercredi = (date.getUTCDay() - MERCREDI + 7) % 7;
+    date.setUTCDate(date.getUTCDate() - depuisMercredi);
+    return enISO(date);
+  }
+
+  /* Le mardi qui la referme. */
+  function finSemaineCinema(debutISO) {
+    var date = enDateUTC(debutISO);
+    date.setUTCDate(date.getUTCDate() + 6);
+    return enISO(date);
+  }
+
   function groupByDate(screenings) {
     var map = {};
     var order = [];
@@ -112,9 +144,19 @@
     );
   }
 
-  /* Vue Semaine : une colonne par jour, mêmes rangées de séances. */
+  /* Vue Semaine : les jours d'UNE semaine de cinéma, en colonnes.
+     Celle du jour sélectionné — ainsi les onglets du haut et la vue
+     Semaine restent d'accord, et la liste ne s'étire pas sur toute
+     la programmation à venir. */
   function weekViewHTML() {
-    var colonnes = days
+    var debut = debutSemaineCinema(activeDate || (days[0] && days[0].date));
+    var fin = finSemaineCinema(debut);
+    var joursSemaine = days.filter(function (d) {
+      return d.date >= debut && d.date <= fin;
+    });
+    if (joursSemaine.length === 0) return "";
+
+    var colonnes = joursSemaine
       .map(function (d) {
         return (
           '<div class="m-semaine__col">' +

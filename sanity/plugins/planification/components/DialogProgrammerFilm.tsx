@@ -9,14 +9,15 @@ import {useClient} from 'sanity'
 
 import {API_VERSION, type Creneau, type FilmPlanning, type RapportCreation, type SeanceCandidate} from '../types'
 import {verifierNouvellesSeances} from '../utils/conflits'
-import {ajouterJours, lundiDeLaSemaine} from '../utils/dates'
+import {ajouterJours, debutDeSemaine} from '../utils/dates'
 import {chargerSeancesPeriode, creerSeances} from '../utils/mutations'
 import {LigneCreneau} from './LigneCreneau'
 import {RapportResultat} from './RapportResultat'
 
 interface Props {
   films: FilmPlanning[]
-  lundi: string
+  /** Le mercredi qui ouvre la semaine affichée : date de départ proposée. */
+  debutSemaine: string
   onFermer: () => void
   onCree: () => void
   /**
@@ -26,7 +27,8 @@ interface Props {
   filmImpose?: FilmPlanning
 }
 
-const CRENEAU_INITIAL: Creneau = {jour: 2, heure: '19:00', salle: 'Salle 1'}
+/* Mercredi : le premier jour de la semaine de cinéma, donc le décalage 0. */
+const CRENEAU_INITIAL: Creneau = {jour: 0, heure: '19:00', salle: 'Salle 1'}
 
 function genererCandidates(
   film: FilmPlanning,
@@ -34,11 +36,11 @@ function genererCandidates(
   dateDebut: string,
   nbSemaines: number,
 ): SeanceCandidate[] {
-  const premierLundi = lundiDeLaSemaine(dateDebut)
+  const premierMercredi = debutDeSemaine(dateDebut)
   const candidates: SeanceCandidate[] = []
   for (let semaine = 0; semaine < nbSemaines; semaine += 1) {
     for (const creneau of creneaux) {
-      const date = ajouterJours(premierLundi, semaine * 7 + creneau.jour)
+      const date = ajouterJours(premierMercredi, semaine * 7 + creneau.jour)
       if (date < dateDebut) continue
       candidates.push({
         filmId: film._id,
@@ -55,7 +57,7 @@ function genererCandidates(
 
 export function DialogProgrammerFilm({
   films,
-  lundi,
+  debutSemaine,
   onFermer,
   onCree,
   filmImpose,
@@ -65,7 +67,7 @@ export function DialogProgrammerFilm({
 
   const [filmId, setFilmId] = useState(filmImpose?._id ?? '')
   const [creneaux, setCreneaux] = useState<Creneau[]>([CRENEAU_INITIAL])
-  const [dateDebut, setDateDebut] = useState(lundi)
+  const [dateDebut, setDateDebut] = useState(debutSemaine)
   const [nbSemaines, setNbSemaines] = useState(2)
   const [enCours, setEnCours] = useState(false)
   const [rapport, setRapport] = useState<RapportCreation | null>(null)
@@ -149,12 +151,40 @@ export function DialogProgrammerFilm({
               <Text size={1} weight="semibold">
                 Créneaux chaque semaine
               </Text>
+              {/* Les largeurs reprennent exactement celles de LigneCreneau,
+                  pour que chaque intitulé tombe au-dessus de son champ. */}
+              <Flex gap={2} align="center">
+                <Box flex={3}>
+                  <Text size={0} muted>
+                    Jour
+                  </Text>
+                </Box>
+                <Box flex={2} style={{minWidth: 110}}>
+                  <Text size={0} muted>
+                    Début
+                  </Text>
+                </Box>
+                <Box flex={2} style={{minWidth: 96}}>
+                  <Text size={0} muted align="center">
+                    Fin
+                  </Text>
+                </Box>
+                <Box flex={3}>
+                  <Text size={0} muted>
+                    Salle
+                  </Text>
+                </Box>
+                {/* Réserve la place du bouton « retirer » des lignes en dessous. */}
+                <Box style={{width: 35}} />
+              </Flex>
               {creneaux.map((creneau, index) => (
                 <LigneCreneau
                   key={index}
                   creneau={creneau}
                   index={index}
                   suppressionPossible={creneaux.length > 1}
+                  dureeFilm={film?.duree ?? null}
+                  filmChoisi={Boolean(film)}
                   onModifier={modifierCreneau}
                   onSupprimer={supprimerCreneau}
                 />
@@ -202,7 +232,9 @@ export function DialogProgrammerFilm({
             />
             <Text size={1} muted>
               Les doublons et les conflits de salle sont détectés automatiquement : seules les
-              séances possibles seront créées, et un bilan s'affichera.
+              séances possibles seront créées, et un bilan s'affichera. Une salle est occupée
+              jusqu'à la minute exacte de fin du film : deux séances peuvent s'enchaîner sans
+              aucun battement.
             </Text>
           </Stack>
         )}

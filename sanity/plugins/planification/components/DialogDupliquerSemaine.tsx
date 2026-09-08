@@ -8,19 +8,20 @@ import {useClient} from 'sanity'
 
 import {API_VERSION, type RapportCreation, type SeanceCandidate, type SeancePlanning} from '../types'
 import {verifierNouvellesSeances} from '../utils/conflits'
-import {ajouterJours, formatPeriodeSemaine} from '../utils/dates'
+import {ajouterJours, finDeSemaine, formatPeriodeSemaine} from '../utils/dates'
 import {chargerSeancesPeriode, creerSeances} from '../utils/mutations'
 import {RapportResultat} from './RapportResultat'
 
 interface Props {
-  lundi: string
+  /** Le mercredi qui ouvre la semaine à recopier. */
+  debutSemaine: string
   seancesSemaine: SeancePlanning[]
   onFermer: () => void
   onCree: () => void
 }
 
 export function DialogDupliquerSemaine({
-  lundi,
+  debutSemaine,
   seancesSemaine,
   onFermer,
   onCree,
@@ -32,7 +33,10 @@ export function DialogDupliquerSemaine({
   const [enCours, setEnCours] = useState(false)
   const [rapport, setRapport] = useState<RapportCreation | null>(null)
 
-  const lundiCible = useMemo(() => ajouterJours(lundi, decalage * 7), [decalage, lundi])
+  const debutCible = useMemo(
+    () => ajouterJours(debutSemaine, decalage * 7),
+    [decalage, debutSemaine],
+  )
 
   const dupliquer = useCallback(async () => {
     setEnCours(true)
@@ -45,7 +49,7 @@ export function DialogDupliquerSemaine({
         heure: seance.heure,
         salle: seance.salle,
       }))
-      const existantes = await chargerSeancesPeriode(client, lundiCible, ajouterJours(lundiCible, 6))
+      const existantes = await chargerSeancesPeriode(client, debutCible, finDeSemaine(debutCible))
       const {aCreer, doublons, conflits} = verifierNouvellesSeances(candidates, existantes)
       await creerSeances(client, aCreer)
       setRapport({creees: aCreer.length, doublons, conflits})
@@ -55,7 +59,7 @@ export function DialogDupliquerSemaine({
     } finally {
       setEnCours(false)
     }
-  }, [client, decalage, lundiCible, onCree, seancesSemaine, toast])
+  }, [client, debutCible, decalage, onCree, seancesSemaine, toast])
 
   return (
     <Dialog id="dupliquer-semaine" header="Dupliquer la semaine" onClose={onFermer} width={1}>
@@ -69,12 +73,12 @@ export function DialogDupliquerSemaine({
           <Stack space={4}>
             <Text size={1}>
               Recopie les <strong>{seancesSemaine.length}</strong> séances de la semaine affichée (
-              {formatPeriodeSemaine(lundi).toLowerCase()}) vers :
+              {formatPeriodeSemaine(debutSemaine).toLowerCase()}) vers :
             </Text>
             <Select value={decalage} onChange={(e) => setDecalage(Number(e.currentTarget.value))}>
               {[1, 2, 3, 4].map((n) => (
                 <option key={n} value={n}>
-                  {formatPeriodeSemaine(ajouterJours(lundi, n * 7))}
+                  {formatPeriodeSemaine(ajouterJours(debutSemaine, n * 7))}
                   {n === 1 ? ' (semaine suivante)' : ''}
                 </option>
               ))}

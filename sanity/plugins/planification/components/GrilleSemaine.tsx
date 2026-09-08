@@ -1,26 +1,32 @@
 /**
- * La grille de la semaine : 7 colonnes (lundi → dimanche),
- * chaque colonne liste ses séances triées par heure.
+ * La grille de la semaine : 7 colonnes (mercredi → mardi, la semaine de
+ * cinéma), chaque colonne liste ses séances triées par heure.
  */
 import {Box, Card, Flex, Grid, Spinner, Stack, Text} from '@sanity/ui'
 import {useMemo} from 'react'
 
 import type {SeancePlanning} from '../types'
 import {idsEnConflit} from '../utils/conflits'
-import {ajouterJours, aujourdHui, formatJourCourt} from '../utils/dates'
+import {DUREE_SEMAINE_JOURS, ajouterJours, aujourdHui, formatJourCourt} from '../utils/dates'
 import {CarteSeance} from './CarteSeance'
 
 interface Props {
-  lundi: string
+  /** Le mercredi qui ouvre la semaine affichée. */
+  debutSemaine: string
   seances: SeancePlanning[]
   chargement: boolean
   onSupprimer: (seance: SeancePlanning) => void
 }
 
-export function GrilleSemaine({lundi, seances, chargement, onSupprimer}: Props): React.JSX.Element {
+export function GrilleSemaine({
+  debutSemaine,
+  seances,
+  chargement,
+  onSupprimer,
+}: Props): React.JSX.Element {
   const jours = useMemo(
-    () => Array.from({length: 7}, (_, index) => ajouterJours(lundi, index)),
-    [lundi],
+    () => Array.from({length: DUREE_SEMAINE_JOURS}, (_, index) => ajouterJours(debutSemaine, index)),
+    [debutSemaine],
   )
   const conflits = useMemo(() => idsEnConflit(seances), [seances])
   const dateDuJour = aujourdHui()
@@ -35,7 +41,7 @@ export function GrilleSemaine({lundi, seances, chargement, onSupprimer}: Props):
 
   return (
     <Box overflow="auto" paddingBottom={2}>
-      <Grid columns={7} gap={2} style={{minWidth: 980}}>
+      <Grid columns={DUREE_SEMAINE_JOURS} gap={2} style={{minWidth: 980}}>
         {jours.map((jour) => {
           const seancesDuJour = seances.filter((seance) => seance.date === jour)
           const estAujourdHui = jour === dateDuJour

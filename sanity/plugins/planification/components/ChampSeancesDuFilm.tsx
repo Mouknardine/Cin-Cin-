@@ -17,7 +17,7 @@ import {useCallback, useEffect, useState} from 'react'
 import {useClient, useFormValue} from 'sanity'
 
 import {API_VERSION} from '../types'
-import {formatJourCourt, lundiDeLaSemaine} from '../utils/dates'
+import {debutDeSemaine, formatJourCourt} from '../utils/dates'
 import {supprimerSeance} from '../utils/mutations'
 import {DialogProgrammerFilm} from './DialogProgrammerFilm'
 
@@ -210,7 +210,7 @@ export function ChampSeancesDuFilm(): React.JSX.Element {
             titre: titre || 'Ce film',
             duree: typeof duree === 'number' ? duree : null,
           }}
-          lundi={lundiDeLaSemaine(aujourdhui())}
+          debutSemaine={debutDeSemaine(aujourdhui())}
           onFermer={() => {
             setDialogueOuvert(false)
             charger()

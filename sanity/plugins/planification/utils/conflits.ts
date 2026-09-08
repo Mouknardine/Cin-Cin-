@@ -1,15 +1,29 @@
 /**
  * Détection des conflits de salle : deux séances dans la même salle, le même jour,
- * dont les plages horaires se chevauchent (durée du film + pause de nettoyage).
+ * dont les projections se chevauchent réellement.
+ *
+ * ---------------------------------------------------------------------------
+ * AUCUN BATTEMENT N'EST IMPOSÉ ENTRE DEUX SÉANCES.
+ *
+ * Une séance occupe sa salle de son heure de début jusqu'à la minute exacte où
+ * le film se termine, et pas une minute de plus. Deux projections peuvent donc
+ * s'enchaîner directement : un film qui finit à 20:47 en libère la salle à
+ * 20:47, et la séance suivante peut commencer à 20:47.
+ *
+ * Le temps de nettoyage, de publicité ou d'accueil relève du métier, pas de
+ * l'outil : la personne qui programme sait mieux que nous ce qu'il lui faut,
+ * et l'outil ne doit pas lui refuser un enchaînement qu'elle a choisi.
+ * ---------------------------------------------------------------------------
  */
 import type {SeanceCandidate, SeancePlanning} from '../types'
 import {formatJourCourt} from './dates'
 
-/** Durée retenue quand un film n'a pas de durée renseignée (en minutes). */
+/**
+ * Durée retenue quand un film n'a pas de durée renseignée (en minutes).
+ * C'est une estimation prudente, le temps que la durée soit saisie sur la
+ * fiche du film — sans elle, aucun chevauchement ne pourrait être détecté.
+ */
 export const DUREE_PAR_DEFAUT_MIN = 120
-
-/** Pause minimale entre deux séances d'une même salle (en minutes). */
-export const PAUSE_ENTRE_SEANCES_MIN = 15
 
 /** Convertit « 19:30 » en minutes depuis minuit. Renvoie null si le format est invalide. */
 export function heureEnMinutes(heure: string): number | null {
@@ -18,9 +32,34 @@ export function heureEnMinutes(heure: string): number | null {
   return Number(correspondance[1]) * 60 + Number(correspondance[2])
 }
 
+const MINUTES_PAR_JOUR = 24 * 60
+
+/**
+ * L'heure de fin d'une projection, telle qu'on veut l'afficher.
+ *
+ * Une séance de fin de soirée peut déborder sur le lendemain : « lendemain »
+ * le signale, pour qu'un 23:30 + 2 h se lise « 01:30 » sans faire croire à
+ * une erreur de saisie.
+ */
+export function heureDeFin(
+  heureDebut: string,
+  dureeMin: number | null,
+): {heure: string; lendemain: boolean} | null {
+  const debut = heureEnMinutes(heureDebut)
+  if (debut === null) return null
+  const fin = debut + (dureeMin ?? DUREE_PAR_DEFAUT_MIN)
+  const dansLaJournee = ((fin % MINUTES_PAR_JOUR) + MINUTES_PAR_JOUR) % MINUTES_PAR_JOUR
+  const heures = String(Math.floor(dansLaJournee / 60)).padStart(2, '0')
+  const minutes = String(dansLaJournee % 60).padStart(2, '0')
+  return {heure: `${heures}:${minutes}`, lendemain: fin >= MINUTES_PAR_JOUR}
+}
+
 /**
  * Deux projections se chevauchent-elles ?
- * Chaque plage va de l'heure de début à début + durée + pause.
+ *
+ * Chaque plage va de l'heure de début à l'heure exacte de fin du film. La
+ * comparaison est strictement inférieure des deux côtés : deux séances qui se
+ * touchent — l'une finit quand l'autre commence — ne se chevauchent pas.
  */
 export function intervallesSeChevauchent(
   heureA: string,
@@ -31,8 +70,8 @@ export function intervallesSeChevauchent(
   const debutA = heureEnMinutes(heureA)
   const debutB = heureEnMinutes(heureB)
   if (debutA === null || debutB === null) return false
-  const finA = debutA + (dureeA ?? DUREE_PAR_DEFAUT_MIN) + PAUSE_ENTRE_SEANCES_MIN
-  const finB = debutB + (dureeB ?? DUREE_PAR_DEFAUT_MIN) + PAUSE_ENTRE_SEANCES_MIN
+  const finA = debutA + (dureeA ?? DUREE_PAR_DEFAUT_MIN)
+  const finB = debutB + (dureeB ?? DUREE_PAR_DEFAUT_MIN)
   return debutA < finB && debutB < finA
 }
 
