@@ -7,6 +7,11 @@
 # la règle est simplement ignorée, jamais une erreur 500.
 # ============================================================
 
+# ---------- Le document servi par défaut ----------
+# Explicite plutôt qu'implicite : ce dossier n'a pas d'index.php,
+# et on ne dépend pas de la configuration par défaut du serveur.
+DirectoryIndex index.html
+
 # ---------- Une seule adresse pour le site ----------
 # Tout le monde arrive sur https://www.zinema.ch : les autres
 # adresses (sans https, sans www) y sont renvoyées une fois pour

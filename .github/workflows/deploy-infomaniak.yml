@@ -25,7 +25,9 @@ on:
 
 concurrency:
   group: infomaniak
-  cancel-in-progress: true
+  # Une publication en cours n'est jamais interrompue : la couper au
+  # milieu laisserait le site à moitié mis à jour.
+  cancel-in-progress: false
 
 jobs:
   publier:
@@ -36,12 +38,18 @@ jobs:
       # On n'envoie QUE le site public. Le Studio Sanity, les modes
       # d'emploi, les dépendances et le modèle de fichier de
       # configuration n'ont rien à faire sur un serveur public.
+      #
+      # Le dossier « api » (billetterie SumUp) est volontairement
+      # exclu : il est écrit pour PHP 8.1 alors que l'hébergement
+      # tourne encore en PHP 5.6. Déposé tel quel, il afficherait une
+      # erreur d'interprétation à qui ouvrirait son adresse. À
+      # réintégrer le jour de la montée en PHP 8 — voir BILLETTERIE.md.
       - name: Rassembler les fichiers du site
         run: |
           mkdir site
           cp -r index.html 404.html robots.txt sitemap.xml .htaccess \
                 films film agenda evenements histoire membership contact billet \
-                assets api site/
+                assets site/
           echo "— contenu envoyé :"
           find site -type f | sort
 
@@ -71,9 +79,11 @@ jobs:
           password: ${{ secrets.INFOMANIAK_FTP_MOTDEPASSE }}
           protocol: ftps
           local-dir: ./site/
-          # Le dossier public d'un hébergement Infomaniak. Si le
-          # compte FTP ouvre DÉJÀ sur « web/ », mettre « ./ ».
-          server-dir: web/
+          # Le compte « azsa_deploy » est cloisonné : il ouvre
+          # directement sur /web/nouveau, le dossier de ce site. Il ne
+          # peut atteindre ni l'aiguilleur des autres cinémas, ni leurs
+          # programmes. D'où « ./ » et non « web/ ».
+          server-dir: ./
           # Le fichier de configuration secret (config.php) vit à côté
           # de web/, jamais dedans : il n'est donc jamais touché.
           exclude: |

@@ -4,10 +4,16 @@ name: Déploiement GitHub Pages
 # nécessaire, ce workflow ne fait que publier le dossier tel quel. Un
 # changement de contenu (Sanity) n'a pas besoin de ce workflow : il
 # apparaît seul, sans redéploiement (voir SANITY.md).
+# Publication mise en veille le 2026-09-08 : le site officiel est
+# désormais servi par Infomaniak (voir deploy-infomaniak.yml).
+# Laisser GitHub Pages publier en parallèle créerait une seconde
+# adresse avec le même contenu, que Google indexerait comme un
+# doublon — et on ne saurait plus laquelle fait foi.
+#
+# Le workflow reste disponible à la demande, pour obtenir un
+# aperçu sans toucher au site en ligne : onglet Actions →
+# « Déploiement GitHub Pages » → Run workflow.
 on:
-  push:
-    branches:
-      - claude/zinema-cinema-redesign-ttcpaf
   workflow_dispatch:
 
 permissions:
