@@ -192,22 +192,50 @@
     });
   }
 
-  /* La citation presse ferme la fiche : toute la case est cliquable
-     et ouvre l'article complet quand son lien existe. Sans citation,
-     la case disparaît et la rangée du bas se repartage sa largeur. */
+  /* La presse ferme la fiche : toute la case est cliquable et ouvre
+     l'article quand son lien existe.
+
+     Deux cas, et le plus courant est le second :
+
+     - une citation a été saisie : on l'affiche entre guillemets,
+       signée du journal ;
+     - il n'y a qu'un lien : la case annonce simplement « Article de
+       presse ». C'est le cas normal — trouver une phrase à citer
+       prend du temps, coller un lien n'en prend aucun.
+
+     Sans citation NI lien, la case disparaît et la rangée du bas se
+     repartage sa largeur.
+
+     Les valeurs sont nettoyées avant d'être jugées : un champ rempli
+     d'un simple espace n'est pas un contenu, et affichait jusqu'ici
+     une paire de guillemets vides. */
   function presseHTML(film) {
     var review = film.review;
-    if (!review || !review.quote) return "";
+    if (!review) return "";
 
-    var signature = [review.author, review.source].filter(Boolean).join(", ");
+    var citation = String(review.quote || "").trim();
+    var lien = String(review.url || "").trim();
+    if (!citation && !lien) return "";
+
+    var signature = [review.author, review.source]
+      .map(function (valeur) {
+        return String(valeur || "").trim();
+      })
+      .filter(Boolean)
+      .join(", ");
+
+    var corps = citation
+      ? '<p class="m-presse__citation">« ' + R.escapeHtml(citation) + " »</p>"
+      : '<p class="m-presse__lien">Article de presse</p>';
+
     var contenu =
       '<p class="m-cell__label">La presse</p>' +
-      '<p class="m-presse__citation">« ' + R.escapeHtml(review.quote) + " »</p>" +
+      corps +
       (signature ? '<p class="m-presse__signature">— ' + R.escapeHtml(signature) + "</p>" : "");
 
-    if (review.url) {
+    if (lien) {
       return (
-        '<a class="m-cell m-presse ' + C.classe() + '" href="' + R.escapeHtml(review.url) + '" target="_blank" rel="noopener noreferrer" aria-label="Lire l\'article complet">' +
+        '<a class="m-cell m-presse ' + C.classe() + '" href="' + R.escapeHtml(lien) + '" target="_blank" rel="noopener noreferrer" aria-label="Lire l\'article de presse">' +
         contenu + "</a>"
       );
     }

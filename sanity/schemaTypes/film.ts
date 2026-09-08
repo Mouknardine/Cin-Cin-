@@ -184,11 +184,11 @@ export const film = defineType({
     }),
     defineField({
       name: "review",
-      title: "Critique de presse à mettre en avant",
+      title: "Article de presse à mettre en avant",
       type: "reference",
       to: [{ type: "review" }],
       description:
-        "Facultatif. Une citation de presse s'affichera sur la fiche du film. Créez-la ici avec « Create new », ou d'abord dans « Critiques presse ».",
+        "Facultatif. Il suffit de coller le lien de l'article : la fiche du film affichera « Article de presse », cliquable. Si une phrase mérite d'être mise en avant, ajoutez-la en citation. Créez-le ici avec « Create new », ou d'abord dans « Critiques presse ».",
     }),
 
     /* ---------------- Encadrés repliables ---------------- */

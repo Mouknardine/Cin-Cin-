@@ -337,7 +337,8 @@ button.m-seances__chip:focus-visible {
    Une seule case sur sa bande : elle reste basse, elle ne prend
    que la hauteur de son texte. */
 
-.m-presse__citation {
+.m-presse__citation,
+.m-presse__lien {
   font-weight: 400;
   line-height: 1.35;
 }

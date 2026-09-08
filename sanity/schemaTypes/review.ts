@@ -1,8 +1,15 @@
 import { defineField, defineType } from "sanity";
 
 /* ============================================================
-   Une citation de presse, à rattacher à un film.
-   Elle s'affiche sur la fiche du film, en grand, entre guillemets.
+   Un article de presse, à rattacher à un film.
+
+   Le lien est le seul champ obligatoire : dans la pratique, on a
+   presque toujours l'adresse de l'article sous la main, alors que
+   choisir une phrase à citer demande de le relire. La fiche du film
+   affiche alors simplement « Article de presse », cliquable.
+
+   La citation reste possible quand une phrase vaut d'être mise en
+   avant : elle s'affiche en grand, entre guillemets, à la place.
    ============================================================ */
 
 export const review = defineType({
@@ -16,18 +23,14 @@ export const review = defineType({
       type: "text",
       rows: 3,
       description:
-        "Une ou deux phrases, sans guillemets (le site les ajoute) et sans crochets. Ex. Un portrait d'une délicatesse rare.",
-      validation: (Rule) =>
-        Rule.required()
-          .max(300)
-          .error("Une citation courte est obligatoire (300 signes maximum)."),
+        "Facultatif. Une ou deux phrases, sans guillemets (le site les ajoute) et sans crochets. Ex. Un portrait d'une délicatesse rare. Laissée vide, la fiche du film affiche « Article de presse ».",
+      validation: (Rule) => Rule.max(300).error("Une citation reste courte : 300 signes maximum."),
     }),
     defineField({
       name: "source",
       title: "Journal / média",
       type: "string",
-      description: "Ex. Le Temps, 24 heures, Le Courrier, RTS.",
-      validation: (Rule) => Rule.required().error("Indiquez d'où vient la citation."),
+      description: "Facultatif. Ex. Le Temps, 24 heures, Le Courrier, RTS.",
     }),
     defineField({
       name: "author",
@@ -39,7 +42,10 @@ export const review = defineType({
       name: "url",
       title: "Lien vers l'article",
       type: "url",
-      description: "Facultatif. La citation devient cliquable si vous le remplissez.",
+      description:
+        "L'adresse de l'article en ligne. C'est le seul champ vraiment nécessaire : la fiche du film affichera « Article de presse » et mènera ici.",
+      validation: (Rule) =>
+        Rule.required().error("Sans lien, cette critique n'a rien à montrer sur le site."),
     }),
     defineField({
       name: "film",
@@ -53,9 +59,17 @@ export const review = defineType({
   preview: {
     select: { quote: "quote", source: "source", author: "author", film: "film.title" },
     prepare({ quote, source, author, film }) {
+      /* Un champ rempli d'un simple espace n'est pas un contenu :
+         on le traite comme vide, ici comme sur le site. */
+      const citation = (quote ?? "").trim();
       return {
-        title: quote ? `« ${quote.slice(0, 70)}${quote.length > 70 ? "…" : ""} »` : "Citation vide",
-        subtitle: [source, author, film].filter(Boolean).join(" · "),
+        title: citation
+          ? `« ${citation.slice(0, 70)}${citation.length > 70 ? "…" : ""} »`
+          : "Article de presse",
+        subtitle: [source, author, film]
+          .map((valeur) => (valeur ?? "").trim())
+          .filter(Boolean)
+          .join(" · "),
       };
     },
   },

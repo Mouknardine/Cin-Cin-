@@ -88,3 +88,16 @@
 @media (min-width: 900px) {
   .m-contact__carte { min-height: 20rem; }
 }
+
+/* ---------- Une case qui porte deux adresses ----------
+   La case « Louer une salle » propose deux e-mails : elle ne peut
+   donc plus être cliquable dans son entier, chaque adresse l'est
+   séparément. Le soulignement le dit — sans lui, les liens
+   passeraient pour du texte, puisque le site retire par défaut la
+   décoration des liens (style.css). */
+
+.m-cell__value a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  text-decoration-thickness: 1px;
+}
