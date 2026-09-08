@@ -63,17 +63,42 @@ function config(): array
     }
 
     /* Le fichier vit HORS du dossier public (voir
-       serveur/config.exemple.php). On regarde deux niveaux
-       au-dessus de /api : d'abord à côté du site, puis au-dessus. */
-    $pistes = [
-        dirname(__DIR__, 2) . '/config.php',
-        dirname(__DIR__) . '/../config.php',
-    ];
+       serveur/config.exemple.php).
+
+       On ne peut pas se contenter de compter les niveaux au-dessus
+       de /api : le site ne vit pas forcément à la racine du dossier
+       servi par le web. Sur cet hébergement il est dans un
+       sous-dossier, aux côtés de l'ancien système qui sert les
+       autres cinémas — deux niveaux plus haut tombaient donc encore
+       en plein dedans.
+
+       On remonte donc jusqu'à quatre niveaux, et on ÉCARTE toute
+       piste située à l'intérieur du dossier public. Y déposer les
+       clés reviendrait à les publier au premier hoquet de PHP : une
+       version mal configurée, et le serveur livre le fichier tel
+       quel, clé SumUp comprise. */
+    $racinePublique = realpath($_SERVER['DOCUMENT_ROOT'] ?? '');
+
+    $pistes = [];
+    for ($niveau = 1; $niveau <= 4; $niveau++) {
+        $pistes[] = dirname(__DIR__, $niveau) . '/config.php';
+    }
+
     foreach ($pistes as $piste) {
-        if (is_readable($piste)) {
-            $config = require $piste;
-            break;
+        if (!is_readable($piste)) {
+            continue;
         }
+        $reel = realpath($piste);
+        if ($racinePublique !== false && $reel !== false
+            && str_starts_with($reel, $racinePublique . DIRECTORY_SEPARATOR)) {
+            error_log(
+                '[zinema-billetterie] config.php ignoré : il se trouve dans le '
+                . 'dossier public, où il ne doit jamais être. Chemin : ' . $reel
+            );
+            continue;
+        }
+        $config = require $piste;
+        break;
     }
 
     if (!is_array($config)) {
