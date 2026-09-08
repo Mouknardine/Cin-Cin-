@@ -187,3 +187,98 @@ function courrielExpedier(
        anti-spam s'en méfient. */
     return @mail($destinataire, $sujetEncode, $message, $entetes, '-f' . $expediteur);
 }
+
+/**
+ * Envoi par le serveur de courrier du domaine.
+ *
+ * Un dialogue SMTP tient en quelques lignes ; y ajouter une
+ * bibliothèque entière pour un message par billet coûterait plus
+ * cher à maintenir. Rien d'exotique ici : on se présente, on
+ * chiffre, on s'authentifie, on remet le message.
+ */
+function courrielViaSmtp(
+    array $smtp,
+    string $destinataire,
+    string $sujetEncode,
+    string $message,
+    string $entetes,
+    string $expediteur
+): bool {
+    $hote = (string) $smtp['hote'];
+    $port = (int) ($smtp['port'] ?? 587);
+    $utilisateur = (string) $smtp['utilisateur'];
+    $motDePasse = (string) ($smtp['mot_de_passe'] ?? '');
+
+    $flux = @stream_socket_client("tcp://$hote:$port", $err, $errMsg, 15);
+    if (!$flux) {
+        error_log("[zinema-billetterie] SMTP injoignable ($hote:$port) : $errMsg");
+        return false;
+    }
+    stream_set_timeout($flux, 20);
+
+    /* Une réponse SMTP peut tenir sur plusieurs lignes : « 250-… »
+       annonce une suite, « 250 … » la termine. */
+    $lire = static function () use ($flux): string {
+        $tout = '';
+        while (($ligne = fgets($flux, 2048)) !== false) {
+            $tout .= $ligne;
+            if (strlen($ligne) < 4 || $ligne[3] !== '-') {
+                break;
+            }
+        }
+        return $tout;
+    };
+    $dire = static function (string $commande) use ($flux): void {
+        fwrite($flux, $commande . "\r\n");
+    };
+    $attendu = static function (string $reponse, string $code, string $etape) use ($flux): bool {
+        if (str_starts_with($reponse, $code)) {
+            return true;
+        }
+        error_log("[zinema-billetterie] SMTP a refusé à l'étape « $etape » : " . trim($reponse));
+        fclose($flux);
+        return false;
+    };
+
+    $nomLocal = $_SERVER['SERVER_NAME'] ?? 'zinema.ch';
+
+    if (!$attendu($lire(), '220', 'accueil')) return false;
+    $dire('EHLO ' . $nomLocal);
+    if (!$attendu($lire(), '250', 'présentation')) return false;
+
+    /* Le chiffrement n'est pas négociable : sans lui, le mot de passe
+       de la boîte traverserait le réseau en clair. */
+    $dire('STARTTLS');
+    if (!$attendu($lire(), '220', 'demande de chiffrement')) return false;
+    if (!@stream_socket_enable_crypto($flux, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+        error_log('[zinema-billetterie] SMTP : le chiffrement a échoué');
+        fclose($flux);
+        return false;
+    }
+    $dire('EHLO ' . $nomLocal);
+    if (!$attendu($lire(), '250', 'présentation chiffrée')) return false;
+
+    $dire('AUTH LOGIN');
+    if (!$attendu($lire(), '334', 'ouverture de session')) return false;
+    $dire(base64_encode($utilisateur));
+    if (!$attendu($lire(), '334', 'identifiant')) return false;
+    $dire(base64_encode($motDePasse));
+    if (!$attendu($lire(), '235', 'mot de passe')) return false;
+
+    $dire('MAIL FROM:<' . $expediteur . '>');
+    if (!$attendu($lire(), '250', 'expéditeur')) return false;
+    $dire('RCPT TO:<' . $destinataire . '>');
+    if (!$attendu($lire(), '250', 'destinataire')) return false;
+    $dire('DATA');
+    if (!$attendu($lire(), '354', 'début du message')) return false;
+
+    /* Une ligne réduite à un point termine le message : si le texte en
+       contenait une, elle couperait tout. On la neutralise. */
+    $corps = preg_replace('/^\./m', '..', $message);
+    $dire("To: $destinataire\r\nSubject: $sujetEncode\r\n$entetes\r\n\r\n$corps\r\n.");
+    if (!$attendu($lire(), '250', 'remise du message')) return false;
+
+    $dire('QUIT');
+    fclose($flux);
+    return true;
+}
