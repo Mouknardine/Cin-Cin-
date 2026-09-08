@@ -68,7 +68,10 @@ export function DialogProgrammerFilm({
   const [filmId, setFilmId] = useState(filmImpose?._id ?? '')
   const [creneaux, setCreneaux] = useState<Creneau[]>([CRENEAU_INITIAL])
   const [dateDebut, setDateDebut] = useState(debutSemaine)
-  const [nbSemaines, setNbSemaines] = useState(2)
+  /* Une semaine par défaut : c'est l'unité de la programmation, et
+     l'erreur d'un film posé une semaine de trop se rattrape moins
+     vite que l'oubli d'une semaine qu'on ajoute. */
+  const [nbSemaines, setNbSemaines] = useState(1)
   const [enCours, setEnCours] = useState(false)
   const [rapport, setRapport] = useState<RapportCreation | null>(null)
 
