@@ -27,10 +27,22 @@ DirectoryIndex index.html
 # La redirection doit donc être faite avant, à la racine. C'est le
 # cas, et elle ne concerne que zinema.ch.
 <IfModule mod_rewrite.c>
-    # Aucune réécriture dans ce dossier. La couper explicitement
-    # évite que les règles de l'ancien CMS, définies à la racine,
-    # ne viennent s'appliquer ici par héritage.
-    RewriteEngine Off
+    # Une seule règle ici, et c'est volontaire : les règles de
+    # réécriture d'un dossier remplacent celles du dossier parent,
+    # elles ne s'y ajoutent pas. Écrire la nôtre suffit donc à tenir
+    # à l'écart celles de l'ancien CMS, définies à la racine.
+    RewriteEngine On
+
+    # Le nom de ce dossier ne doit jamais apparaître dans une adresse
+    # publique : sinon Google verrait deux fois le même site, à deux
+    # adresses différentes, et n'en privilégierait aucune.
+    #
+    # THE_REQUEST est la ligne de requête d'origine, celle tapée par
+    # le visiteur. La condition ne se déclenche donc que si le dossier
+    # a VRAIMENT été demandé — jamais quand l'aiguilleur de la racine
+    # nous envoie ici, ce qui ferait une boucle sans fin.
+    RewriteCond %{THE_REQUEST} "\s/nouveau/"
+    RewriteRule ^(.*)$ https://www.zinema.ch/$1 [R=301,L]
 </IfModule>
 
 # ---------- La page « adresse introuvable » ----------
