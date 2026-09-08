@@ -120,10 +120,9 @@
         )
       : "";
 
+    /* Ni tarifs, ni formules, ni coordonnées bancaires : rien à dire. */
     if (!bandeTarifs && !bandeFormules && !bandeBanque) {
-      app.innerHTML = R.etatVide(
-        (page && page.messageVide) || "Les abonnements n'ont pas encore été renseignés."
-      );
+      app.innerHTML = "";
       return;
     }
 

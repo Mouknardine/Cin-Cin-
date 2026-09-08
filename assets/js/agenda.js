@@ -185,12 +185,9 @@
   }
 
   function render() {
+    /* Aucune séance : rien n'est affiché. Voir evenements.js. */
     if (days.length === 0) {
-      app.innerHTML =
-        '<article class="mondrian mondrian--agenda">' +
-        '<div class="m-cell m-vide ' + C.classe() + '"><p class="m-cell__label">Aucune séance</p>' +
-        '<p class="m-cell__value">Aucune séance programmée pour le moment.</p></div>' +
-        "</article>";
+      app.innerHTML = "";
       return;
     }
 
@@ -230,14 +227,11 @@
       app.innerHTML = R.etatErreur();
       return;
     }
+    /* Le paragraphe d'introduction reste affiché même quand il n'y a
+       rien à montrer : sinon un texte écrit dans le Studio semblerait
+       ne servir à rien. Rien d'autre n'est ajouté. */
     if (!screenings.length) {
-      /* Le paragraphe d'introduction reste affiché même quand il n'y
-         a rien à montrer : sinon un texte écrit dans le Studio
-         semblerait ne servir à rien. */
-      app.innerHTML = cadreIntro() + R.etatVide(
-        (page && page.messageVide) ||
-          "Aucune séance n'est programmée pour l'instant."
-      );
+      app.innerHTML = cadreIntro();
       return;
     }
 

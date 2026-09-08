@@ -130,15 +130,6 @@
     return '<article class="mondrian mondrian--evenements">' + contenu + "</article>";
   }
 
-  function caseMessage(label, message) {
-    return bande(
-      "m-bande--vide",
-      '<div class="m-cell m-vide ' + C.classe() + '"><p class="m-cell__label">' +
-        R.escapeHtml(label) + '</p><p class="m-cell__value">' +
-        R.escapeHtml(message) + "</p></div>"
-    );
-  }
-
   var D = window.ZinemaData;
 
   app.innerHTML = R.etatChargement("des événements");
@@ -161,14 +152,12 @@
           )
         : "";
 
+    /* Rien à annoncer : on n'annonce rien. Une case qui dit « il n'y
+       a rien » occupe autant de place qu'une vraie annonce et n'en
+       apprend aucune. Seul le paragraphe d'introduction subsiste,
+       s'il a été écrit — c'est du texte voulu, pas un bouche-trou. */
     if (!evenements.length) {
-      app.innerHTML = cadre(
-        intro +
-          caseMessage(
-            "Événements",
-            (page && page.messageVide) || "Rien de programmé pour le moment."
-          )
-      );
+      app.innerHTML = intro ? cadre(intro) : "";
       return;
     }
 

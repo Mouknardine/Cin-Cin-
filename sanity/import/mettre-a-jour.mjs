@@ -340,9 +340,9 @@ async function traiterLesReglages() {
         "Carte Culture Caritas",
       ],
       openingHours: [
-        { _type: "horaire", _key: "caisse", label: "Caisse", value: "À la buvette, 15 minutes avant la séance" },
+        { _type: "horaire", _key: "caisse", label: "Billetterie", value: "Au bar, 15 minutes avant la séance" },
         { _type: "horaire", _key: "reservation", label: "Réservation", value: "Nous ne prenons pas de réservations" },
-        { _type: "horaire", _key: "paiement", label: "Paiement", value: "Espèces ou TWINT — pas de carte bancaire" },
+        { _type: "horaire", _key: "paiement", label: "Paiement", value: "Espèces, TWINT ou carte bancaire" },
       ],
       salles: [
         { _type: "salle", _key: "salle1", nom: "Salle 1", places: 18 },
@@ -375,46 +375,48 @@ async function traiterLesReglages() {
       beneficiaire: "Association Microciné",
       iban: "CH79 0900 0000 1725 7734 1",
       notePaiement:
-        "Au cinéma, le paiement se fait en espèces ou par TWINT : nous ne prenons pas les cartes bancaires.",
+        "Au cinéma, le paiement se fait en espèces, par TWINT ou par carte bancaire.",
     })
     .commit();
   dire("   ✎ Formules & paiement");
 }
 
+/* Une page : son identifiant, son titre d'onglet, son paragraphe
+   d'introduction (facultatif) et sa description pour les moteurs de
+   recherche.
+
+   Il n'y a plus de « message quand la page est vide » : une rubrique
+   sans contenu n'affiche rien du tout. Une case qui annonce qu'il n'y
+   a rien prend autant de place qu'une vraie information et n'en
+   apprend aucune. */
 const PAGES = [
   ["home", "Zinéma — Cinéma d'art et essai à Lausanne", null,
-   "Aucun film à l'affiche pour l'instant. Le programme paraît ici dès qu'il est arrêté.",
    "Cinéma d'art et essai rue du Maupas 4 à Lausanne : deux salles de 18 et 14 places, films en version originale et en français."],
-  ["films", "Films — Zinéma", "Réouverture le mercredi 9 septembre 2026.",
-   "Aucun film à l'affiche pour l'instant. Le programme paraît ici dès qu'il est arrêté.",
+  ["films", "Films — Zinéma", null,
    "Les films à l'affiche et à venir au Zinéma, rue du Maupas 4 à Lausanne."],
   ["agenda", "Agenda — Zinéma", null,
-   "Aucune séance programmée pour le moment. Les horaires paraissent ici dès qu'ils sont fixés.",
    "Toutes les séances du Zinéma, jour par jour, salle par salle."],
   ["evenements", "Événements — Zinéma", null,
-   "Rien d'annoncé pour le moment.",
    "Séances spéciales, locations de salle et informations du Zinéma, à Lausanne."],
   ["histoire", "Histoire — Zinéma", null,
-   "La frise est encore vide.",
    "Le Zinéma, salle de cinéma fondée en juin 2001 par Laurent Serge Toplitsch, rue du Maupas à Lausanne."],
   ["membership", "Tarifs & carte de membre — Zinéma",
-   "Plein tarif 16.-, tarif réduit 10.-. Le paiement se fait en espèces ou par TWINT : nous ne prenons pas les cartes bancaires.",
-   "Les formules paraîtront ici prochainement.",
+   "Plein tarif 16.-, tarif réduit 10.-. Le paiement se fait en espèces, par TWINT ou par carte bancaire.",
    "Tarifs du Zinéma : 16.- plein tarif, 10.- tarif réduit, carte annuelle de membre de soutien à 60.-."],
-  ["contact", "Infos pratiques — Zinéma",
-   "Nous ne prenons pas de réservations : les billets sont en vente à la buvette, 15 minutes avant les représentations.",
-   "Les informations pratiques paraîtront ici.",
+  ["contact", "Infos pratiques — Zinéma", null,
    "Adresse, téléphone, tarifs et accès du Zinéma, rue du Maupas 4 à 1004 Lausanne."],
 ];
 
 async function traiterLesPages() {
   titre("Les textes des sept pages");
-  for (const [pageId, titrePage, intro, messageVide, seoDescription] of PAGES) {
+  for (const [pageId, titrePage, intro, seoDescription] of PAGES) {
     const id = "page-" + pageId;
     await client.createIfNotExists({ _id: id, _type: "page", pageId });
     const modification = client
       .patch(id)
-      .set({ pageId, titre: titrePage, messageVide, seoDescription });
+      .set({ pageId, titre: titrePage, seoDescription })
+      /* Reste des versions précédentes du site : le champ n'existe plus. */
+      .unset(["messageVide"]);
     if (intro) modification.set({ intro });
     else modification.unset(["intro"]);
     await modification.commit();

@@ -90,13 +90,6 @@
   white-space: pre-line;
 }
 
-/* ---------- Aucune étape renseignée ---------- */
-
-.mondrian--histoire .m-vide {
-  min-height: 30dvh;
-  justify-content: center;
-}
-
 /* ---------- Ordinateur ----------
    Le titre de l'étape et son texte se partagent la largeur
    restante : le texte, toujours plus long, en prend deux fois

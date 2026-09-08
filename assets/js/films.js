@@ -94,10 +94,12 @@
     var agendaHTML =
       '<a href="' + root + 'agenda/" class="m-cell m-action m-films-agenda ' + C.classe() + '"><span>Agenda complet →</span></a>';
 
+    /* Une rubrique sans film n'affiche rien : les filtres restent
+       au-dessus, il suffit d'en choisir un autre. Une case pour dire
+       « il n'y a rien » n'apprendrait rien de plus. */
     var filmsHTML = visible.length
       ? '<div class="m-films">' + visible.map(filmHTML).join("") + agendaHTML + "</div>"
-      : '<div class="m-cell m-vide ' + C.classe() + '"><p class="m-cell__label">Aucun film</p>' +
-        '<p class="m-cell__value">Aucun film dans cette catégorie pour le moment.</p></div>';
+      : "";
 
     app.innerHTML =
       '<article class="mondrian">' + introHTML() + filtresHTML + filmsHTML + "</article>";
@@ -124,14 +126,11 @@
       app.innerHTML = R.etatErreur();
       return;
     }
+    /* Le paragraphe d'introduction reste affiché même quand il n'y a
+       rien à montrer : sinon un texte écrit dans le Studio semblerait
+       ne servir à rien. Rien d'autre n'est ajouté. */
     if (!films.length) {
-      /* Le paragraphe d'introduction reste affiché même quand il n'y
-         a rien à montrer : sinon un texte écrit dans le Studio
-         semblerait ne servir à rien. */
-      app.innerHTML = cadreIntro() + R.etatVide(
-        (page && page.messageVide) ||
-          "Aucun film n'est publié pour le moment."
-      );
+      app.innerHTML = cadreIntro();
       return;
     }
     allFilms = films;

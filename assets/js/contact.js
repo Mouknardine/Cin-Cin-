@@ -100,11 +100,9 @@
       app.innerHTML = R.etatErreur();
       return;
     }
+    /* Aucun réglage renseigné : rien à afficher. */
     if (!reglages) {
-      app.innerHTML = R.etatVide(
-        (page && page.messageVide) ||
-          "Les infos pratiques n'ont pas encore été renseignées."
-      );
+      app.innerHTML = "";
       return;
     }
 

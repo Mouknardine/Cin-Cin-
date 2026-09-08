@@ -385,10 +385,9 @@
       D.estUneErreur(seances) ? [] : seances
     );
 
+    /* Aucune affiche : le mur reste vide, sans phrase pour le dire. */
     if (!items.length) {
-      app.innerHTML = R.etatVide(
-        (page && page.messageVide) || "Aucun film à l'affiche pour le moment."
-      );
+      app.innerHTML = "";
       return;
     }
 

@@ -131,13 +131,6 @@
   padding: 1.25rem 1rem;
 }
 
-/* ---------- Aucun film dans la catégorie ---------- */
-
-.m-vide {
-  min-height: 30dvh;
-  justify-content: center;
-}
-
 /* ---------- Tablette : deux films par rangée ---------- */
 
 @media (min-width: 768px) {

@@ -67,14 +67,6 @@ export const page = defineType({
         "Le texte affiché tout en haut de la page, au-dessus du contenu. Laissez vide si la page doit s'ouvrir directement sur son contenu — c'est le cas aujourd'hui pour la plupart des pages.",
     }),
     defineField({
-      name: "messageVide",
-      title: "Message quand la page n'a rien à afficher",
-      type: "text",
-      rows: 3,
-      description:
-        "Ce que lit un visiteur quand il n'y a pas encore de contenu : aucune séance programmée, aucun film publié, aucun événement à venir. Le site n'invente jamais de contenu pour combler un vide — c'est cette phrase qui s'affiche à la place. Écrivez-la de façon rassurante, en disant quand revenir.",
-    }),
-    defineField({
       name: "seoDescription",
       title: "Description pour Google",
       type: "text",

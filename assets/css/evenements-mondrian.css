@@ -66,13 +66,6 @@
   line-height: 1.2;
 }
 
-/* ---------- Aucun événement ---------- */
-
-.mondrian--evenements .m-vide {
-  min-height: 30dvh;
-  justify-content: center;
-}
-
 /* ---------- Ordinateur ---------- */
 
 @media (min-width: 900px) {

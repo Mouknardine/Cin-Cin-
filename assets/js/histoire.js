@@ -98,16 +98,18 @@
        Vide, il n'y a simplement pas de paragraphe. */
     var intro = (page && page.intro) || "";
 
+    /* Aucune étape enregistrée : seul le paragraphe d'introduction
+       subsiste, s'il a été écrit. Sinon la page reste vide. */
     if (!entrees.length) {
-      app.innerHTML = cadre(
-        bande(
-          "m-bande--vide",
-          '<div class="m-cell m-vide ' + C.classe() + '"><p class="m-cell__label">Histoire</p>' +
-            '<p class="m-cell__value">' +
-            R.escapeHtml(intro || (page && page.messageVide) || "") +
-            "</p></div>"
-        )
-      );
+      app.innerHTML = intro
+        ? cadre(
+            bande(
+              "m-bande--intro",
+              '<div class="m-cell m-histoire__intro ' + C.classe() + '">' +
+                R.escapeHtml(intro) + "</div>"
+            )
+          )
+        : "";
       return;
     }
 

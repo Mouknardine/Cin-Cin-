@@ -802,7 +802,12 @@ body:not([data-page="home"]) .main-area {
    — ce que la formule donne droit. */
 .m-formule__avantages {
   margin: 0.5rem 0 0;
-  padding: 0 0 0 1.1rem;
+  /* Aucun retrait et aucune puce : les avantages commencent au même
+     bord que le titre, le prix et le paragraphe au-dessus d'eux. Le
+     retrait par défaut des listes les décalait vers la droite, seuls
+     de leur case à ne pas être alignés. */
+  padding: 0;
+  list-style: none;
   font-family: var(--font-body);
   font-size: inherit;
   font-weight: 400;

@@ -238,9 +238,6 @@
       escapeHtml(quoi || "du contenu") + "…</p>"
     );
   }
-  function etatVide(message) {
-    return '<p class="etat etat--vide">' + escapeHtml(message) + "</p>";
-  }
   function etatErreur() {
     return (
       '<p class="etat etat--erreur" role="alert">Le contenu du site n\'a pas pu être chargé. ' +
@@ -284,7 +281,6 @@
     montant: montant,
     altDeLImage: altDeLImage,
     etatChargement: etatChargement,
-    etatVide: etatVide,
     etatErreur: etatErreur,
     formatDayHeading: formatDayHeading,
     formatLongDate: formatLongDate,

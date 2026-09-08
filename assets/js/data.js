@@ -203,7 +203,7 @@
     getPages: function () {
       return cachee("pages", function () {
         return sanityFetch(
-          '*[_type == "page"]{pageId,titre,intro,messageVide,seoDescription}'
+          '*[_type == "page"]{pageId,titre,intro,seoDescription}'
         ).then(function (liste) {
           if (estUneErreur(liste)) return liste;
           var parId = {};
