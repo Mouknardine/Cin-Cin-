@@ -28,13 +28,18 @@
   var SANITY_API_VERSION = "2024-06-01";
 
   /* ---------------- Billetterie en ligne ----------------
-     false = les boutons d'achat ouvrent le lien de paiement SumUp
-             collé dans Sanity.
-     true  = le site ouvre son panneau d'achat, le serveur crée le
-             paiement et délivre le billet.
-     À passer à true une fois le site hébergé sur un serveur capable
-     d'exécuter le dossier /api — voir BILLETTERIE.md. */
-  var BILLETTERIE_EN_LIGNE = false;
+     true  = le site ouvre son panneau d'achat, le serveur calcule le
+             prix, crée le paiement et envoie le billet par e-mail.
+     false = repli : les boutons d'achat ouvrent le lien de paiement
+             SumUp collé à la main dans le Studio.
+
+     Ouverte le 2026-09-08, après avoir vérifié la chaîne entière
+     par un vrai paiement : carte encaissée, commande enregistrée,
+     billet reçu. Voir BILLETTERIE.md.
+
+     Repasser à false suffit à refermer la caisse sans rien casser :
+     les liens SumUp du Studio reprennent la main immédiatement. */
+  var BILLETTERIE_EN_LIGNE = true;
 
   /* Marqueur renvoyé quand Sanity est injoignable. */
   var ERREUR = { __erreurReseau: true };
