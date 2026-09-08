@@ -6,11 +6,15 @@
    client la retrouve après avoir fermé la page : sans lui, fermer
    l'onglet revient à perdre sa place.
 
-   L'envoi passe par la fonction d'envoi du serveur, sans mot de
-   passe à stocker. En contrepartie, un message peut atterrir dans
-   les indésirables : c'est pourquoi la page du billet continue
-   d'afficher la référence en grand, et n'invite jamais à se fier
-   au seul e-mail.
+   L'envoi passe par le serveur de courrier d'Infomaniak, avec les
+   identifiants d'une boîte du domaine. La fonction mail() de PHP
+   est désactivée sur cet hébergement — comme sur la plupart des
+   mutualisés, pour endiguer le spam : il n'existe donc pas de
+   solution « sans mot de passe ».
+
+   Tant que ces identifiants ne sont pas renseignés, rien n'est
+   envoyé et la page du billet n'annonce aucun envoi. Elle affiche
+   la référence en grand, qui reste le vrai billet.
 
    Le message est en texte simple, volontairement. Un billet n'a
    besoin d'aucune mise en forme, et le texte simple passe partout
@@ -126,19 +130,60 @@ function courrielEnvoyerBillet(array $commande): bool
         'X-Mailer: zinema-billetterie',
     ]);
 
-    /* Le cinquième argument fixe l'expéditeur d'enveloppe : sans lui,
-       le serveur envoie sous une adresse technique et les filtres
-       anti-spam s'en méfient. */
-    $envoye = @mail(
-        $destinataire,
-        courrielSujetEncode($sujet),
-        $message,
-        $entetes,
-        '-f' . $expediteur
-    );
+    try {
+        $envoye = courrielExpedier(
+            $destinataire,
+            courrielSujetEncode($sujet),
+            $message,
+            $entetes,
+            $expediteur
+        );
+    } catch (Throwable $e) {
+        /* Un billet payé ne doit JAMAIS tomber sur une page d'erreur
+           parce que son e-mail n'est pas parti. On consigne, on rend
+           la main, la page affiche le billet. */
+        error_log('[zinema-billetterie] envoi impossible : ' . $e->getMessage());
+        return false;
+    }
 
     if (!$envoye) {
         error_log('[zinema-billetterie] échec de l\'envoi du billet ' . $reference);
     }
     return $envoye;
+}
+
+/**
+ * Remet le message au serveur de courrier.
+ *
+ * Deux chemins, dans cet ordre :
+ *   1. le serveur SMTP du domaine, si ses identifiants sont dans
+ *      config.php — c'est la voie normale, et la seule fiable ;
+ *   2. la fonction mail() de PHP, si l'hébergeur la laisse active.
+ *
+ * Aucun des deux disponible : on renvoie faux, sans rien casser.
+ */
+function courrielExpedier(
+    string $destinataire,
+    string $sujetEncode,
+    string $message,
+    string $entetes,
+    string $expediteur
+): bool {
+    $smtp = config()['courriel']['smtp'] ?? null;
+    if (is_array($smtp) && !empty($smtp['hote']) && !empty($smtp['utilisateur'])) {
+        return courrielViaSmtp($smtp, $destinataire, $sujetEncode, $message, $entetes, $expediteur);
+    }
+
+    if (!function_exists('mail')) {
+        error_log(
+            '[zinema-billetterie] aucun moyen d\'envoi : mail() est désactivé sur cet '
+            . 'hébergement et aucun serveur SMTP n\'est configuré dans config.php.'
+        );
+        return false;
+    }
+
+    /* Le cinquième argument fixe l'expéditeur d'enveloppe : sans lui,
+       le serveur envoie sous une adresse technique et les filtres
+       anti-spam s'en méfient. */
+    return @mail($destinataire, $sujetEncode, $message, $entetes, '-f' . $expediteur);
 }
