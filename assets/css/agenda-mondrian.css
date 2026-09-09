@@ -82,8 +82,9 @@
    il échappe donc au tirage au sort des couleurs. */
 .m-seance__statut--annule { color: var(--red); }
 
-/* Toute la rangée se remplit au survol : une seule surface, chaque
-   case prenant la couleur tirée au hasard pour elle. */
+/* Toute la rangée se remplit au survol, mais case par case : chacune
+   a tiré sa propre couleur (voir seanceHTML dans agenda.js), l'heure
+   et le film ne se remplissent donc jamais du même bleu. */
 a.m-seance > * {
   transition: background 0.2s ease-out, color 0.2s ease-out;
 }

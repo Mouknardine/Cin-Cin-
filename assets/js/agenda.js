@@ -112,6 +112,13 @@
   }
 
   /* Une séance = une rangée de cases, toute la rangée est cliquable.
+     Chaque case tire SA couleur, pas la rangée : au survol, l'heure
+     et le titre du film se remplissent de deux couleurs différentes
+     — c'est ce qui fait lire la rangée comme un tableau de cases, et
+     non comme une seule barre de couleur. Le tirage ne sert jamais
+     deux fois la même couleur d'affilée, deux cases voisines sont
+     donc toujours distinctes.
+
      La case statut n'existe que si la séance est complète ou annulée
      (jamais de case vide dans le tableau). */
   function seanceHTML(s) {
@@ -119,17 +126,21 @@
     var sub = [R.escapeHtml(s.room || ""), s.versionNote ? "— " + R.escapeHtml(s.versionNote) : ""]
       .filter(Boolean)
       .join(" ");
-    var statut = statusText[s.status]
-      ? '<span class="m-cell m-seance__statut' + (s.status === "annule" ? " m-seance__statut--annule" : "") + '">' +
+    var heureHTML =
+      '<span class="m-cell m-seance__heure c-' + C.suivante() + '">' + s.time + "</span>";
+    var infosHTML =
+      '<span class="m-cell m-seance__infos c-' + C.suivante() + '">' +
+      '<span class="m-seance__titre">' + R.escapeHtml(s.film ? s.film.title : "Séance") + "</span>" +
+      (sub ? '<span class="m-seance__salle">' + sub + "</span>" : "") +
+      "</span>";
+    var statutHTML = statusText[s.status]
+      ? '<span class="m-cell m-seance__statut c-' + C.suivante() +
+        (s.status === "annule" ? " m-seance__statut--annule" : "") + '">' +
         statusText[s.status] + "</span>"
       : "";
     return (
-      '<a class="m-seance c-' + C.suivante() + '" href="' + filmHref + '">' +
-      '<span class="m-cell m-seance__heure">' + s.time + "</span>" +
-      '<span class="m-cell m-seance__infos">' +
-      '<span class="m-seance__titre">' + R.escapeHtml(s.film ? s.film.title : "Séance") + "</span>" +
-      (sub ? '<span class="m-seance__salle">' + sub + "</span>" : "") +
-      "</span>" + statut + "</a>"
+      '<a class="m-seance" href="' + filmHref + '">' +
+      heureHTML + infosHTML + statutHTML + "</a>"
     );
   }
 
