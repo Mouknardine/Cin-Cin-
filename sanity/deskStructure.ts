@@ -6,6 +6,7 @@ import {
   CogIcon,
   CreditCardIcon,
   DocumentTextIcon,
+  HomeIcon,
   PlayIcon,
   SparklesIcon,
   StarIcon,
@@ -104,7 +105,24 @@ export const deskStructure: StructureResolver = (S) =>
             .defaultOrdering([{ field: "dateDebut", direction: "desc" }])
         ),
 
-      /* ---------------- Histoire ---------------- */
+      /* ---------------- Location ----------------
+         Les espaces qu'on peut louer, et l'adresse qui reçoit les
+         demandes envoyées depuis le site. Une seule fiche. */
+      S.listItem()
+        .id("location")
+        .title("Location")
+        .icon(HomeIcon)
+        .child(
+          S.document()
+            .schemaType("location")
+            .documentId("location")
+            .title("Location des espaces")
+        ),
+
+      /* ---------------- Histoire ----------------
+         La frise n'est plus dans le menu du site : on y entre par
+         une case de la page Infos pratiques. Elle se modifie
+         toujours ici, au même endroit qu'avant. */
       S.listItem()
         .id("histoire")
         .title("Histoire")

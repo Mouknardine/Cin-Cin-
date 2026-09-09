@@ -49,7 +49,7 @@ jobs:
           mkdir site
           cp -r index.html 404.html robots.txt sitemap.xml .htaccess \
                 favicon.ico site.webmanifest \
-                films film agenda evenements histoire membership contact billet \
+                films film agenda evenements location histoire membership contact billet \
                 assets api site/
           echo "— contenu envoyé :"
           find site -type f | sort

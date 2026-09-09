@@ -1,0 +1,220 @@
+/* ============================================================
+   Zinéma — page Location en tableau « Mondrian ».
+   S'appuie sur film-mondrian.css (quadrillage, cases, visuels) :
+   les deux feuilles sont chargées ensemble sur cette page.
+
+   La page se lit comme une visite : ce qu'on peut faire ici, puis
+   chaque espace sur sa bande, puis la demande.
+
+     ┌──────────────────────────────────────────────────────┐
+     │ Le Zinéma se loue : projection privée, séminaire…    │
+     ├───────────┬───────────┬───────────┬──────────────────┤
+     │ PROJECTION│ SÉMINAIRE │ ANNIV.    │ CONFÉRENCE       │
+     ├───────────┬───────────┬───────────┬──────────────────┤
+     │ SALLE 1   │  photo    │ Une salle │ ÉQUIPEMENT       │
+     │ 18 places │           │ en gradin │ Projection 4K…   │
+     ├───────────┴───────────┴───────────┴──────────────────┤
+     │ DEMANDER UNE LOCATION  · nom · e-mail · projet…      │
+     └──────────────────────────────────────────────────────┘
+
+   Comme partout : aucun bandeau de titre, des cases dont la
+   largeur suit la longueur du texte, une couleur tirée au hasard
+   sur chacune au survol.
+   ============================================================ */
+
+/* ---------- Mobile & tablette ----------
+   Chaque case prend toute la largeur : une case calée sur son
+   texte laisserait un trait noir à sa droite, un trou dans le
+   tableau. Les occasions font exception — ce sont des mots courts,
+   et empilés ils feraient défiler la page avant d'avoir rien vu. */
+
+@media (max-width: 899px) {
+  .mondrian--location .m-bande > * {
+    flex: 1 1 100%;
+  }
+  .mondrian--location .m-bande--occasions > * {
+    flex: 1 1 auto;
+  }
+}
+
+/* ---------- Ce qu'on peut faire ici ---------- */
+
+.m-location__occasion {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  justify-content: center;
+}
+
+/* ---------- Un espace ---------- */
+
+/* Le nom de l'espace joue le rôle de l'année sur la page Histoire :
+   c'est le repère qu'on suit en parcourant la page du regard. */
+.m-location__espace {
+  flex: 0 0 auto;
+  min-width: min(100%, 11rem);
+  justify-content: center;
+}
+.m-location__espace-nom {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  font-size: var(--taille-titre);
+  line-height: 0.95;
+}
+.m-location__espace-places {
+  font-weight: 800;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* La photo remplit sa case, sans format imposé : ce ne sont pas
+   des affiches, et une salle se photographie en largeur. */
+.m-location__visuel {
+  padding: 0;
+  flex: 1 1 18rem;
+}
+.m-location__visuel img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 12rem;
+  object-fit: cover;
+}
+
+.m-location__description { flex: 1 1 20rem; }
+.m-location__equipements { flex: 1 1 12rem; }
+.m-location__tarif { flex: 0 0 auto; }
+
+/* Les retours à la ligne saisis dans le Studio sont conservés :
+   « Bon à savoir » se lit comme une liste, une idée par ligne. */
+.m-location__texte {
+  font-weight: 400;
+  white-space: pre-line;
+}
+
+/* ---------- La demande ---------- */
+
+/* Le formulaire est une bande du tableau comme les autres : ses
+   champs sont des cases, séparées par les mêmes traits noirs. */
+.m-bande--demande {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: var(--ligne);
+  background: var(--ink);
+}
+.m-bande--demande > * {
+  background: var(--paper);
+  min-width: 0;
+}
+
+.m-demande__titre {
+  flex: 1 1 100%;
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  font-size: var(--taille-titre);
+  line-height: 1;
+}
+
+/* Un champ = une case cliquable sur toute sa surface. Trois par
+   rangée sur ordinateur, une seule sur mobile. */
+.m-demande__champ {
+  flex: 1 1 14rem;
+  cursor: text;
+}
+.m-demande__champ--message {
+  flex: 1 1 100%;
+}
+.m-demande__champ input,
+.m-demande__champ select,
+.m-demande__champ textarea {
+  width: 100%;
+  padding: 0.5rem 0;
+  border: none;
+  border-bottom: var(--ligne) solid currentColor;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  appearance: none;
+}
+.m-demande__champ textarea {
+  resize: vertical;
+  min-height: 5rem;
+}
+.m-demande__champ input:focus,
+.m-demande__champ select:focus,
+.m-demande__champ textarea:focus {
+  outline: none;
+}
+.m-demande__champ input::placeholder,
+.m-demande__champ textarea::placeholder {
+  color: currentColor;
+  opacity: 0.4;
+}
+.m-demande__aide {
+  font-weight: 400;
+  opacity: 0.6;
+}
+
+/* Le piège à robots : hors de l'écran, jamais atteint au clavier,
+   invisible aux lecteurs d'écran. Un « display: none » serait
+   repéré par les robots les plus soigneux. */
+.m-demande__piege {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Le vert de l'achat : envoyer une demande est le geste principal
+   de la page, comme acheter un billet l'est sur la fiche film. */
+.m-demande__envoyer {
+  flex: 1 1 100%;
+  background: var(--vert);
+  color: #fff;
+  padding: 1.25rem 1rem;
+  transition: background 0.2s ease-out;
+}
+.m-demande__envoyer:hover,
+.m-demande__envoyer:focus-visible {
+  background: var(--vert-fonce);
+}
+.m-demande__envoyer:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.m-demande__message {
+  flex: 1 1 100%;
+  padding: 1rem;
+  background: var(--paper);
+  font-weight: 700;
+  font-size: var(--taille-texte);
+  line-height: 1.35;
+}
+/* Rouge : c'est un avertissement, pas une décoration — il échappe
+   au tirage au sort des couleurs, comme les séances annulées. */
+.m-demande__message--erreur {
+  color: var(--red);
+}
+
+.m-demande__confirmation {
+  flex: 1 1 100%;
+  font-weight: 700;
+}
+
+@media (min-width: 900px) {
+  /* Le formulaire garde trois champs par rangée : au-delà, les
+     cases deviennent trop étroites pour leur intitulé. */
+  .m-demande__champ {
+    flex: 1 1 calc(33.333% - var(--ligne));
+  }
+}

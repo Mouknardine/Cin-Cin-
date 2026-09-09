@@ -12,6 +12,7 @@
 (function () {
   "use strict";
 
+  var root = document.body.dataset.root || "";
   var app = document.getElementById("contact-app");
   var R = window.ZinemaRender;
   var C = window.ZinemaCouleurs;
@@ -42,6 +43,17 @@
       '<a class="m-cell m-info m-cell--ligne ' + C.classe() + '" href="' + R.escapeHtml(href) + '">' +
       '<p class="m-cell__label">' + R.escapeHtml(label) + "</p>" +
       '<p class="m-cell__value">' + R.escapeHtml(valeur) + "</p></a>"
+    );
+  }
+
+  /* Une case-lien qui reste sur le site : elle mène vers une autre
+     page du Zinéma, pas vers l'extérieur — ni cible ni « rel », et
+     la flèche pointe à droite comme un chapitre qui continue. */
+  function caseInterne(label, libelle, href) {
+    return (
+      '<a class="m-cell m-contact__page ' + C.classe() + '" href="' + R.escapeHtml(href) + '">' +
+      '<p class="m-cell__label">' + R.escapeHtml(label) + "</p>" +
+      '<p class="m-contact__page-titre">' + R.escapeHtml(libelle) + " →</p></a>"
     );
   }
 
@@ -166,6 +178,14 @@
          en dessous. Les répéter allongeait la page d'un écran
          entier sur mobile, avec Instagram et Facebook deux fois. */
       bande("m-bande--acces", [caseAcces]) +
+      /* L'Histoire du cinéma a quitté le menu : elle se lit une
+         fois, quand la Location se demande. On y entre par cette
+         case, à la fin des infos pratiques — à l'endroit où l'on a
+         fini de chercher un renseignement et où l'on a le temps de
+         lire. */
+      bande("m-bande--pages", [
+        caseInterne("À lire", "L'histoire du Zinéma", root + "histoire/"),
+      ]) +
       "</article>";
   });
 })();

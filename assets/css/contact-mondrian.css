@@ -83,6 +83,20 @@
   white-space: pre-line;
 }
 
+/* ---------- Le renvoi vers l'Histoire ----------
+   L'Histoire du cinéma a quitté le menu : cette case est la seule
+   porte d'entrée. Elle se lit donc comme un titre, pas comme une
+   ligne d'information de plus. */
+
+.m-contact__page-titre {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  font-size: var(--taille-titre);
+  line-height: 1;
+}
+
 /* ---------- Ordinateur ---------- */
 
 @media (min-width: 900px) {

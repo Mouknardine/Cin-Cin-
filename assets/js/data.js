@@ -238,6 +238,16 @@
       });
     },
 
+    /** La page Location : les espaces à louer et leurs conditions. */
+    getLocation: function () {
+      return cachee("location", function () {
+        return sanityFetch(
+          '*[_type == "location"][0]{intro,occasions,conditions,' +
+            '"espaces": espaces[]{nom,places,description,equipements,tarif,image}}'
+        );
+      });
+    },
+
     /** Les formules d'abonnement et les coordonnées bancaires. */
     getAbonnements: function () {
       return cachee("abonnements", function () {
@@ -249,7 +259,7 @@
 
     /* ---------------- Les pages du site ----------------
        Une fiche par page (Accueil, Films, Agenda, Événements,
-       Histoire, Abonnements, Infos pratiques) : titre de l'onglet,
+       Location, Abonnements, Infos pratiques, Histoire) : titre de l'onglet,
        introduction, message quand il n'y a rien, description pour
        Google. Les sept fiches arrivent en une seule requête, puis
        chaque page pioche la sienne. */

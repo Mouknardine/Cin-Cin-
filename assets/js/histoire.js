@@ -78,9 +78,21 @@
   }
 
   var D = window.ZinemaData;
+  var root = document.body.dataset.root || "";
+
+  /* Cette page n'est plus dans le menu : on y entre par une case de
+     la page Infos pratiques. Elle se termine donc par le chemin du
+     retour — sans lui, on ne saurait plus d'où l'on vient. */
+  function retourHTML() {
+    return bande(
+      "m-bande--retour",
+      '<a href="' + root + 'contact/" class="m-cell m-action ' + C.classe() + '">' +
+        "<span>← Infos pratiques</span></a>"
+    );
+  }
 
   function cadre(contenu) {
-    return '<article class="mondrian mondrian--histoire">' + contenu + "</article>";
+    return '<article class="mondrian mondrian--histoire">' + contenu + retourHTML() + "</article>";
   }
 
   app.innerHTML = R.etatChargement("de l'histoire du cinéma");

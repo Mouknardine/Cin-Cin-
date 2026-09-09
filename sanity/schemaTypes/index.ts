@@ -7,6 +7,7 @@ import { review } from "./review";
 import { historyEntry } from "./historyEntry";
 import { siteSettings } from "./siteSettings";
 import { abonnements } from "./abonnements";
+import { location } from "./location";
 import { page } from "./page";
 import { commande } from "./commande";
 
@@ -24,6 +25,7 @@ export const schemaTypes = [
   // Documents uniques (une seule fiche pour tout le site)
   siteSettings,
   abonnements,
+  location,
   page,
 
   // Billetterie : créé automatiquement par le serveur, jamais à la main
@@ -31,7 +33,7 @@ export const schemaTypes = [
 ];
 
 /** Types dont il n'existe qu'une seule fiche : pas de bouton « créer ». */
-export const typesUniques = ["siteSettings", "abonnements", "page"];
+export const typesUniques = ["siteSettings", "abonnements", "location", "page"];
 
 /** Types que personne ne crée à la main depuis le Studio. */
 export const typesNonCreables = [...typesUniques, "commande"];
