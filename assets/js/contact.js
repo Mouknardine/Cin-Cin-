@@ -179,13 +179,13 @@
          Facebook deux fois. */
       bande("m-bande--acces", [caseAcces]) +
       /* La rangée qui ferme la page, à l'endroit où l'on a fini de
-         chercher un renseignement. L'Histoire du cinéma a quitté le
-         menu : cette case en est la seule porte d'entrée. Le chemin
-         des séances la suit — le pied de page ne le porte pas, et
-         une page d'infos ne doit pas être un cul-de-sac. */
+         chercher un renseignement. Le chemin des séances ouvre la
+         rangée : le pied de page ne le porte pas, et une page d'infos
+         ne doit pas être un cul-de-sac. L'Histoire du cinéma suit —
+         elle a quitté le menu, cette case en est la seule porte. */
       bande("m-bande--pages", [
-        caseInterne("À lire", "L'histoire du Zinéma", root + "histoire/"),
         R.caseVoirLesSeances(),
+        caseInterne("À lire", "L'histoire du Zinéma", root + "histoire/"),
       ]) +
       "</article>";
   });
