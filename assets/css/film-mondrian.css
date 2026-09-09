@@ -341,13 +341,28 @@ button.m-seances__chip:focus-visible {
   font-weight: 800;
   text-wrap: balance;
 }
+/* Le chemin vers l'agenda ferme la case des séances. C'est une
+   case encadrée, comme les horaires au-dessus : le tableau encadre,
+   il ne souligne pas. Elle reste calée en bas, quel que soit le
+   nombre de séances affichées au-dessus d'elle. */
 .m-seances__agenda {
-  font-weight: 800;
-  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
   align-self: flex-start;
   margin-top: auto;
-  padding-top: 0.75rem;
-  border-bottom: var(--ligne) solid currentColor;
+  padding: 0.3rem 0.75rem;
+  border: var(--ligne) solid currentColor;
+  font-weight: 800;
+  text-transform: uppercase;
+  transition: background 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out;
+}
+/* Au survol elle s'inverse, en noir. Pas en vert : le vert du site
+   ne dit qu'une chose, « ceci achète un billet ». */
+.m-seances__agenda:hover,
+.m-seances__agenda:focus-visible {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
 }
 
 /* ---------- Bande presse : la citation, à la fin de la fiche ----------

@@ -146,7 +146,7 @@
       '<div class="m-cell m-seances ' + C.classeSansSurvol() + '">' +
       '<p class="m-cell__label">' + (annonce ? "Sortie" : "Séances") + "</p>" +
       (annonce ? sortieHTML(film) : seancesHTML(film)) +
-      '<a href="' + root + 'agenda/" class="m-seances__agenda">Agenda complet</a></div>'
+      '<a href="' + root + 'agenda/" class="m-seances__agenda">Voir les séances</a></div>'
     );
   }
 

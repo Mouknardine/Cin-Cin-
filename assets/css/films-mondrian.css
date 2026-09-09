@@ -131,6 +131,20 @@
   padding: 1.25rem 1rem;
 }
 
+/* Sur ordinateur, la case Agenda est la plus grande du tableau :
+   elle avale tout le vide de la dernière rangée. Son mot y prend
+   la taille des titres du site, sinon deux lignes flottent dans un
+   aplat de couleur. Sur téléphone la case est étroite et déjà
+   pleine : le même mot y coûterait quatre lignes. */
+
+@media (min-width: 900px) {
+  .m-films-agenda {
+    font-size: var(--taille-titre);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+  }
+}
+
 /* ---------- Tablette : deux films par rangée ---------- */
 
 @media (min-width: 768px) {
