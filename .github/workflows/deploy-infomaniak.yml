@@ -48,6 +48,7 @@ jobs:
         run: |
           mkdir site
           cp -r index.html 404.html robots.txt sitemap.xml .htaccess \
+                favicon.ico site.webmanifest \
                 films film agenda evenements histoire membership contact billet \
                 assets api site/
           echo "— contenu envoyé :"

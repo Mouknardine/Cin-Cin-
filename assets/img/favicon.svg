@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 163 163" role="img" aria-label="Zinéma">
+  <!-- Le cube « Z » du logo Zinéma, vectorisé depuis le logotype.
+       En thème sombre le cube passe en clair pour rester lisible
+       dans l'onglet du navigateur. -->
+  <style>
+    .cube { fill: #100f0c; }
+    @media (prefers-color-scheme: dark) {
+      .cube { fill: #ededed; }
+    }
+  </style>
+  <g class="cube" transform="translate(0,163) scale(0.1,-0.1)">
+    <path d="M725 1437 l-90 -53 -198 -113 -198 -114 8 -7 8 -7 274 -157 274 -156
+11 0 11 0 283 162 283 161 -8 7 -8 7 -260 148 -260 148 -20 13 -20 13 -90 -52z"/>
+    <path d="M220 802 l0 -328 158 -89 157 -90 125 -72 125 -73 7 0 8 0 0 329 0
+329 -137 78 -138 78 -115 66 -115 67 -32 17 -32 16 -6 0 -5 0 0 -328z m324 -6
+l156 -89 0 -41 0 -41 -107 -56 -106 -57 106 -62 107 -62 0 -39 0 -39 -7 0 -6
+0 -169 97 -169 98 3 40 3 40 97 50 97 50 1 10 1 10 -88 51 -88 51 -3 42 -3 43
+9 -3 9 -4 157 -89z"/>
+    <path d="M1105 966 l-280 -161 -2 -328 -2 -327 10 0 11 0 256 147 257 146 27
+19 27 18 -2 322 -2 321 -10 3 -10 2 -280 -162z"/>
+  </g>
+</svg>

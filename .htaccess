@@ -92,6 +92,17 @@ Options -Indexes
     AddOutputFilterByType DEFLATE application/javascript text/javascript application/json
     AddOutputFilterByType DEFLATE application/xml
     AddOutputFilterByType DEFLATE image/svg+xml
+    AddOutputFilterByType DEFLATE application/manifest+json
+</IfModule>
+
+# ---------- Types que tous les Apache ne connaissent pas ----------
+# Sans ces déclarations, le manifeste et le favicon peuvent
+# partir en « text/plain » : Android ignore alors le manifeste,
+# et le navigateur refuse l'icône.
+<IfModule mod_mime.c>
+    AddType application/manifest+json .webmanifest
+    AddType image/svg+xml             .svg
+    AddType image/x-icon              .ico
 </IfModule>
 
 # ---------- Vitesse : ce que le navigateur peut garder ----------
@@ -114,6 +125,8 @@ Options -Indexes
     ExpiresByType image/png                 "access plus 1 month"
     ExpiresByType image/jpeg                "access plus 1 month"
     ExpiresByType image/svg+xml             "access plus 1 month"
+    ExpiresByType image/x-icon              "access plus 1 month"
+    ExpiresByType application/manifest+json "access plus 1 week"
 </IfModule>
 <IfModule mod_headers.c>
     <FilesMatch "\.(html|css|js)$">
