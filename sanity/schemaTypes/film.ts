@@ -155,6 +155,26 @@ export const film = defineType({
       validation: (Rule) => Rule.required(),
     }),
 
+    /* La date de sortie n'a de sens que pour un film annoncé : le
+       champ n'apparaît donc que si « Prochainement » est coché, et
+       disparaît dès que le film passe à l'affiche. Sur le site, elle
+       remplace la case des séances par « Sortie — à partir du … ». */
+    defineField({
+      name: "releaseDate",
+      title: "Date de sortie",
+      type: "date",
+      options: { dateFormat: "DD/MM/YYYY" },
+      description:
+        "Le jour où le film arrive chez nous. Sur le site, la fiche du film annonce alors « À partir du mercredi 12 mars » à la place des séances. Laissez vide si la date n'est pas encore connue : le site écrira simplement « Date à venir ».",
+      hidden: ({ document }) => document?.status !== "prochainement",
+      validation: (Rule) =>
+        Rule.custom((valeur, contexte) => {
+          const statut = (contexte.document as { status?: string } | undefined)?.status;
+          if (statut !== "prochainement" || valeur) return true;
+          return "Sans date, le site affichera « Date à venir » : indiquez-la dès qu'elle est connue.";
+        }).warning(),
+    }),
+
     /* Le bloc « Séances » n'enregistre rien dans le film : il affiche
        ses séances à venir, permet de les marquer complètes ou annulées,
        d'en supprimer, et d'en ajouter plusieurs d'un coup. */
@@ -228,9 +248,10 @@ export const film = defineType({
       director: "director",
       year: "year",
       status: "status",
+      releaseDate: "releaseDate",
       media: "poster",
     },
-    prepare({ title, director, year, status, media }) {
+    prepare({ title, director, year, status, releaseDate, media }) {
       const etats: Record<string, string> = {
         "a-laffiche": "À l'affiche",
         "avant-premiere": "Avant-première",
@@ -238,9 +259,17 @@ export const film = defineType({
         cycle: "Cycle / ciné-club",
         passe: "Terminé",
       };
+      /* Un film annoncé se lit mieux avec sa date : dans la liste,
+         « Prochainement — dès le 12/03/2026 » évite d'ouvrir la
+         fiche pour savoir quand il arrive. */
+      let etat = etats[status as string] || "";
+      if (status === "prochainement" && typeof releaseDate === "string" && releaseDate) {
+        const [annee, mois, jour] = releaseDate.split("-");
+        if (annee && mois && jour) etat += ` — dès le ${jour}/${mois}/${annee}`;
+      }
       return {
         title: title || "Film sans titre",
-        subtitle: [etats[status as string], director, year].filter(Boolean).join(" · "),
+        subtitle: [etat, director, year].filter(Boolean).join(" · "),
         media,
       };
     },

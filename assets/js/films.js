@@ -35,10 +35,19 @@
     ].filter(Boolean).join(" · ");
     /* Le statut n'est rappelé que s'il diffère du filtre actif :
        inutile d'écrire « À l'affiche » sur chaque film de la
-       rubrique À l'affiche. */
-    var statut = film.status === activeFilter
-      ? ""
-      : '<p class="m-film__statut">' + R.statusLabel(film.status) + "</p>";
+       rubrique À l'affiche. Un film annoncé fait exception : sa date
+       de sortie remplace le statut et se dit dans toutes les
+       rubriques, parce qu'elle apprend quelque chose. */
+    var sortie =
+      film.status === "prochainement" ? R.formatDateSortieCourte(film.releaseDate) : "";
+    var statut;
+    if (sortie) {
+      statut = '<p class="m-film__statut">Dès le ' + R.escapeHtml(sortie) + "</p>";
+    } else if (film.status === activeFilter) {
+      statut = "";
+    } else {
+      statut = '<p class="m-film__statut">' + R.statusLabel(film.status) + "</p>";
+    }
     return (
       '<a href="' + root + "film/?s=" + encodeURIComponent(film.slug) + '" class="m-film">' +
       '<div class="m-affiche m-affiche--film' + (vraieAffiche ? "" : " m-affiche--generee") + '">' +

@@ -95,6 +95,31 @@
     var date = parseISODate(dateStr);
     return date.getDate() + " " + MONTH_LONG[date.getMonth()] + " " + date.getFullYear();
   }
+  /* La sortie d'un film annoncé, telle qu'on l'annonce à voix haute :
+     « mercredi 12 mars », et l'année en plus si elle n'est pas la
+     nôtre — inutile de préciser 2026 en 2026. Une date vide ou mal
+     formée ne renvoie rien : la fiche écrit alors « Date à venir »
+     plutôt qu'un « Invalid Date ». */
+  function formatDateSortie(dateStr) {
+    if (typeof dateStr !== "string" || !dateStr) return "";
+    var date = parseISODate(dateStr);
+    if (isNaN(date.getTime())) return "";
+    var texte = DOW_LONG[date.getDay()] + " " + date.getDate() + " " + MONTH_LONG[date.getMonth()];
+    if (date.getFullYear() !== new Date().getFullYear()) texte += " " + date.getFullYear();
+    return texte;
+  }
+
+  /* La même date, en court, pour les cases étroites de la page
+     Films : « 12 mars ». */
+  function formatDateSortieCourte(dateStr) {
+    if (typeof dateStr !== "string" || !dateStr) return "";
+    var date = parseISODate(dateStr);
+    if (isNaN(date.getTime())) return "";
+    var texte = date.getDate() + " " + MONTH_LONG[date.getMonth()];
+    if (date.getFullYear() !== new Date().getFullYear()) texte += " " + date.getFullYear();
+    return texte;
+  }
+
   function formatDowShort(dateStr) {
     var date = parseISODate(dateStr);
     return DOW_SHORT[date.getDay()].toUpperCase();
@@ -285,6 +310,8 @@
     formatDayHeading: formatDayHeading,
     formatLongDate: formatLongDate,
     formatDowShort: formatDowShort,
+    formatDateSortie: formatDateSortie,
+    formatDateSortieCourte: formatDateSortieCourte,
     isToday: isToday,
     parseISODate: parseISODate,
     toEmbedUrl: toEmbedUrl,

@@ -104,7 +104,7 @@
   /* ---------------- Morceaux de requête réutilisés ---------------- */
   var CHAMPS_FILM =
     '_id,"slug":coalesce(slug.current,_id),title,originalTitle,director,year,country,duration,' +
-    "language,subtitles,ageRating,genres,status,synopsis,poster,stillImages,trailerUrl," +
+    "language,subtitles,ageRating,genres,status,releaseDate,synopsis,poster,stillImages,trailerUrl," +
     'price,sumupCheckoutUrl,"review":review->{_id,quote,author,source,url}';
 
   var CHAMPS_SEANCE =

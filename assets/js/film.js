@@ -123,6 +123,33 @@
     return '<div class="m-seances__jours">' + blocs + "</div>";
   }
 
+  /* Un film annoncé n'a pas encore d'horaires : sa case ne dit donc
+     pas « Séances » mais « Sortie », et annonce le jour où il arrive.
+     Dès qu'une séance est programmée, la case redevient la liste des
+     horaires — même si le film est resté sur « Prochainement » dans
+     le Studio, ce sont les séances qui font foi. */
+  function estAnnonce(film) {
+    return film.status === "prochainement" && seancesAVenir(film).length === 0;
+  }
+
+  function sortieHTML(film) {
+    var date = R.formatDateSortie(film.releaseDate);
+    if (!date) {
+      return '<p class="m-seances__vide">Date de sortie à venir.</p>';
+    }
+    return '<p class="m-sortie__date">À partir du ' + R.escapeHtml(date) + "</p>";
+  }
+
+  function caseSeancesHTML(film) {
+    var annonce = estAnnonce(film);
+    return (
+      '<div class="m-cell m-seances ' + C.classeSansSurvol() + '">' +
+      '<p class="m-cell__label">' + (annonce ? "Sortie" : "Séances") + "</p>" +
+      (annonce ? sortieHTML(film) : seancesHTML(film)) +
+      '<a href="' + root + 'agenda/" class="m-seances__agenda">Agenda complet</a></div>'
+    );
+  }
+
   /* Le geste principal de la page : acheter un billet. Toujours vert,
      avec les deux tarifs du cinéma. */
   function acheterHTML(film) {
@@ -289,9 +316,7 @@
       '<div class="m-cell m-synopsis ' + C.classe() + '"><p class="m-cell__label">Synopsis</p>' +
       '<p class="m-synopsis__texte">' + R.escapeHtml(film.synopsis || "Synopsis à venir.") + "</p></div>";
 
-    var seancesCellHTML =
-      '<div class="m-cell m-seances ' + C.classeSansSurvol() + '"><p class="m-cell__label">Séances</p>' + seancesHTML(film) +
-      '<a href="' + root + 'agenda/" class="m-seances__agenda">Agenda complet</a></div>';
+    var seancesCellHTML = caseSeancesHTML(film);
 
     /* La rangée du bas : synopsis, presse et retour aux films.
        Ses trois cases se partagent la largeur au prorata de leur

@@ -324,6 +324,15 @@ button.m-seances__chip:focus-visible {
 }
 .m-seances__chip--off .m-seances__chip-note { color: var(--red); }
 .m-seances__vide { font-weight: 400; opacity: 0.6; }
+/* Film annoncé : à la place des pastilles d'horaires, la seule
+   information qui compte encore — le jour où il arrive. On lui
+   donne le poids d'une pastille, sans le cadre : rien à cliquer
+   tant que la billetterie n'est pas ouverte. */
+.m-sortie__date {
+  margin-top: 0.35rem;
+  font-weight: 800;
+  text-wrap: balance;
+}
 .m-seances__agenda {
   font-weight: 800;
   text-transform: uppercase;
