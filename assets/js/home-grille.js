@@ -8,9 +8,14 @@
 (function (global) {
   "use strict";
 
-  /* Le mur est une grille de cases identiques, séparées par de
-     larges espaces blancs (gap) : chaque affiche respire et se lit
-     d'un coup d'œil. Les colonnes sont alignées entre elles — à
+  /* Le mur est une grille de cases identiques séparées par de
+     larges bandes noires (gap) : le fond du mur est l'encre du
+     site, et l'écart entre deux affiches laisse voir ce noir. Les
+     affiches se lisent alors comme des panneaux accrochés côte à
+     côte, chacun détaché du suivant par un filet épais. La marge
+     qui longe les bords vaut exactement l'écart intérieur : le
+     rythme des bandes est le même partout, sans cadre plus large
+     sur les côtés. Les colonnes sont alignées entre elles — à
      l'arrivée, la première rangée se pose entière juste sous la
      barre de navigation, aucune affiche n'est coupée en haut de
      l'écran.
@@ -28,28 +33,31 @@
   /* Ordinateur : trois colonnes, deux rangées par cycle. */
   var desktop = {
     designWidth: 1200,
-    cycleHeight: 946, // 2 × (441 + 32)
-    gap: 32,
-    columnLefts: [106, 446, 786],
-    columnWidth: 308,
-    caseHeight: 441, // 308 de large : le format d'une affiche
+    cycleHeight: 1048, // 2 × (470 + 54)
+    gap: 54,
+    // 4 bandes de 54 + 3 colonnes de 328 = 1200, très exactement.
+    columnLefts: [54, 436, 818],
+    columnWidth: 328,
+    caseHeight: 470, // 328 de large : le format d'une affiche
     perColumn: 2,
   };
 
-  /* Mobile : deux colonnes, trois rangées par cycle, avec une
-     marge blanche de chaque côté de l'écran. */
+  /* Mobile : deux colonnes, trois rangées par cycle. Les bandes y
+     sont plus étroites qu'à l'écran large — 24 pixels sur 400 pèsent
+     déjà le même poids visuel que 54 sur 1200. */
   var mobile = {
     designWidth: 400,
-    cycleHeight: 780, // 3 × (244 + 16)
-    gap: 16,
-    columnLefts: [16, 208],
-    columnWidth: 176,
-    caseHeight: 244, // 176 de large : le même format d'affiche
+    cycleHeight: 753, // 3 × (227 + 24)
+    gap: 24,
+    // 3 bandes de 24 + 2 colonnes de 164 = 400.
+    columnLefts: [24, 212],
+    columnWidth: 164,
+    caseHeight: 227, // 164 de large : le même format d'affiche
     perColumn: 3,
   };
 
-  /* Colonnes → cases positionnées : chaque case est suivie d'un
-     espace blanc (gap), le dernier faisant le raccord de boucle. */
+  /* Colonnes → cases positionnées : chaque case est suivie d'une
+     bande noire (gap), la dernière faisant le raccord de boucle. */
   function buildSlots(config) {
     var slots = [];
     var pas = config.caseHeight + config.gap;

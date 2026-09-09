@@ -47,6 +47,9 @@
   --red: #c22a1d;
   --blue: #2f49c2;
   --jaune: #f7c600;
+  /* Le noir du mur d'affiches quand une case attend son image :
+     l'encre à peine éclaircie, invisible de loin. */
+  --mur-vide: #1d1c18;
   /* Le vert du billet : un vert fougère profond. C'est la seule
      couleur du site qui a un sens fixe — elle ne sert qu'à acheter
      un billet, nulle part ailleurs.
@@ -572,7 +575,11 @@ body:not([data-page="home"]) .main-area {
   inset: 3.5rem 0 0 0;
   z-index: 0;
   overflow: hidden;
-  background: var(--paper);
+  /* Le mur est noir : c'est lui qu'on voit entre les affiches, et
+     ce sont ces bandes qui séparent une affiche de sa voisine. Un
+     fond clair les aurait juste posées sur du vide ; le noir les
+     tient, comme les cloisons d'un panneau d'affichage. */
+  background: var(--ink);
 }
 @media (min-width: 768px) {
   .home-canvas { inset: 4.5rem 0 0 0; }
@@ -643,7 +650,10 @@ body:not([data-page="home"]) .main-area {
      lieu de se plier à celle de la case. */
   min-height: 0;
   overflow: hidden;
-  background: var(--paper);
+  /* Le temps que l'affiche arrive, la case est d'un noir à peine
+     éclairci : elle marque sa place sans faire clignoter du gris
+     clair sur le mur. */
+  background: var(--mur-vide);
 }
 /* Les cases sont taillées au ratio des affiches ; `cover` garantit
    zéro liséré blanc, même si une affiche dévie un peu. Au survol,
@@ -673,12 +683,13 @@ body:not([data-page="home"]) .main-area {
 }
 .canvas-poster:hover .canvas-poster__plus { opacity: 1; }
 
-/* Case de secours (aucun film avec affiche) : le mur reste plein. */
+/* Case de secours (aucun film avec affiche) : le mur reste plein.
+   Elle prend le noir éclairci des cases en attente — un rectangle
+   clair attirerait l'œil sur ce qui est justement un manque. */
 .canvas-block {
   height: 100%;
   width: 100%;
-  background: var(--paper);
-  border: var(--ligne) solid var(--ink);
+  background: var(--mur-vide);
 }
 
 /* La page Agenda est un tableau Mondrian comme le reste du

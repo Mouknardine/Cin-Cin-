@@ -193,11 +193,19 @@
     }
 
     /* Écran d'arrivée : le mur s'ouvre pile sur le haut d'un cycle,
-       donc sur une rangée entière d'affiches, posée juste sous la
-       barre de navigation. On part de la copie centrale, pour
-       pouvoir défiler dans les deux sens. */
+       donc sur une rangée entière d'affiches, jamais coupée. On
+       recule d'une bande noire (gap) pour que la rangée ne vienne
+       pas se coller sous la barre de navigation : le mur commence
+       par le même filet que celui qui sépare deux affiches, et le
+       rythme des bandes est identique partout, bords compris. Ces
+       pixels-là sont vides par construction — dans un cycle, la
+       dernière rangée se termine exactement un gap avant la fin —
+       donc aucune affiche n'apparaît en haut de l'écran.
+       On part de la copie centrale, pour pouvoir défiler dans les
+       deux sens. */
     function startTop() {
-      return JUMP * config().cycleHeight * scale();
+      var c = config();
+      return (JUMP * c.cycleHeight - c.gap) * scale();
     }
 
     function layout() {
