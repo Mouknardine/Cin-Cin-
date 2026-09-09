@@ -73,8 +73,11 @@
       '<div class="m-cell m-achat__seance ' + C.classe() + '">' +
       '<p class="m-cell__label">Votre séance</p>' +
       '<p class="m-achat__film"></p>' +
-      '<p class="m-achat__quand"></p></div>' +
-      "</div>" +
+      '<p class="m-achat__quand"></p>' +
+      /* Le choix des horaires n'apparaît que si l'on est arrivé ici
+         par le bouton « Acheter », sans avoir dit lequel. */
+      '<select class="m-achat__horaires" aria-label="Choisir la séance" hidden></select>' +
+      "</div></div>" +
       '<div class="m-bande">' +
       compteurHTML("plein", "Plein tarif", tarifs().plein) +
       compteurHTML("reduit", "Tarif réduit", tarifs().reduit) +
@@ -96,6 +99,7 @@
     document.body.appendChild(dialogue);
 
     dialogue.addEventListener("click", surClic);
+    dialogue.querySelector(".m-achat__horaires").addEventListener("change", surChoixHoraire);
     dialogue.querySelector("form").addEventListener("submit", surEnvoi);
     /* Clic sur le fond noir, hors du panneau : on ferme. */
     dialogue.addEventListener("mousedown", function (e) {
@@ -180,16 +184,84 @@
       nombre > 0 ? total().toFixed(2).replace(/\.00$/, ".-") : "";
   }
 
+  /* ---------------- La séance ---------------- */
+
+  /* Une séance dite comme on la dirait à voix haute :
+     « demain à 21:00 · Salle 2 ». */
+  function seanceEnMots(seance) {
+    return (
+      R.formatDayHeading(seance.date) + " à " + seance.time +
+      (seance.room ? " · " + seance.room : "")
+    );
+  }
+
+  /* Le client a cliqué sur « Acheter » sans dire quand : la liste
+     des horaires s'ouvre sur le plus proche — celui d'aujourd'hui
+     s'il y en a un — et il peut en choisir un autre sans ressortir
+     du panneau. Arrivé par une pastille d'horaire, il a déjà
+     répondu : on ne lui repose pas la question. */
+  function poserLeChoix(seances) {
+    var liste = dialogue.querySelector(".m-achat__horaires");
+    var quand = dialogue.querySelector(".m-achat__quand");
+    var choix = (seances || []).filter(function (s) {
+      return s && s.status === "disponible";
+    });
+
+    var proposeLeChoix = choix.length > 1;
+    liste.hidden = !proposeLeChoix;
+    quand.hidden = proposeLeChoix;
+
+    if (!proposeLeChoix) {
+      quand.textContent = seanceEnMots(etat.seance);
+      return;
+    }
+
+    /* La séance d'ouverture est toujours l'une de celles proposées :
+       si elle ne l'était pas — une séance affichée complète entre
+       l'ouverture de la page et le clic — la liste s'ouvrirait sur
+       un horaire et le panneau en achèterait un autre. */
+    var ouverte = choix.filter(function (s) {
+      return s._id === etat.seance._id;
+    })[0];
+    if (!ouverte) etat.seance = choix[0];
+
+    liste.innerHTML = choix
+      .map(function (s) {
+        return (
+          '<option value="' + R.escapeHtml(s._id) + '"' +
+          (s._id === etat.seance._id ? " selected" : "") + ">" +
+          R.escapeHtml(seanceEnMots(s)) + "</option>"
+        );
+      })
+      .join("");
+    /* Les séances proposées restent sous la main : c'est parmi
+       elles que le changement d'horaire ira chercher. */
+    etat.choix = choix;
+  }
+
+  function surChoixHoraire(evenement) {
+    var choisie = (etat.choix || []).filter(function (s) {
+      return s._id === evenement.target.value;
+    })[0];
+    if (choisie) etat.seance = choisie;
+  }
+
   /* ---------------- Ouverture ---------------- */
 
-  function ouvrir(seance, film) {
+  /**
+   * Ouvre le panneau sur une séance.
+   *
+   * `seancesAuChoix` n'est donné que par le bouton « Acheter » de la
+   * fiche, qui ne sait pas quel horaire le client veut : le panneau
+   * propose alors la liste. Une pastille d'horaire, elle, ouvre le
+   * panneau sur sa seule séance.
+   */
+  function ouvrir(seance, film, seancesAuChoix) {
     if (!dialogue) construire();
 
-    etat = { seance: seance, plein: 1, reduit: 0, envoi: false };
+    etat = { seance: seance, choix: null, plein: 1, reduit: 0, envoi: false };
     dialogue.querySelector(".m-achat__film").textContent = film.title;
-    dialogue.querySelector(".m-achat__quand").textContent =
-      R.formatDayHeading(seance.date) + " à " + seance.time +
-      (seance.room ? " · " + seance.room : "");
+    poserLeChoix(seancesAuChoix);
     dialogue.querySelector('input[name="email"]').value = "";
     messageErreur("");
     rafraichir();

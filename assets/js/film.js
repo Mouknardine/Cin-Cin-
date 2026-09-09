@@ -161,12 +161,15 @@
       "<span>Billetterie bientôt disponible</span></div>";
 
     /* Caisse en ligne : le bouton ouvre le panneau d'achat sur la
-       prochaine séance disponible. */
+       séance la plus proche — celle du jour s'il y en a une. Comme
+       il n'a pas dit quel horaire il voulait, le panneau lui laisse
+       le choix parmi toutes les séances à venir (data-achat-choix).
+       Une pastille d'horaire, elle, n'ouvre que la sienne. */
     if (window.ZinemaData.billetterieEnLigne) {
       if (!prochaine) return indisponible;
       return (
         '<button type="button" class="m-cell m-action m-acheter" data-achat="' +
-        R.escapeHtml(prochaine._id) + '">' +
+        R.escapeHtml(prochaine._id) + '" data-achat-choix>' +
         "<span>Acheter</span>" +
         '<span class="m-acheter__prix">' + R.escapeHtml(R.prixLabel(film, prochaine, reglages)) + "</span></button>"
       );
@@ -368,7 +371,9 @@
   }
 
   /* Un seul écouteur pour toutes les pastilles d'horaire et le
-     bouton d'achat : ils portent l'identifiant de leur séance. */
+     bouton d'achat : ils portent l'identifiant de leur séance.
+     Le bouton « Acheter » porte en plus « data-achat-choix » — il
+     n'a pas demandé d'horaire, le panneau les proposera tous. */
   function brancherAchat(film) {
     if (!window.ZinemaData.billetterieEnLigne) return;
     app.addEventListener("click", function (evenement) {
@@ -378,7 +383,9 @@
       var seance = (film.screenings || []).filter(function (s) {
         return s._id === id;
       })[0];
-      if (seance) window.ZinemaAchat.ouvrir(seance, film);
+      if (!seance) return;
+      var auChoix = bouton.hasAttribute("data-achat-choix") ? seancesAVenir(film) : null;
+      window.ZinemaAchat.ouvrir(seance, film, auChoix);
     });
   }
 

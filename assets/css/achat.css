@@ -86,6 +86,30 @@
   .m-achat .m-cell { padding: 1.25rem; }
 }
 
+/* ---------- La séance ----------
+   Deux formes pour la même information : une phrase quand la
+   séance est déjà choisie, une liste déroulante quand elle reste
+   à choisir. La liste a l'allure du reste du panneau — pas de
+   cadre gris de navigateur au milieu d'un tableau noir et blanc. */
+
+.m-achat__horaires {
+  width: 100%;
+  margin-top: 0.25rem;
+  padding: 0.5rem 0;
+  border: none;
+  border-bottom: var(--ligne) solid currentColor;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  appearance: none;
+  cursor: pointer;
+}
+.m-achat__horaires:focus {
+  outline: none;
+}
+
 /* ---------- L'adresse e-mail ---------- */
 
 .m-achat__email {
