@@ -101,6 +101,46 @@
     );
   }
 
+  /* ---------------- Ordre des séances ----------------
+     À heure égale, les séances se lisent salle par salle, dans
+     l'ordre du programme papier : Salle 1, Salle 2, puis le
+     Hall-Bar. Sanity ne sait pas trier ainsi (« Hall-Bar » passerait
+     devant « Salle 1 » par ordre alphabétique), c'est donc fait ici,
+     une seule fois, pour toutes les pages du site.
+
+     Cette liste est le reflet de SALLES dans sanity/salles.ts, qui
+     reste la source unique des noms de salles. Une salle inconnue —
+     un nom saisi à la main, une salle ajoutée là-bas mais pas ici —
+     n'est jamais perdue : elle se range simplement après les autres,
+     par ordre alphabétique. */
+  var ORDRE_SALLES = ["Salle 1", "Salle 2", "Hall-Bar"];
+
+  function rangSalle(nom) {
+    var rang = ORDRE_SALLES.indexOf(String(nom || ""));
+    return rang === -1 ? ORDRE_SALLES.length : rang;
+  }
+
+  function comparerSeances(a, b) {
+    var parDate = String(a.date || "").localeCompare(String(b.date || ""));
+    if (parDate !== 0) return parDate;
+    var parHeure = String(a.time || "").localeCompare(String(b.time || ""));
+    if (parHeure !== 0) return parHeure;
+    var rangA = rangSalle(a.room);
+    var rangB = rangSalle(b.room);
+    if (rangA !== rangB) return rangA - rangB;
+    /* Deux salles hors liste : l'ordre alphabétique, pour que
+       l'affichage reste le même d'un chargement à l'autre. */
+    return String(a.room || "").localeCompare(String(b.room || ""));
+  }
+
+  /* Trie une liste de séances sans jamais faire tomber la page : une
+     réponse d'erreur ou une valeur inattendue est renvoyée telle
+     quelle, aux pages de l'interpréter. */
+  function trierSeances(seances) {
+    if (!Array.isArray(seances)) return seances;
+    return seances.slice().sort(comparerSeances);
+  }
+
   /* ---------------- Morceaux de requête réutilisés ---------------- */
   var CHAMPS_FILM =
     '_id,"slug":coalesce(slug.current,_id),title,originalTitle,director,year,country,duration,' +
@@ -128,6 +168,11 @@
     projectId: SANITY_PROJECT_ID,
     dataset: SANITY_DATASET,
     aujourdhui: aujourdhui,
+    /* L'ordre du programme : par date, puis par heure, puis par
+       salle. Exposé pour les pages qui regroupent les séances
+       elles-mêmes, afin qu'elles trient exactement comme ici. */
+    comparerSeances: comparerSeances,
+    trierSeances: trierSeances,
 
     /** Tous les films encore d'actualité, les « terminés » exclus. */
     getFilms: function () {
@@ -149,7 +194,10 @@
           ',"screenings": *[_type == "screening" && references(^._id) && date >= $today]' +
           " | order(date asc, time asc) {" + CHAMPS_SEANCE + "}}",
         { slug: slug, today: aujourdhui() }
-      );
+      ).then(function (film) {
+        if (film && !estUneErreur(film)) film.screenings = trierSeances(film.screenings);
+        return film;
+      });
     },
 
     /** Les séances d'aujourd'hui et des jours suivants. */
@@ -159,7 +207,7 @@
           '*[_type == "screening" && date >= $today] | order(date asc, time asc) {' +
             CHAMPS_SEANCE + "}",
           { today: aujourdhui() }
-        );
+        ).then(trierSeances);
       });
     },
 

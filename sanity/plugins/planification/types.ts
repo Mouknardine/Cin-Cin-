@@ -5,8 +5,11 @@
 /** Version d'API Sanity utilisée par l'outil. */
 export const API_VERSION = '2025-02-19'
 
-/** Les salles du cinéma (valeurs proposées pour le champ « room » du schéma « screening »). */
-export const SALLES = ['Salle 1', 'Salle 2'] as const
+/* Les salles du cinéma viennent de sanity/salles.ts, la source unique :
+   les redéclarer ici les avait déjà fait diverger — l'outil ne
+   proposait que deux salles quand le schéma en acceptait trois, et
+   le Hall-Bar était donc impossible à programmer d'ici. */
+export {SALLES, comparerSeances, rangDeSalle} from '../../salles'
 
 /** Un film tel que chargé pour la planification. */
 export interface FilmPlanning {

@@ -16,6 +16,7 @@ import {Box, Button, Card, Flex, Select, Spinner, Stack, Text, useToast} from '@
 import {useCallback, useEffect, useState} from 'react'
 import {useClient, useFormValue} from 'sanity'
 
+import {comparerSeances} from '../../../salles'
 import {API_VERSION} from '../types'
 import {debutDeSemaine, formatJourCourt} from '../utils/dates'
 import {supprimerSeance} from '../utils/mutations'
@@ -71,7 +72,10 @@ export function ChampSeancesDuFilm(): React.JSX.Element {
         {id, today: aujourdhui()},
       )
       .then((r) => {
-        setSeances(r.seances)
+        /* L'ordre du programme : la date, puis l'heure, puis la salle.
+           Sanity s'arrête à l'heure — il rangerait « Hall-Bar » avant
+           « Salle 1 ». */
+        setSeances([...(r.seances ?? [])].sort(comparerSeances))
         setPublie(r.publie)
       })
       .catch(() => {

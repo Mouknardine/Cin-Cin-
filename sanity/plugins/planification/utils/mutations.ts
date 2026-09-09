@@ -6,6 +6,7 @@
  */
 import type {SanityClient} from 'sanity'
 
+import {comparerSeances} from '../../../salles'
 import type {FilmPlanning, NouvelleSeance, SeancePlanning} from '../types'
 
 const CHAMPS_SEANCE = `{
@@ -17,17 +18,23 @@ const CHAMPS_SEANCE = `{
   "filmDuree": film->duration
 }`
 
-/** Les séances publiées entre deux dates (incluses), triées par date puis heure. */
+/**
+ * Les séances publiées entre deux dates (incluses), dans l'ordre du
+ * programme : la date, puis l'heure, puis la salle. Le dernier tri se
+ * fait ici et pas dans la requête : trié par Sanity, « Hall-Bar »
+ * passerait devant « Salle 1 » par ordre alphabétique.
+ */
 export async function chargerSeancesPeriode(
   client: SanityClient,
   debut: string,
   fin: string,
 ): Promise<SeancePlanning[]> {
-  return client.fetch(
+  const seances = await client.fetch<SeancePlanning[]>(
     `*[_type == "screening" && defined(date) && date >= $debut && date <= $fin] ${CHAMPS_SEANCE}
       | order(date asc, heure asc)`,
     {debut, fin},
   )
+  return [...(seances ?? [])].sort(comparerSeances)
 }
 
 /** Tous les films, triés par titre (pour les listes déroulantes). */

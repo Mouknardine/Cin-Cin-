@@ -61,11 +61,11 @@
     });
     order.sort();
     return order.map(function (date) {
-      /* Une seule séance sans heure ne doit pas emporter tout
-         l'agenda : on compare des chaînes, toujours. */
-      var list = map[date].slice().sort(function (a, b) {
-        return String(a.time || "").localeCompare(String(b.time || ""));
-      });
+      /* Le même ordre que partout ailleurs sur le site : l'heure,
+         puis la salle — Salle 1, Salle 2, Hall-Bar. Les chaînes sont
+         comparées comme des chaînes : une seule séance sans heure ne
+         doit pas emporter tout l'agenda. */
+      var list = map[date].slice().sort(window.ZinemaData.comparerSeances);
       return { date: date, screenings: list };
     });
   }
