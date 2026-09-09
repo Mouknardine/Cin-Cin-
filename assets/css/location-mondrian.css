@@ -53,6 +53,16 @@
   .mondrian--location .m-location__espace {
     flex: 1 1 auto;
   }
+  /* À la taille du texte courant, une seule occasion tenait par
+     rangée : « PROJECTION PRIVÉE » à elle seule fait la largeur
+     d'un téléphone. Un cran plus petit, deux ou trois se rangent
+     par ligne — et la page cesse d'être un empilement. */
+  .mondrian--location .m-location__occasion {
+    flex: 1 1 7rem;
+    padding: 0.75rem;
+    font-size: 1.05rem;
+    line-height: 1.15;
+  }
   .mondrian--location .m-demande__champ {
     flex: 1 1 10rem;
   }
@@ -66,12 +76,19 @@
 
 /* ---------- Ce qu'on peut faire ici ---------- */
 
+/* Ce sont des étiquettes, pas des titres : le mot est centré dans
+   sa case, dans les deux sens. Une rangée d'étiquettes de largeurs
+   inégales, c'est le motif du site ; six bandes identiques alignées
+   à gauche, c'est une liste. */
 .m-location__occasion {
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   font-family: var(--font-display);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -0.01em;
-  justify-content: center;
 }
 
 /* ---------- Un espace ---------- */
