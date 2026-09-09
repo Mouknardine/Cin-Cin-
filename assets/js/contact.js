@@ -49,10 +49,9 @@
 
   /* Une case-lien qui reste sur le site : elle mène vers une autre
      page du Zinéma, pas vers l'extérieur — ni cible ni « rel ». */
-  function caseInterne(label, libelle, href) {
+  function caseInterne(libelle, href) {
     return (
       '<a class="m-cell m-contact__page ' + C.classe() + '" href="' + R.escapeHtml(href) + '">' +
-      '<p class="m-cell__label">' + R.escapeHtml(label) + "</p>" +
       '<p class="m-contact__page-titre">' + R.escapeHtml(libelle) + "</p></a>"
     );
   }
@@ -185,7 +184,7 @@
          elle a quitté le menu, cette case en est la seule porte. */
       bande("m-bande--pages", [
         R.caseVoirLesSeances(),
-        caseInterne("À lire", "L'histoire du Zinéma", root + "histoire/"),
+        caseInterne("L'histoire du Zinéma", root + "histoire/"),
       ]) +
       "</article>";
   });
