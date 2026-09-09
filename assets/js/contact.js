@@ -172,19 +172,20 @@
         caseLien("Bureau", reglages.phoneSecondary, numeroVersLien(reglages.phoneSecondary || "")),
         caseLien("E-mail", reglages.email, "mailto:" + (reglages.email || "")),
       ]) +
-      /* Les réseaux sociaux, « nous écrire » et le retour vers
-         l'agenda ne sont pas repris ici : le pied de page les porte
-         déjà, sur toutes les pages du site, et il s'affiche juste
-         en dessous. Les répéter allongeait la page d'un écran
-         entier sur mobile, avec Instagram et Facebook deux fois. */
+      /* Les réseaux sociaux et « nous écrire » ne sont pas repris
+         ici : le pied de page les porte déjà, sur toutes les pages du
+         site, et il s'affiche juste en dessous. Les répéter allongeait
+         la page d'un écran entier sur mobile, avec Instagram et
+         Facebook deux fois. */
       bande("m-bande--acces", [caseAcces]) +
-      /* L'Histoire du cinéma a quitté le menu : elle se lit une
-         fois, quand la Location se demande. On y entre par cette
-         case, à la fin des infos pratiques — à l'endroit où l'on a
-         fini de chercher un renseignement et où l'on a le temps de
-         lire. */
+      /* La rangée qui ferme la page, à l'endroit où l'on a fini de
+         chercher un renseignement. L'Histoire du cinéma a quitté le
+         menu : cette case en est la seule porte d'entrée. Le chemin
+         des séances la suit — le pied de page ne le porte pas, et
+         une page d'infos ne doit pas être un cul-de-sac. */
       bande("m-bande--pages", [
         caseInterne("À lire", "L'histoire du Zinéma", root + "histoire/"),
+        R.caseVoirLesSeances(),
       ]) +
       "</article>";
   });

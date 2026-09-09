@@ -126,8 +126,13 @@
     );
   }
 
+  /* La page se ferme sur le chemin des séances : une annonce donne
+     envie de venir, encore faut-il pouvoir savoir quand. */
   function cadre(contenu) {
-    return '<article class="mondrian mondrian--evenements">' + contenu + "</article>";
+    return (
+      '<article class="mondrian mondrian--evenements">' + contenu +
+      bande("m-bande--actions", R.caseVoirLesSeances()) + "</article>"
+    );
   }
 
   var D = window.ZinemaData;

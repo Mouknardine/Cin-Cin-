@@ -124,6 +124,9 @@
         caseTexte("m-location__conditions", "Bon à savoir", texte(contenu.conditions)),
       ]) +
       (F ? F.html(espaces) : "") +
+      /* Après la demande, le chemin des séances : on peut être venu
+         pour louer et repartir avec l'envie d'une séance. */
+      bande("m-bande--actions", [R.caseVoirLesSeances()]) +
       "</article>";
 
     if (F) F.brancher(app);

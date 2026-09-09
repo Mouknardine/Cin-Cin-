@@ -139,11 +139,11 @@
      la page Infos. Elle se termine donc par le chemin du
      retour — sans lui, on ne saurait plus d'où l'on vient. */
   function retourHTML() {
-    return bande(
-      "m-bande--retour",
+    return bande("m-bande--retour", [
       '<a href="' + root + 'contact/" class="m-cell m-action ' + C.classe() + '">' +
-        "<span>Infos</span></a>"
-    );
+        "<span>Infos</span></a>",
+      R.caseVoirLesSeances(),
+    ]);
   }
 
   function cadre(contenu) {

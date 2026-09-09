@@ -270,6 +270,23 @@
     );
   }
 
+  /* ---------------- Le chemin vers les séances ----------------
+     Quatre pages ne mènent d'elles-mêmes à aucun film : Événements,
+     Location, Infos et Histoire. On les lit, puis on est dans une
+     impasse — alors que ce qu'on vient chercher au cinéma, c'est une
+     séance. Cette case ferme donc chacune d'elles, avec la même
+     phrase et le même geste que sur la page Membership.
+
+     Elle vit ici plutôt que recopiée quatre fois : le jour où sa
+     phrase change, elle change partout. */
+  function caseVoirLesSeances() {
+    var racine = document.body.dataset.root || "";
+    return (
+      '<a href="' + racine + 'agenda/" class="m-cell m-action m-lien-retour ' +
+      global.ZinemaCouleurs.classe() + '"><span>Voir les séances</span></a>'
+    );
+  }
+
   /* ---------------- Le filet de sécurité ----------------
      Chaque page affiche « Chargement… », puis remplace ce mot par son
      contenu. Si l'affichage échoue en route — une donnée d'une forme
@@ -306,6 +323,7 @@
     montant: montant,
     altDeLImage: altDeLImage,
     etatChargement: etatChargement,
+    caseVoirLesSeances: caseVoirLesSeances,
     etatErreur: etatErreur,
     formatDayHeading: formatDayHeading,
     formatLongDate: formatLongDate,

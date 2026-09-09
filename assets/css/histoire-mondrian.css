@@ -119,9 +119,10 @@
   line-height: 1.3;
 }
 
-/* ---------- Le retour ----------
-   Seul sur sa bande, il la prend en entier : calé sur ses deux
-   mots, il aurait laissé un trait noir courir à sa droite. */
+/* ---------- La rangée du bas ----------
+   Le retour vers les Infos et le chemin des séances se partagent
+   la bande et la remplissent : calées sur leurs deux mots, elles
+   auraient laissé un trait noir courir à leur droite. */
 
 .m-bande--retour .m-action {
   flex: 1 1 auto;
