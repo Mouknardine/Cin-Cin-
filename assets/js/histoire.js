@@ -136,13 +136,13 @@
   }
 
   /* Cette page n'est plus dans le menu : on y entre par une case de
-     la page Infos pratiques. Elle se termine donc par le chemin du
+     la page Infos. Elle se termine donc par le chemin du
      retour — sans lui, on ne saurait plus d'où l'on vient. */
   function retourHTML() {
     return bande(
       "m-bande--retour",
       '<a href="' + root + 'contact/" class="m-cell m-action ' + C.classe() + '">' +
-        "<span>← Infos pratiques</span></a>"
+        "<span>← Infos</span></a>"
     );
   }
 

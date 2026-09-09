@@ -19,10 +19,15 @@
     /* La Location a pris la place de l'Histoire dans le menu : c'est
        une demande qu'on vient faire, quand la frise se lit une fois.
        L'Histoire reste en ligne, on y entre par une case de la page
-       Contact (voir contact.js). */
+       Infos (voir contact.js). */
     { href: "location/", label: "Location", num: "04", page: "location" },
     { href: "membership/", label: "Membership", num: "05", page: "membership" },
-    { href: "contact/", label: "Contact", num: "06", page: "contact" },
+    /* « Infos » plutôt que « Contact » : la page donne l'adresse, les
+       horaires, l'accès et le chemin vers l'Histoire — écrire au
+       cinéma n'en est qu'une petite partie. L'adresse de la page,
+       elle, ne bouge pas : les liens déjà partagés continuent de
+       fonctionner. */
+    { href: "contact/", label: "Infos", num: "06", page: "contact" },
   ];
 
   /* Barre de navigation en cases (ordinateur uniquement, cachée en CSS

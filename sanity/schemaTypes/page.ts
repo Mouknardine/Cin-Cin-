@@ -4,8 +4,7 @@ import { defineField, defineType } from "sanity";
    Les textes propres à UNE page du site.
 
    Il existe une fiche par page (Accueil, Films, Agenda,
-   Événements, Location, Abonnements, Infos pratiques, Histoire),
-   rangée
+   Événements, Location, Abonnements, Infos, Histoire), rangée
    dans « Pages du site » — le menu y suit exactement l'ordre de
    la navigation du site, pour qu'on trouve la page qu'on a sous
    les yeux sans réfléchir.
@@ -25,9 +24,9 @@ export const PAGES = [
   { id: "evenements", titre: "Événements", chemin: "/evenements/" },
   { id: "location", titre: "Location", chemin: "/location/" },
   { id: "membership", titre: "Abonnements", chemin: "/membership/" },
-  { id: "contact", titre: "Infos pratiques", chemin: "/contact/" },
+  { id: "contact", titre: "Infos", chemin: "/contact/" },
   /* L'Histoire n'est plus dans le menu : on y entre par une case de
-     la page Infos pratiques. Sa fiche reste ici, en dernier, comme
+     la page Infos. Sa fiche reste ici, en dernier, comme
      toutes les pages qui ont une adresse. */
   { id: "histoire", titre: "Histoire", chemin: "/histoire/" },
 ] as const;

@@ -121,7 +121,7 @@ export const deskStructure: StructureResolver = (S) =>
 
       /* ---------------- Histoire ----------------
          La frise n'est plus dans le menu du site : on y entre par
-         une case de la page Infos pratiques. Elle se modifie
+         une case de la page Infos. Elle se modifie
          toujours ici, au même endroit qu'avant. */
       S.listItem()
         .id("histoire")

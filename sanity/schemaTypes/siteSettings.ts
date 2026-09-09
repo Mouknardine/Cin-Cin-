@@ -51,7 +51,7 @@ export const siteSettings = defineType({
       rows: 2,
       group: "pratique",
       description:
-        "Sur deux lignes : la rue, puis le code postal et la ville. Ex.\nRue du Maupas 4\n1004 Lausanne\nSert aussi à afficher la carte sur la page Infos pratiques.",
+        "Sur deux lignes : la rue, puis le code postal et la ville. Ex.\nRue du Maupas 4\n1004 Lausanne\nSert aussi à afficher la carte sur la page Infos.",
       validation: (Rule) => Rule.required().error("L'adresse est obligatoire."),
     }),
     defineField({
@@ -74,7 +74,7 @@ export const siteSettings = defineType({
       title: "E-mail principal",
       type: "string",
       group: "pratique",
-      description: "Celui affiché sur la page Infos pratiques et dans le pied de page.",
+      description: "Celui affiché sur la page Infos et dans le pied de page.",
       validation: (Rule) =>
         Rule.required()
           .regex(/^[^@\s]+@[^@\s]+\.[^@\s]+$/, { name: "adresse e-mail" })
@@ -118,7 +118,7 @@ export const siteSettings = defineType({
       of: [{ type: "block" }],
       group: "pratique",
       description:
-        "Transports publics, arrêt le plus proche, parking, accès en fauteuil roulant. Affiché sur la page Infos pratiques.",
+        "Transports publics, arrêt le plus proche, parking, accès en fauteuil roulant. Affiché sur la page Infos.",
     }),
     defineField({
       name: "mapUrl",

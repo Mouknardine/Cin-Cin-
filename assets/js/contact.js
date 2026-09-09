@@ -1,5 +1,6 @@
 /* ============================================================
-   Zinéma — page Contact, en tableau « Mondrian » comme le reste
+   Zinéma — page Infos (adresse /contact/), en tableau « Mondrian »
+   comme le reste
    du site : des cases blanches séparées par des traits noirs,
    dont la largeur suit la longueur du texte, et dont la couleur
    est tirée au hasard à chaque affichage.
