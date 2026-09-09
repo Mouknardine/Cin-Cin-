@@ -29,11 +29,38 @@
    et empilés ils feraient défiler la page avant d'avoir rien vu. */
 
 @media (max-width: 899px) {
-  .mondrian--location .m-bande > * {
+  /* Seules les cases qui ont vraiment besoin de la largeur la
+     prennent : la description d'un espace, sa photo, le « Bon à
+     savoir », le message du formulaire. */
+  .mondrian--location .m-location__description,
+  .mondrian--location .m-location__conditions,
+  .mondrian--location .m-location__visuel,
+  .mondrian--location .m-intro {
     flex: 1 1 100%;
   }
-  .mondrian--location .m-bande--occasions > * {
+  /* Le reste se cale sur son texte et se resserre : le nom d'un
+     espace et son tarif tiennent sur la même rangée, l'équipement
+     suit. Tout empiler donnait une colonne de cases identiques —
+     une liste, plus un tableau. */
+  .mondrian--location .m-location__equipements,
+  .mondrian--location .m-location__tarif {
+    flex: 1 1 9rem;
+    padding: 0.75rem;
+    gap: 0.25rem;
+  }
+  /* Le nom de l'espace grandit s'il se retrouve seul sur sa ligne,
+     plutôt que de laisser un trait noir courir à sa droite. */
+  .mondrian--location .m-location__espace {
     flex: 1 1 auto;
+  }
+  .mondrian--location .m-demande__champ {
+    flex: 1 1 10rem;
+  }
+  .mondrian--location .m-demande__champ--message,
+  .mondrian--location .m-demande__titre,
+  .mondrian--location .m-demande__envoyer,
+  .mondrian--location .m-demande__message {
+    flex: 1 1 100%;
   }
 }
 

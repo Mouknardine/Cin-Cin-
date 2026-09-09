@@ -497,15 +497,12 @@ button.m-acheter:focus-visible { background: var(--vert-fonce); }
 /* Les conditions du tarif réduit ont leur propre rangée : une case
    par condition, de la largeur de son texte. Elles remplissent la
    ligne au lieu de creuser la case du prix voisine. */
+/* L'intitulé se cale sur son texte, mais s'étire s'il se retrouve
+   seul sur sa ligne : sans cela, un trait noir courrait à sa droite
+   — un trou dans le tableau. */
 .m-tarif__pour {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   justify-content: center;
-}
-/* Sur un écran étroit, l'intitulé se retrouve seul sur sa ligne :
-   il la prend alors en entier, sinon un trait noir courrait à sa
-   droite — un trou dans le tableau. */
-@media (max-width: 599px) {
-  .m-tarif__pour { flex: 1 1 100%; }
 }
 .m-tarif__condition {
   flex: 1 1 auto;
@@ -518,6 +515,19 @@ button.m-acheter:focus-visible { background: var(--vert-fonce); }
    au lieu de laisser tout le vide sous lui. */
 .m-tarif {
   justify-content: center;
+}
+
+/* Sur téléphone, les deux prix restent côte à côte et les
+   conditions se resserrent : empilées, ces cases toutes de la même
+   largeur et de la même hauteur faisaient une liste, plus un
+   tableau. Deux cases inégales sur une rangée valent mieux qu'une
+   colonne de cases identiques. */
+@media (max-width: 899px) {
+  .m-bande--infos > .m-info { flex: 1 1 7rem; }
+  .m-bande--conditions > .m-cell {
+    padding: 0.75rem;
+    gap: 0.25rem;
+  }
 }
 
 /* Les formules tiennent côte à côte tant qu'elles ont 18rem :
