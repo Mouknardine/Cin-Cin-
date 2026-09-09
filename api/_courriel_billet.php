@@ -32,6 +32,22 @@ const BILLET_HTML_PAPIER = '#ededed';
 const BILLET_HTML_ROUGE = '#c22a1d';
 const BILLET_HTML_POLICE = 'Helvetica, Arial, sans-serif';
 
+/**
+ * La phrase qui annonce la pièce jointe.
+ *
+ * Le PDF porte une page par place achetée : on le dit au pluriel
+ * quand il y en a plusieurs, pour que personne ne cherche un second
+ * fichier qui n'existe pas.
+ */
+function billetCourrielMentionPdf(array $commande): string
+{
+    $places = (int) ($commande['billetsPlein'] ?? 0) + (int) ($commande['billetsReduit'] ?? 0);
+    if ($places > 1) {
+        return 'Les ' . $places . ' billets sont joints à ce message, un par page, en PDF.';
+    }
+    return 'Le billet est aussi joint à ce message, en PDF.';
+}
+
 /** Une case du tableau : son intitulé au-dessus, sa valeur dessous. */
 function billetHtmlCase(string $intitule, string $valeur, string $taille = '20px'): string
 {
@@ -45,7 +61,7 @@ function billetHtmlCase(string $intitule, string $valeur, string $taille = '20px
 }
 
 /** Le billet dessiné comme le site. */
-function billetCourrielHtml(array $commande, string $adresseSite): string
+function billetCourrielHtml(array $commande): string
 {
     $police = BILLET_HTML_POLICE;
     $papier = BILLET_HTML_PAPIER;
@@ -96,7 +112,7 @@ function billetCourrielHtml(array $commande, string $adresseSite): string
         . '<p style="margin:0;font:700 38px/1 ' . $police . ';color:' . $encre . ';">'
         . $reference . '</p>'
         . '<p style="margin:10px 0 0;font:400 13px/1.4 ' . $police . ';color:' . $encre . ';">'
-        . 'À présenter à l\'entrée. Le billet est aussi joint à ce message, en PDF.</p>'
+        . htmlspecialchars(billetCourrielMentionPdf($commande), ENT_QUOTES, 'UTF-8') . '</p>'
         . '</td></tr>';
 
     $corps .= '<tr><td colspan="2" ' . $cellule . '>'
@@ -109,9 +125,7 @@ function billetCourrielHtml(array $commande, string $adresseSite): string
             ENT_QUOTES,
             'UTF-8'
         )
-        . '<br>Retrouver ce billet à tout moment : <a href="' . $adresseSite . '/billet/?ref='
-        . rawurlencode((string) ($commande['reference'] ?? '')) . '" style="color:' . $encre . ';">'
-        . 'zinema.ch/billet</a></p></td></tr>';
+        . '</p></td></tr>';
 
     return '<!doctype html><html lang="fr"><head><meta charset="utf-8">'
         . '<meta name="viewport" content="width=device-width,initial-scale=1">'
@@ -145,9 +159,6 @@ function billetCourrielTexte(array $commande, string $adresseSite): string
             (int) ($commande['billetsReduit'] ?? 0)
         ),
         'Payé     : ' . rtrim(rtrim(number_format($montant, 2, '.', ''), '0'), '.') . '.-',
-        '',
-        'Retrouver ce billet à tout moment :',
-        $adresseSite . '/billet/?ref=' . rawurlencode((string) ($commande['reference'] ?? '')),
         '',
         '—',
         'Zinéma — Rue du Maupas 4, 1004 Lausanne',

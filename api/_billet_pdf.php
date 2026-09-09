@@ -76,6 +76,36 @@ function billetIntitule(PdfSimple $pdf, string $texte, float $x, float $y, array
 function billetPdf(array $commande): string
 {
     $pdf = new PdfSimple(BILLET_LARGEUR, BILLET_HAUTEUR);
+
+    /* Un billet par place, dans l'ordre où ils ont été achetés :
+       on garde le sien et on donne les autres, sans avoir à
+       expliquer qu'une seule feuille vaut pour trois personnes. */
+    $places = array_merge(
+        array_fill(0, max(0, (int) ($commande['billetsPlein'] ?? 0)), 'Plein tarif'),
+        array_fill(0, max(0, (int) ($commande['billetsReduit'] ?? 0)), 'Tarif réduit')
+    );
+    if ($places === []) {
+        $places = [''];
+    }
+
+    foreach ($places as $rang => $tarif) {
+        if ($rang > 0) {
+            $pdf->nouvellePage();
+        }
+        billetPdfUnePage($pdf, $commande, $tarif, $rang + 1, count($places));
+    }
+
+    return $pdf->rendu();
+}
+
+/** Une place : une page, entière, qui se suffit à elle-même. */
+function billetPdfUnePage(
+    PdfSimple $pdf,
+    array $commande,
+    string $tarif,
+    int $rang,
+    int $total
+): void {
     $t = BILLET_TRAIT;
 
     /* Le fond noir : tout ce qui restera visible entre les cases. */
@@ -157,23 +187,29 @@ function billetPdf(array $commande): string
     $largeurTexte = $largeurUtile - $largeurBillets - $t - 2 * BILLET_MARGE;
     $taille = $pdf->taillePourTenir($reference, $largeurTexte, 46, 22, true);
     $pdf->texte($reference, $tx, $ty + 62, $taille, true);
-    $pdf->texte('À présenter à l\'entrée.', $tx, $ty + 84, 10.5);
+    /* Le rang n'est écrit que s'il veut dire quelque chose : « 1 sur
+       1 » n'apprend rien à personne. */
+    $pdf->texte(
+        ($total > 1 ? 'Billet ' . $rang . ' sur ' . $total . '. ' : '') . 'À présenter à l\'entrée.',
+        $tx,
+        $ty + 84,
+        10.5
+    );
 
     /* ---------------- Billets et montant ---------------- */
     $x = BILLET_LARGEUR - $t - $largeurBillets;
     $hauteurBillets = ($hauteurReference - $t) / 2;
     [$tx, $ty] = billetCase($pdf, $x, $y, $largeurBillets, $hauteurBillets);
-    billetIntitule($pdf, 'Billets', $tx, $ty);
-    $detail = courrielDetailBillets(
-        (int) ($commande['billetsPlein'] ?? 0),
-        (int) ($commande['billetsReduit'] ?? 0)
-    );
+    billetIntitule($pdf, 'Tarif', $tx, $ty);
     $largeurTexte = $largeurBillets - 2 * BILLET_MARGE;
-    $taille = $pdf->taillePourTenir($detail, $largeurTexte, 14, 9, false);
-    $pdf->texte($detail, $tx, $ty + 32, $taille);
+    $taille = $pdf->taillePourTenir($tarif, $largeurTexte, 17, 10, true);
+    $pdf->texte($tarif, $tx, $ty + 34, $taille, true);
 
+    /* Le montant est celui de la commande entière, pas de cette
+       place : c'est ce qui a été débité, et c'est ce qu'on cherche
+       en relisant son billet. */
     [$tx, $ty] = billetCase($pdf, $x, $y + $hauteurBillets + $t, $largeurBillets, $hauteurBillets);
-    billetIntitule($pdf, 'Payé', $tx, $ty);
+    billetIntitule($pdf, $total > 1 ? 'Payé (commande)' : 'Payé', $tx, $ty);
     $montant = (float) ($commande['montant'] ?? 0);
     $pdf->texte(
         rtrim(rtrim(number_format($montant, 2, '.', ''), '0'), '.') . '.-',
@@ -182,6 +218,4 @@ function billetPdf(array $commande): string
         22,
         true
     );
-
-    return $pdf->rendu();
 }

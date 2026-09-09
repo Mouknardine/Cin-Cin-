@@ -113,7 +113,7 @@ function courrielEnvoyerBillet(array $commande): bool
 
     [$entetesContenu, $message] = billetCourrielMessage(
         billetCourrielTexte($commande, $adresseSite),
-        billetCourrielHtml($commande, $adresseSite),
+        billetCourrielHtml($commande),
         $pdf,
         'billet-' . ($reference !== '' ? $reference : 'zinema') . '.pdf'
     );

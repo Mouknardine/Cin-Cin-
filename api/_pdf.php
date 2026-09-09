@@ -61,11 +61,25 @@ final class PdfSimple
     private const LARGEUR_PAR_DEFAUT = [556, 611];
 
     private string $contenu = '';
+    /** Les pages déjà terminées ; celle en cours vit dans $contenu. */
+    private array $pages = [];
 
     public function __construct(
         private readonly float $largeur,
         private readonly float $hauteur
     ) {
+    }
+
+    /**
+     * Termine la page en cours et en ouvre une nouvelle.
+     *
+     * Deux billets pour la même séance, c'est deux pages : on en
+     * garde un et on donne l'autre, sans avoir à découper la feuille.
+     */
+    public function nouvellePage(): void
+    {
+        $this->pages[] = $this->contenu;
+        $this->contenu = '';
     }
 
     /* ---------------- Dessiner ---------------- */
@@ -176,19 +190,35 @@ final class PdfSimple
 
     public function rendu(): string
     {
+        $pages = $this->pages;
+        $pages[] = $this->contenu;
+
+        /* Quatre objets fixes (le catalogue, la liste des pages, les
+           deux polices), puis deux objets par page : la page et son
+           dessin. La cinquième place est donc celle de la première
+           page. */
+        $premierePage = 5;
+        $renvois = [];
+        for ($i = 0, $n = count($pages); $i < $n; $i++) {
+            $renvois[] = ($premierePage + 2 * $i) . ' 0 R';
+        }
+
         $objets = [
             "<</Type/Catalog/Pages 2 0 R>>",
-            "<</Type/Pages/Kids[3 0 R]/Count 1>>",
-            sprintf(
-                "<</Type/Page/Parent 2 0 R/MediaBox[0 0 %.2F %.2F]"
-                . "/Resources<</Font<</F1 5 0 R/F2 6 0 R>>>>/Contents 4 0 R>>",
-                $this->largeur,
-                $this->hauteur
-            ),
-            sprintf("<</Length %d>>\nstream\n%s\nendstream", strlen($this->contenu), $this->contenu),
+            sprintf("<</Type/Pages/Kids[%s]/Count %d>>", implode(' ', $renvois), count($pages)),
             "<</Type/Font/Subtype/Type1/BaseFont/Helvetica-Bold/Encoding/WinAnsiEncoding>>",
             "<</Type/Font/Subtype/Type1/BaseFont/Helvetica/Encoding/WinAnsiEncoding>>",
         ];
+        foreach ($pages as $index => $dessin) {
+            $objets[] = sprintf(
+                "<</Type/Page/Parent 2 0 R/MediaBox[0 0 %.2F %.2F]"
+                . "/Resources<</Font<</F1 3 0 R/F2 4 0 R>>>>/Contents %d 0 R>>",
+                $this->largeur,
+                $this->hauteur,
+                $premierePage + 2 * $index + 1
+            );
+            $objets[] = sprintf("<</Length %d>>\nstream\n%s\nendstream", strlen($dessin), $dessin);
+        }
 
         $pdf = "%PDF-1.4\n";
         $positions = [];
