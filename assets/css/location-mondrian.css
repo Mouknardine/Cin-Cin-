@@ -65,8 +65,13 @@
     font-size: 1.05rem;
     line-height: 1.15;
   }
+  /* Un champ de saisie fait exception au tableau : on doit voir ce
+     qu'on tape. À deux par rangée sur un téléphone, une adresse
+     e-mail et un numéro sortaient déjà du cadre à moitié écrits.
+     Deux champs par rangée à partir de la tablette, un seul en
+     dessous. */
   .mondrian--location .m-demande__champ {
-    flex: 1 1 10rem;
+    flex: 1 1 100%;
   }
   .mondrian--location .m-demande__champ--message,
   .mondrian--location .m-demande__titre,
@@ -259,6 +264,12 @@
 .m-demande__confirmation {
   flex: 1 1 100%;
   font-weight: 700;
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+  .mondrian--location .m-demande__champ {
+    flex: 1 1 calc(50% - var(--ligne));
+  }
 }
 
 @media (min-width: 900px) {
