@@ -79,9 +79,6 @@
 @media (min-width: 900px) {
   .m-cell { padding: 1.5rem; }
 }
-@media (min-width: 1400px) {
-  .m-cell { padding: 2rem; }
-}
 
 .m-cell__label {
   font-weight: 800;
@@ -497,14 +494,30 @@ button.m-acheter:focus-visible { background: var(--vert-fonce); }
   max-width: 62ch;
 }
 
-/* Les conditions du tarif réduit se lisent l'une sous l'autre :
-   en une seule phrase, elles formaient une ligne de cent cinquante
-   signes que l'œil ne pouvait pas suivre. */
-.m-tarif__conditions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  margin-top: 0.25rem;
+/* Les conditions du tarif réduit ont leur propre rangée : une case
+   par condition, de la largeur de son texte. Elles remplissent la
+   ligne au lieu de creuser la case du prix voisine. */
+.m-tarif__pour {
+  flex: 0 0 auto;
+  justify-content: center;
+}
+/* Sur un écran étroit, l'intitulé se retrouve seul sur sa ligne :
+   il la prend alors en entier, sinon un trait noir courrait à sa
+   droite — un trou dans le tableau. */
+@media (max-width: 599px) {
+  .m-tarif__pour { flex: 1 1 100%; }
+}
+.m-tarif__condition {
+  flex: 1 1 auto;
+  justify-content: center;
+  font-weight: 400;
+}
+
+/* Un prix n'a que deux lignes à dire : centré, le peu de hauteur
+   qu'il lui reste à occuper se répartit au-dessus et en dessous,
+   au lieu de laisser tout le vide sous lui. */
+.m-tarif {
+  justify-content: center;
 }
 
 /* Les formules tiennent côte à côte tant qu'elles ont 18rem :
@@ -527,13 +540,11 @@ button.m-acheter:focus-visible { background: var(--vert-fonce); }
   list-style: none;
   font-weight: 400;
 }
-.m-formule__avantages li,
-.m-tarif__conditions li {
+.m-formule__avantages li {
   display: flex;
   gap: 0.6rem;
 }
-.m-formule__avantages li::before,
-.m-tarif__conditions li::before {
+.m-formule__avantages li::before {
   content: "";
   flex: 0 0 auto;
   width: 0.45em;

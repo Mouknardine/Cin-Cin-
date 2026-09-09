@@ -18,30 +18,33 @@
     return '<div class="m-bande ' + classe + '">' + contenu + "</div>";
   }
 
-  /* Les conditions du tarif réduit sont une liste dans le Studio :
-     elles le restent à l'écran, une par ligne. Recollées en une
-     phrase, elles faisaient une ligne de cent cinquante signes que
-     l'œil ne pouvait pas suivre. */
-  function listeConditions(conditions) {
-    if (!conditions.length) return "";
+  function caseTarif(label, prix) {
     return (
-      '<ul class="m-tarif__conditions">' +
-      conditions
-        .map(function (condition) {
-          return "<li>" + R.escapeHtml(condition) + "</li>";
-        })
-        .join("") +
-      "</ul>"
+      '<div class="m-cell m-info m-tarif ' + C.classe() + '">' +
+      '<p class="m-cell__label">' + R.escapeHtml(label) + "</p>" +
+      '<p class="m-tarif__prix">' + R.escapeHtml(prix) + "</p></div>"
     );
   }
 
-  function caseTarif(label, prix, conditions) {
-    return (
-      '<div class="m-cell m-info ' + C.classe() + '">' +
-      '<p class="m-cell__label">' + R.escapeHtml(label) + "</p>" +
-      '<p class="m-tarif__prix">' + R.escapeHtml(prix) + "</p>" +
-      listeConditions(conditions || []) +
-      "</div>"
+  /* Les conditions du tarif réduit forment leur propre rangée : une
+     case par condition, chacune de la largeur de son texte. Glissées
+     dans la case du prix, elles la faisaient grandir jusqu'à étirer
+     celle du plein tarif à côté — une case vide haute comme un
+     écran, pour dire un seul prix. */
+  function bandeConditions(conditions) {
+    if (!conditions.length) return "";
+    return bande(
+      "m-bande--conditions",
+      '<div class="m-cell m-tarif__pour ' + C.classe() + '">' +
+        '<p class="m-cell__label">Tarif réduit pour</p></div>' +
+        conditions
+          .map(function (condition) {
+            return (
+              '<div class="m-cell m-tarif__condition ' + C.classe() + '">' +
+              R.escapeHtml(condition) + "</div>"
+            );
+          })
+          .join("")
     );
   }
 
@@ -116,8 +119,8 @@
         ? bande(
             "m-bande--infos",
             (plein ? caseTarif("Plein tarif", plein) : "") +
-              (reduit ? caseTarif("Tarif réduit", reduit, conditions) : "")
-          )
+              (reduit ? caseTarif("Tarif réduit", reduit) : "")
+          ) + (reduit ? bandeConditions(conditions) : "")
         : "";
 
     var formules = (abo.formules || []).filter(function (f) {
