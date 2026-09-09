@@ -79,6 +79,13 @@
   line-height: 1;
 }
 
+/* Le panneau d'achat n'est pas une page : il tient dans 38rem, et
+   la marge des cases y reste serrée quand celle des pages s'élargit
+   avec l'écran (voir .m-cell dans film-mondrian.css). */
+@media (min-width: 900px) {
+  .m-achat .m-cell { padding: 1.25rem; }
+}
+
 /* ---------- L'adresse e-mail ---------- */
 
 .m-achat__email {

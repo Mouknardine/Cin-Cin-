@@ -18,12 +18,29 @@
     return '<div class="m-bande ' + classe + '">' + contenu + "</div>";
   }
 
-  function caseTarif(label, prix, precision) {
+  /* Les conditions du tarif réduit sont une liste dans le Studio :
+     elles le restent à l'écran, une par ligne. Recollées en une
+     phrase, elles faisaient une ligne de cent cinquante signes que
+     l'œil ne pouvait pas suivre. */
+  function listeConditions(conditions) {
+    if (!conditions.length) return "";
+    return (
+      '<ul class="m-tarif__conditions">' +
+      conditions
+        .map(function (condition) {
+          return "<li>" + R.escapeHtml(condition) + "</li>";
+        })
+        .join("") +
+      "</ul>"
+    );
+  }
+
+  function caseTarif(label, prix, conditions) {
     return (
       '<div class="m-cell m-info ' + C.classe() + '">' +
       '<p class="m-cell__label">' + R.escapeHtml(label) + "</p>" +
       '<p class="m-tarif__prix">' + R.escapeHtml(prix) + "</p>" +
-      (precision ? '<p class="m-tarif__precision">' + R.escapeHtml(precision) + "</p>" : "") +
+      listeConditions(conditions || []) +
       "</div>"
     );
   }
@@ -92,7 +109,7 @@
 
     var plein = R.montant(reglages.tarifPlein);
     var reduit = R.montant(reglages.tarifReduit);
-    var conditions = (reglages.conditionsReduit || []).filter(Boolean).join(", ");
+    var conditions = (reglages.conditionsReduit || []).filter(Boolean);
 
     var bandeTarifs =
       plein || reduit

@@ -72,6 +72,17 @@
   line-height: 1.35;
 }
 
+/* Plus l'écran est large, plus une case a besoin d'air : un texte
+   qui commence à un centimètre du bord d'un écran de 27 pouces
+   donne l'impression d'avoir été poussé contre le mur. La marge
+   suit donc la taille de l'écran, partout sur le site. */
+@media (min-width: 900px) {
+  .m-cell { padding: 1.5rem; }
+}
+@media (min-width: 1400px) {
+  .m-cell { padding: 2rem; }
+}
+
 .m-cell__label {
   font-weight: 800;
   text-transform: uppercase;
@@ -470,6 +481,32 @@ button.m-acheter:focus-visible { background: var(--vert-fonce); }
   font-weight: 400;
   opacity: 0.75;
 }
+/* Les deux tarifs se lisent côte à côte dès qu'ils ont chacun
+   16rem : l'un sous l'autre, ils occupaient deux écrans pour dire
+   deux prix. */
+.m-bande--infos > .m-info {
+  flex: 1 1 16rem;
+}
+
+/* Une ligne cesse d'être lisible au-delà d'une soixantaine de
+   signes : sur grand écran, les textes de cette page gardent leur
+   largeur de lecture au lieu de traverser l'écran entier. */
+.m-tarif__precision,
+.m-formule__texte,
+.m-formule__avantages {
+  max-width: 62ch;
+}
+
+/* Les conditions du tarif réduit se lisent l'une sous l'autre :
+   en une seule phrase, elles formaient une ligne de cent cinquante
+   signes que l'œil ne pouvait pas suivre. */
+.m-tarif__conditions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
 /* Les formules tiennent côte à côte tant qu'elles ont 18rem :
    en dessous, elles passent l'une sous l'autre. */
 .m-formule {
@@ -478,6 +515,31 @@ button.m-acheter:focus-visible { background: var(--vert-fonce); }
 .m-formule__texte {
   font-weight: 400;
   margin-top: 0.25rem;
+}
+
+/* Chaque avantage porte un carré noir : la puce ronde du navigateur
+   n'existe nulle part ailleurs sur ce site, le carré si. */
+.m-formule__avantages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+  list-style: none;
+  font-weight: 400;
+}
+.m-formule__avantages li,
+.m-tarif__conditions li {
+  display: flex;
+  gap: 0.6rem;
+}
+.m-formule__avantages li::before,
+.m-tarif__conditions li::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 0.45em;
+  height: 0.45em;
+  margin-top: 0.55em;
+  background: currentColor;
 }
 
 /* ---------- Film introuvable ---------- */
