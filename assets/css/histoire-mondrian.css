@@ -3,66 +3,38 @@
    S'appuie sur film-mondrian.css (quadrillage, cases, visuels) :
    les deux feuilles sont chargées ensemble sur cette page.
 
-   La page s'ouvre sur l'année d'ouverture posée en grand à côté
-   du texte d'introduction, puis chaque étape tient sur une bande :
+   La page s'ouvre sur l'âge du cinéma posé en très grand, puis
+   chaque étape occupe deux ou trois bandes empilées :
 
-     ┌────────┬──────────────────────────────────────────────┐
-     │ DEPUIS │  Pendant que les grandes salles…             │
-     │ 2001   │                                              │
-     ├────────┼───────────────────┬──────────────────────────┤
-     │ 2001   │ OUVERTURE, CONTRE │ Le Zinéma ouvre ses…     │
-     │        │ LE COURANT        │                          │
-     └────────┴───────────────────┴──────────────────────────┘
+     ┌───────────────────────────────────────────────────────┐
+     │ DEPUIS 2001                                           │
+     │ 25 ANS                                                │
+     ├──────┬────────────────────────────────────────────────┤
+     │ 2001 │ OUVERTURE                                      │
+     ├──────┴────────────────────────────────────────────────┤
+     │ Le Zinéma est fondé en juin 2001 par Laurent Serge…   │
+     ├──────────────────┬─────────────────┬──────────────────┤
+     │ ARCHITECTURE     │ DESIGN          │ GRAPHISME        │
+     │ Christophe Pig…  │ Elise Gagnebin… │ Stéphane Hern…   │
+     └──────────────────┴─────────────────┴──────────────────┘
 
-   Comme partout sur le site : aucun bandeau de titre, des cases
-   dont la largeur suit la longueur du texte, et une couleur
-   tirée au hasard sur chacune au survol.
+   L'année et le titre tiennent sur une bande basse : sur une
+   seule bande partagée avec le texte, ils s'étiraient sur toute
+   sa hauteur et laissaient deux colonnes vides hautes comme
+   trois écrans.
    ============================================================ */
 
-/* ---------- Mobile & tablette : chaque case prend toute la
-   largeur. Sans cette règle, une case calée sur son texte
-   laisserait un trait noir à sa droite — un trou dans le
-   tableau. ---------- */
+/* ---------- L'ouverture ----------
+   L'âge du cinéma en très grand : c'est l'affiche de la page.
+   Sans texte d'introduction, il la traverse d'un bord à l'autre
+   plutôt que de laisser un trait noir courir à sa droite. */
 
-@media (max-width: 899px) {
-  .mondrian--histoire .m-bande > * {
-    flex: 1 1 100%;
-  }
-
-  /* Sauf l'année et le titre d'une étape, qui restent côte à côte :
-     l'année se cale sur ses quatre chiffres et le titre prend le
-     reste. Empilées, les cinq étapes faisaient quinze grandes
-     cases à faire défiler. */
-  .mondrian--histoire .m-bande--etape > .m-histoire__annee {
-    flex: 0 0 auto;
-  }
-  .mondrian--histoire .m-bande--etape > .m-histoire__titre {
-    flex: 1 1 0;
-    justify-content: center;
-  }
+.m-bande--ouverture .m-histoire__annee-valeur {
+  font-size: clamp(4rem, 14vw, 11rem);
 }
-
-/* ---------- L'année, en grand ----------
-   Le seul texte de la page à la taille des titres : c'est le
-   repère chronologique, il doit se lire d'un coup d'œil en
-   parcourant la page du regard. */
-
-.m-histoire__annee {
-  flex: 0 0 auto;
-  min-width: min(100%, 9rem);
+.m-bande--ouverture-seule .m-histoire__annee {
+  flex: 1 1 100%;
 }
-.m-histoire__annee-valeur {
-  font-family: var(--font-display);
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  font-size: var(--taille-titre);
-  line-height: 0.9;
-}
-
-/* ---------- L'introduction ----------
-   Le texte d'ouverture, en gras : c'est la profession de foi du
-   cinéma, pas un paragraphe courant. */
 
 .m-histoire__intro {
   font-family: var(--font-display);
@@ -74,38 +46,103 @@
   justify-content: center;
 }
 
-/* ---------- Les cases d'une étape ---------- */
+/* ---------- La tête d'une étape ----------
+   L'année se cale sur ses quatre chiffres, le titre prend tout le
+   reste : la bande est basse, et l'œil descend d'étape en étape
+   sans avoir à traverser des colonnes vides. */
 
-.m-histoire__titre {
+.m-bande--tete .m-histoire__annee {
+  flex: 0 0 auto;
+  min-width: min(50%, 10rem);
+  justify-content: center;
+}
+.m-histoire__annee-valeur {
   font-family: var(--font-display);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -0.01em;
-  line-height: 1.15;
+  font-size: var(--taille-titre);
+  line-height: 0.9;
+}
+
+.m-histoire__titre {
+  flex: 1 1 12rem;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  font-size: var(--taille-titre);
+  line-height: 1;
   overflow-wrap: anywhere;
 }
 
+/* ---------- Le récit ----------
+   Une ligne de texte cesse d'être lisible au-delà d'une
+   soixantaine de signes : sur grand écran, le récit garde sa
+   largeur de lecture au lieu de traverser l'écran entier. */
+
 .m-histoire__texte {
+  flex: 1 1 20rem;
+  gap: 0.75rem;
   font-weight: 400;
-  white-space: pre-line;
+}
+.m-histoire__texte p {
+  max-width: 62ch;
 }
 
-/* ---------- Ordinateur ----------
-   Le titre de l'étape et son texte se partagent la largeur
-   restante : le texte, toujours plus long, en prend deux fois
-   plus que le titre. */
+/* La photo d'une étape remplit sa case, sans format imposé : ce
+   ne sont pas des affiches. */
+.m-histoire__visuel {
+  padding: 0;
+  flex: 1 1 16rem;
+}
+.m-histoire__visuel img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 12rem;
+  object-fit: cover;
+}
 
-@media (min-width: 900px) {
-  .m-histoire__intro { flex: 1 1 0; }
-  .m-histoire__titre { flex: 1 1 0; }
-  .m-histoire__texte { flex: 2 1 0; }
+/* ---------- Les crédits ----------
+   « Architecture : Untel » devient une case intitulé/valeur, le
+   même gabarit que les repères d'une fiche film. Trois crédits
+   tiennent ainsi sur une rangée, là où trois paragraphes
+   faisaient trois pavés. */
 
-  /* Le visuel d'une étape, quand il y en a un : montré entier,
-     jamais recadré, sur un cinquième de la bande. */
-  .m-histoire__visuel {
-    flex: 0 0 20%;
-    display: flex;
-    align-items: center;
+.m-histoire__credit {
+  flex: 1 1 14rem;
+}
+.m-histoire__credit-valeur {
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* ---------- Le retour ---------- */
+
+.m-bande--retour .m-action {
+  flex: 0 0 auto;
+}
+
+/* ---------- Mobile & tablette ----------
+   Chaque case prend toute la largeur : une case calée sur son
+   texte laisserait un trait noir à sa droite, un trou dans le
+   tableau. L'année et le titre font exception — empilés, chaque
+   étape coûtait un écran avant d'avoir rien lu. */
+
+@media (max-width: 899px) {
+  .mondrian--histoire .m-bande > * {
+    flex: 1 1 100%;
   }
-  .m-histoire__visuel .poster { width: 100%; height: auto; }
+  .mondrian--histoire .m-bande--tete > .m-histoire__annee {
+    flex: 0 0 auto;
+  }
+  .mondrian--histoire .m-bande--tete > .m-histoire__titre {
+    flex: 1 1 0;
+    font-size: var(--taille-texte);
+  }
+  .m-bande--ouverture .m-histoire__annee-valeur {
+    font-size: clamp(3.5rem, 22vw, 8rem);
+  }
 }
