@@ -58,7 +58,9 @@
      d'un téléphone. Un cran plus petit, deux ou trois se rangent
      par ligne — et la page cesse d'être un empilement. */
   .mondrian--location .m-location__occasion {
-    flex: 1 1 7rem;
+    /* Deux par rangée, pas trois : à trois, il ne reste pas cent
+       pixels par case et les mots se coupent en plein milieu. */
+    flex: 1 1 9rem;
     padding: 0.75rem;
     font-size: 1.05rem;
     line-height: 1.15;
@@ -89,6 +91,10 @@
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -0.01em;
+  /* Les cases d'une rangée peuvent se resserrer sous la largeur de
+     leur mot : sans cette règle, « ANNIVERSAIRE » sortait de sa
+     case et passait sous la case voisine. */
+  overflow-wrap: anywhere;
 }
 
 /* ---------- Un espace ---------- */
