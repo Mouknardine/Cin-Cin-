@@ -16,14 +16,20 @@
    envoyé et la page du billet n'annonce aucun envoi. Elle affiche
    la référence en grand, qui reste le vrai billet.
 
-   Le message est en texte simple, volontairement. Un billet n'a
-   besoin d'aucune mise en forme, et le texte simple passe partout
-   — vieux logiciels compris — sans jamais être coupé.
+   Le message porte trois formes du même billet : du texte simple
+   pour les logiciels qui s'en tiennent là, une version dessinée
+   comme le site, et le billet en PDF joint au message. Ce qu'elles
+   contiennent est écrit dans _courriel_billet.php.
    ============================================================ */
 
 declare(strict_types=1);
 
 require_once __DIR__ . '/_socle.php';
+/* Ce que contient le message (texte, version dessinée, PDF joint).
+   Les deux fichiers s'appellent l'un l'autre au moment de l'envoi,
+   jamais au chargement : l'ordre des « require » n'a donc pas
+   d'importance. */
+require_once __DIR__ . '/_courriel_billet.php';
 
 const COURRIEL_EXPEDITEUR_PAR_DEFAUT = 'admin@zinema.ch';
 const COURRIEL_NOM_PAR_DEFAUT = 'Zinéma';
@@ -92,41 +98,31 @@ function courrielEnvoyerBillet(array $commande): bool
     $adresseSite = rtrim((string) ($config['site']['url'] ?? 'https://www.zinema.ch'), '/');
 
     $reference = (string) ($commande['reference'] ?? '');
-    $montant = (float) ($commande['montant'] ?? 0);
-    $montantEcrit = rtrim(rtrim(number_format($montant, 2, '.', ''), '0'), '.') . '.-';
 
     $sujet = 'Votre billet ' . $reference . ' — ' . ($commande['filmTitre'] ?? 'Zinéma');
 
-    $lignes = [
-        'ZINÉMA — VOTRE BILLET',
-        '',
-        'Référence : ' . $reference,
-        'À présenter à l\'entrée. Cette référence est votre billet.',
-        '',
-        'Film     : ' . ($commande['filmTitre'] ?? '—'),
-        'Séance   : ' . courrielDateEnToutesLettres((string) ($commande['seanceDate'] ?? ''))
-            . ' à ' . ($commande['seanceHeure'] ?? '—'),
-        'Salle    : ' . ($commande['seanceSalle'] ?? '—'),
-        'Billets  : ' . courrielDetailBillets(
-            (int) ($commande['billetsPlein'] ?? 0),
-            (int) ($commande['billetsReduit'] ?? 0)
-        ),
-        'Payé     : ' . $montantEcrit,
-        '',
-        'Retrouver ce billet à tout moment :',
-        $adresseSite . '/billet/?ref=' . rawurlencode($reference),
-        '',
-        '—',
-        'Zinéma — Rue du Maupas 4, 1004 Lausanne',
-        $adresseSite,
-    ];
-    $message = implode("\r\n", $lignes) . "\r\n";
+    /* Le PDF est un plus, jamais une condition : s'il ne se fabrique
+       pas, le billet part quand même — c'est la référence qui compte,
+       et elle est écrite dans le message. */
+    $pdf = null;
+    try {
+        $pdf = billetPdf($commande);
+    } catch (Throwable $e) {
+        error_log('[zinema-billetterie] billet PDF non fabriqué : ' . $e->getMessage());
+    }
+
+    [$entetesContenu, $message] = billetCourrielMessage(
+        billetCourrielTexte($commande, $adresseSite),
+        billetCourrielHtml($commande, $adresseSite),
+        $pdf,
+        'billet-' . ($reference !== '' ? $reference : 'zinema') . '.pdf'
+    );
 
     $entetes = implode("\r\n", [
         'From: ' . courrielSujetEncode($nomExpediteur) . ' <' . $expediteur . '>',
         'Reply-To: ' . $expediteur,
-        'Content-Type: text/plain; charset=UTF-8',
-        'Content-Transfer-Encoding: 8bit',
+        'MIME-Version: 1.0',
+        $entetesContenu,
         'X-Mailer: zinema-billetterie',
     ]);
 
