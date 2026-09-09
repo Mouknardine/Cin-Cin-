@@ -15,7 +15,7 @@
   var navLinks = [
     { href: "films/", label: "Films", num: "01", page: "films" },
     { href: "agenda/", label: "Agenda", num: "02", page: "agenda" },
-    { href: "evenements/", label: "Événement", num: "03", page: "evenements" },
+    { href: "evenements/", label: "Événements", num: "03", page: "evenements" },
     /* La Location a pris la place de l'Histoire dans le menu : c'est
        une demande qu'on vient faire, quand la frise se lit une fois.
        L'Histoire reste en ligne, on y entre par une case de la page

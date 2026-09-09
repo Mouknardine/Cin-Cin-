@@ -21,8 +21,8 @@ import { idDeLaFiche, PAGES } from "./schemaTypes/page";
    Deux règles, et rien d'autre :
 
    1. Chaque entrée porte le nom de la page du site où son contenu
-      apparaît — Films, Agenda, Événement, Histoire, Membership,
-      Contact. Aucun mot inventé.
+      apparaît — Films, Agenda, Événements, Location, Histoire,
+      Membership, Infos. Aucun mot inventé.
 
    2. Une chose, un seul endroit. Pas de liste qui répète une autre
       liste, pas de raccourci qui rouvre une fiche déjà accessible
@@ -94,14 +94,14 @@ export const deskStructure: StructureResolver = (S) =>
             ])
         ),
 
-      /* ---------------- Événement ---------------- */
+      /* ---------------- Événements ---------------- */
       S.listItem()
         .id("evenements")
-        .title("Événement")
+        .title("Événements")
         .icon(SparklesIcon)
         .child(
           S.documentTypeList("evenement")
-            .title("Événement")
+            .title("Événements")
             .defaultOrdering([{ field: "dateDebut", direction: "desc" }])
         ),
 

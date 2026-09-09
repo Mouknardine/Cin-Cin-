@@ -1,5 +1,5 @@
 /* ============================================================
-   Zinéma — page Événement, en tableau « Mondrian » comme le
+   Zinéma — page Événements, en tableau « Mondrian » comme le
    reste du site : des cases blanches séparées par des traits
    noirs, dont la largeur suit la longueur du texte, et dont la
    couleur est tirée au hasard à chaque affichage.
