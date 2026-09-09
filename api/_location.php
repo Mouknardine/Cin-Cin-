@@ -22,7 +22,7 @@ require_once __DIR__ . '/_sanity.php';
 const LOCATION_MAX_COURT = 160;
 const LOCATION_MAX_MESSAGE = 4000;
 
-/* Deux demandes par quart d'heure et par visiteur : de quoi se
+/* Une demande par quart d'heure et par adresse e-mail : de quoi se
    reprendre après une faute de frappe, pas de quoi inonder une
    boîte aux lettres. */
 const LOCATION_DELAI_ENTRE_DEMANDES_S = 450;
@@ -54,21 +54,31 @@ function locationDestinataire(): string
 }
 
 /**
- * Le visiteur a-t-il déjà écrit il y a moins d'un quart d'heure ?
+ * Cette adresse a-t-elle déjà écrit il y a moins d'un quart d'heure ?
  *
- * On ne garde que l'empreinte de son adresse IP et la date de son
- * dernier envoi, dans un fichier temporaire : rien de personnel, et
- * rien qui survive au ménage du serveur. Un serveur qui ne sait pas
- * écrire son fichier temporaire laisse passer — mieux vaut une
- * demande de trop qu'un formulaire cassé.
+ * Le repère est l'adresse e-mail saisie, et non l'adresse IP du
+ * visiteur : sur un hébergement mutualisé, le serveur voit souvent
+ * la même IP pour tout le monde, et une seule demande aurait fermé
+ * le formulaire à tous les autres pendant un quart d'heure. C'est
+ * arrivé au premier essai.
+ *
+ * Ce n'est pas une serrure — quelqu'un qui change d'adresse repasse.
+ * C'est un garde-fou contre le double envoi par impatience ; les
+ * robots, eux, sont arrêtés par le champ piège.
+ *
+ * On ne garde que l'empreinte de l'adresse et la date du dernier
+ * envoi, dans un fichier temporaire : rien de lisible, et rien qui
+ * survive au ménage du serveur. Un serveur qui ne sait pas écrire
+ * son fichier temporaire laisse passer — mieux vaut une demande de
+ * trop qu'un formulaire cassé.
  */
-function locationTropRapide(): bool
+function locationTropRapide(string $email): bool
 {
-    $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
-    if ($ip === '') {
+    $email = mb_strtolower(trim($email));
+    if ($email === '') {
         return false;
     }
-    $fichier = sys_get_temp_dir() . '/zinema-location-' . hash('sha256', $ip) . '.txt';
+    $fichier = sys_get_temp_dir() . '/zinema-location-' . hash('sha256', $email) . '.txt';
 
     $dernier = is_readable($fichier) ? (int) @file_get_contents($fichier) : 0;
     if ($dernier > 0 && (time() - $dernier) < LOCATION_DELAI_ENTRE_DEMANDES_S) {

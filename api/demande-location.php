@@ -64,7 +64,7 @@ if ($demande['message'] === '') {
     echec("Dites-nous en deux mots ce que vous aimeriez organiser.", 422);
 }
 
-if (locationTropRapide()) {
+if (locationTropRapide($demande['email'])) {
     echec(
         'Votre demande vient de partir. Laissez-nous le temps de la lire avant d\'en envoyer une autre.',
         429
