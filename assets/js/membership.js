@@ -149,7 +149,7 @@
     var contact = reglages.email
       ? '<a class="m-cell m-action m-acheter" href="mailto:' + R.escapeHtml(reglages.email) +
         '?subject=' + encodeURIComponent("Abonnement Zinéma") + '">' +
-        "<span>Demander un abonnement</span>" +
+        "<span>Acheter un abonnement</span>" +
         '<span class="m-acheter__prix">' + R.escapeHtml(reglages.email) + "</span></a>"
       : "";
 
@@ -162,7 +162,7 @@
       bande(
         "m-bande--achat",
         '<a href="' + root + 'agenda/" class="m-cell m-action m-lien-retour ' + C.classe() +
-          '"><span>← Voir les séances</span></a>' + contact
+          '"><span>Voir les séances</span></a>' + contact
       ) +
       "</article>";
   });

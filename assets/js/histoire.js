@@ -142,7 +142,7 @@
     return bande(
       "m-bande--retour",
       '<a href="' + root + 'contact/" class="m-cell m-action ' + C.classe() + '">' +
-        "<span>← Infos</span></a>"
+        "<span>Infos</span></a>"
     );
   }
 

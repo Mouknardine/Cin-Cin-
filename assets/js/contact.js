@@ -48,13 +48,12 @@
   }
 
   /* Une case-lien qui reste sur le site : elle mène vers une autre
-     page du Zinéma, pas vers l'extérieur — ni cible ni « rel », et
-     la flèche pointe à droite comme un chapitre qui continue. */
+     page du Zinéma, pas vers l'extérieur — ni cible ni « rel ». */
   function caseInterne(label, libelle, href) {
     return (
       '<a class="m-cell m-contact__page ' + C.classe() + '" href="' + R.escapeHtml(href) + '">' +
       '<p class="m-cell__label">' + R.escapeHtml(label) + "</p>" +
-      '<p class="m-contact__page-titre">' + R.escapeHtml(libelle) + " →</p></a>"
+      '<p class="m-contact__page-titre">' + R.escapeHtml(libelle) + "</p></a>"
     );
   }
 
@@ -63,7 +62,7 @@
     return (
       '<a class="m-cell m-action ' + C.classe() + '" href="' +
       R.escapeHtml(href) + '" target="_blank" rel="noopener noreferrer">' +
-      "<span>" + R.escapeHtml(libelle) + " →</span></a>"
+      "<span>" + R.escapeHtml(libelle) + "</span></a>"
     );
   }
 

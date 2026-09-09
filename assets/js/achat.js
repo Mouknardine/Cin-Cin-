@@ -91,7 +91,7 @@
       '<p class="m-bande m-achat__erreur" role="alert" hidden></p>' +
       '<div class="m-bande">' +
       '<button type="button" class="m-cell m-action m-achat__annuler ' + C.classe() + '">' +
-      "<span>← Annuler</span></button>" +
+      "<span>Annuler</span></button>" +
       '<button type="submit" class="m-cell m-action m-acheter m-achat__payer">' +
       "<span>Payer</span><span class=\"m-acheter__prix\"></span></button>" +
       "</div></form>";

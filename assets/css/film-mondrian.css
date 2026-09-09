@@ -431,8 +431,8 @@ button.m-seances__chip:focus-visible {
     flex: 0 1 auto;
     min-width: 15rem;
   }
-  /* Le retour ouvre la rangée, tout à gauche : sa flèche pointe
-     vers la gauche, elle ne doit pas partir du bord droit. */
+  /* Le retour ouvre la rangée, tout à gauche : c'est le chemin
+     d'où l'on vient, il ne part pas du bord droit. */
   .m-bande--bas > .m-lien-retour {
     order: -1;
     flex: 0 0 auto;

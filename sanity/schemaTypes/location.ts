@@ -39,10 +39,15 @@ export const location = defineType({
       name: "occasions",
       title: "Pour quelles occasions",
       type: "array",
+      /* Une liste plutôt que des étiquettes : sur une étiquette, on
+         ne peut que supprimer et retaper. Ici chaque occasion se
+         corrige lettre par lettre, et se glisse pour changer
+         l'ordre — c'est celui de la page. */
       of: [{ type: "string" }],
-      options: { layout: "tags" },
       description:
-        "Tapez une occasion puis Entrée. Ex. Projection privée, Séminaire, Anniversaire, Conférence, Tournage, Assemblée générale. Elles s'affichent en cases, sous la phrase d'accueil.",
+        "Une occasion par ligne. Ex. Projection privée, Séminaire, Anniversaire, Conférence, Tournage, Assemblée générale. Cliquez dans le texte pour le corriger, glissez une ligne pour changer l'ordre. Elles s'affichent en cases, sous la phrase d'accueil.",
+      validation: (Rule) =>
+        Rule.unique().warning("Cette occasion est déjà dans la liste."),
     }),
 
     defineField({
@@ -84,10 +89,13 @@ export const location = defineType({
               name: "equipements",
               title: "Équipement",
               type: "array",
+              /* Même raison que les occasions : une ligne se corrige,
+                 une étiquette se retape. */
               of: [{ type: "string" }],
-              options: { layout: "tags" },
               description:
-                "Tapez un équipement puis Entrée. Ex. Projection 4K, Son Dolby, Micro, Écran 8 m, Bar.",
+                "Un équipement par ligne. Ex. Projection 4K, Son Dolby, Micro, Écran 8 m, Bar. Cliquez dans le texte pour le corriger, glissez une ligne pour changer l'ordre.",
+              validation: (Rule) =>
+                Rule.unique().warning("Cet équipement est déjà dans la liste."),
             }),
             defineField({
               name: "tarif",

@@ -165,7 +165,7 @@
       '<ul class="main-nav__list">' + itemsHTML + "</ul>" +
       '<div class="main-nav__footer font-display">' +
       "<span>Zinéma — Lausanne, salle de cinéma fondée en juin 2001</span>" +
-      '<a href="' + root + 'agenda/" class="underline-hover">Voir les séances de la semaine →</a>' +
+      '<a href="' + root + 'agenda/" class="underline-hover">Voir les séances de la semaine</a>' +
       "</div>";
 
     document.body.insertBefore(nav, document.body.firstChild);

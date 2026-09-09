@@ -584,39 +584,6 @@ body:not([data-page="home"]) .main-area {
 @media (min-width: 768px) {
   .home-canvas { inset: 4.5rem 0 0 0; }
 }
-/* Flèche d'invitation au défilement : une petite case blanche qui
-   rebondit doucement en bas de l'écran, dans le langage du tableau.
-   Elle disparaît au premier défilement (classe posée par home.js). */
-.home-scroll-cue {
-  pointer-events: none;
-  position: absolute;
-  bottom: 1.25rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
-  display: flex;
-  height: 3rem;
-  width: 3rem;
-  align-items: center;
-  justify-content: center;
-  background: var(--paper);
-  box-shadow: 0 1px 4px rgba(16, 15, 12, 0.25);
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 1.5rem;
-  color: var(--ink);
-  animation: scroll-cue-bounce 2s ease-in-out infinite;
-  transition: opacity 0.4s ease-out;
-}
-.home-scroll-cue.is-hidden { opacity: 0; }
-@keyframes scroll-cue-bounce {
-  0%, 100% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-0.5rem); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .home-scroll-cue { animation: none; }
-}
-
 .home-canvas__scroll {
   position: absolute;
   inset: 0;

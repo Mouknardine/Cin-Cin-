@@ -17,7 +17,7 @@
      ├──────────┼───────────────────────┬───────────┤
      │ AFFICHE  │ BANDE-ANNONCE         │ SÉANCES   │
      ├────────────┬────────────────────┬───────────┤
-     │ ← LES FILMS│ SYNOPSIS           │ LA PRESSE │
+     │ LES FILMS  │ SYNOPSIS           │ LA PRESSE │
      └────────────┴────────────────────┴───────────┘
 
    L'affiche tient le tiers gauche, sur la seule rangée de la
@@ -330,7 +330,7 @@
       synopsisHTML +
         presseHTML(film) +
         '<a href="' + root + 'films/" class="m-cell m-action m-lien-retour ' + C.classe() + '">' +
-        "<span>← Tous les films</span></a>"
+        "<span>Tous les films</span></a>"
     );
 
     /* Les photos du film (« Photos du film » dans le Studio), en une
@@ -399,7 +399,7 @@
       ) +
       bande(
         "m-bande--retour",
-        '<a href="' + root + 'films/" class="m-cell m-action m-lien-retour ' + C.classe() + '"><span>← Tous les films</span></a>'
+        '<a href="' + root + 'films/" class="m-cell m-action m-lien-retour ' + C.classe() + '"><span>Tous les films</span></a>'
       ) +
       "</article>";
   }

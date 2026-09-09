@@ -72,7 +72,7 @@
     return (
       '<a class="m-cell m-annonce__lien ' + C.classe() + '" href="' +
       R.escapeHtml(a.linkUrl) + '" target="_blank" rel="noopener noreferrer">' +
-      "<span>" + R.escapeHtml(a.linkLabel || "En savoir plus") + " →</span></a>"
+      "<span>" + R.escapeHtml(a.linkLabel || "En savoir plus") + "</span></a>"
     );
   }
 

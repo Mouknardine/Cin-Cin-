@@ -101,7 +101,7 @@
       filtres.map(filtreHTML).join("") + "</nav>";
 
     var agendaHTML =
-      '<a href="' + root + 'agenda/" class="m-cell m-action m-films-agenda ' + C.classe() + '"><span>Agenda complet →</span></a>';
+      '<a href="' + root + 'agenda/" class="m-cell m-action m-films-agenda ' + C.classe() + '"><span>Agenda complet</span></a>';
 
     /* Une rubrique sans film n'affiche rien : les filtres restent
        au-dessus, il suffit d'en choisir un autre. Une case pour dire

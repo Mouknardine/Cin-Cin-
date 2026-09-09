@@ -160,27 +160,11 @@
     app.innerHTML =
       '<div class="home-canvas">' +
       '<div class="home-canvas__scroll"><div class="home-canvas__track"><div class="home-canvas__stage"></div></div></div>' +
-      '<div class="home-scroll-cue" aria-hidden="true">↓</div>' +
       "</div>";
 
     var scrollEl = app.querySelector(".home-canvas__scroll");
     var trackEl = app.querySelector(".home-canvas__track");
     var stageEl = app.querySelector(".home-canvas__stage");
-
-    /* La flèche invite à faire défiler le tableau ; elle disparaît
-       dès que le visiteur a compris (premier vrai défilement). Le
-       calage initial déclenche aussi un événement scroll : on ne
-       masque qu'à partir d'un écart net avec la position de départ. */
-    var cueEl = app.querySelector(".home-scroll-cue");
-    var cueOrigin = null;
-
-    function hideCueIfScrolled() {
-      if (!cueEl || cueOrigin === null) return;
-      if (Math.abs(scrollEl.scrollTop - cueOrigin) > 40) {
-        cueEl.classList.add("is-hidden");
-        cueEl = null;
-      }
-    }
 
     function config() {
       return window.innerWidth < 768 ? G.mobile : G.desktop;
@@ -248,7 +232,6 @@
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
         scrollEl.scrollTo({ top: startTop(), left: 0, behavior: "instant" });
-        cueOrigin = scrollEl.scrollTop;
       });
     });
 
@@ -269,7 +252,6 @@
       function () {
         if (settleTimer) clearTimeout(settleTimer);
         settleTimer = setTimeout(recentre, 120);
-        hideCueIfScrolled();
 
         if (ticking) return;
         ticking = true;
@@ -290,7 +272,6 @@
       resizeTimer = setTimeout(function () {
         layout();
         scrollEl.scrollTo({ top: startTop(), left: 0, behavior: "instant" });
-        if (cueEl) cueOrigin = scrollEl.scrollTop;
       }, 150);
     });
   }

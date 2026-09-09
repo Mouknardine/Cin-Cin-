@@ -43,7 +43,7 @@
     return bande(
       "m-bande--actions",
       '<a class="m-cell m-action m-lien-retour ' + C.classe() + '" href="' + root +
-        'agenda/"><span>← L\'agenda du cinéma</span></a>'
+        'agenda/"><span>L\'agenda du cinéma</span></a>'
     );
   }
 
