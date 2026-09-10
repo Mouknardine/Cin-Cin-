@@ -185,7 +185,7 @@ export const deskStructure: StructureResolver = (S) =>
 
       /* ---------------- Réglages ----------------
          Adresse, horaires, téléphones, e-mails, tarifs, salles,
-         logo, réseaux sociaux. Un seul endroit, atteint d'un seul
+         réseaux sociaux. Un seul endroit, atteint d'un seul
          chemin. */
       S.listItem()
         .id("reglages")

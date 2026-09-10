@@ -156,7 +156,7 @@
     'linkUrl,linkLabel,"films":films[]->{_id,"slug":coalesce(slug.current,_id),title,poster}';
 
   var CHAMPS_REGLAGES =
-    "logo,shareImage,address,phone,phoneSecondary,email," +
+    "shareImage,address,phone,phoneSecondary,email," +
     "openingHours,accessInfo,mapUrl,tarifPlein,tarifReduit,conditionsReduit,salles," +
     "socialLinks,seoDescription";
 
@@ -231,7 +231,7 @@
       });
     },
 
-    /** Les réglages du cinéma : adresse, tarifs, horaires, réseaux, logo. */
+    /** Les réglages du cinéma : adresse, tarifs, horaires, réseaux. */
     getReglages: function () {
       return cachee("reglages", function () {
         return sanityFetch('*[_type == "siteSettings"][0]{' + CHAMPS_REGLAGES + "}");

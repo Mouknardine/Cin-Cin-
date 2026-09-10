@@ -25,15 +25,10 @@ export const siteSettings = defineType({
     { name: "reseaux", title: "Réseaux & référencement" },
   ],
   fields: [
-    /* ---------------- Identité ---------------- */
-    defineField({
-      name: "logo",
-      title: "Logo affiché en haut de chaque page",
-      type: "imageZinema",
-      group: "identite",
-      description:
-        "Le logo de la barre de navigation, sur toutes les pages. Fond transparent (PNG) fortement conseillé, environ 440 × 108 px. Tant que ce champ est vide, le site garde le logo installé avec le site.",
-    }),
+    /* ---------------- Identité ----------------
+       Il n'y a plus de champ « logo » : le nom du cinéma est écrit
+       en haut de chaque page, dans la typographie du site, et non
+       plus déposé sous forme d'image. */
     defineField({
       name: "shareImage",
       title: "Image de partage",

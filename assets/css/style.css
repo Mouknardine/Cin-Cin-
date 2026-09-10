@@ -62,8 +62,8 @@
   --vert-fonce: #1b4014;
   /* Le rose fluo : la seule couleur du site qui ne vienne pas du
      tirage au sort des cases. Elle ne sert qu'au survol de deux
-     choses, le logo en haut et la signature de l'agence en bas —
-     les deux bornes de la page.
+     choses, le nom du cinéma en haut et la signature de l'agence
+     en bas — les deux bornes de la page.
 
      Le texte posé dessus est l'encre du site, pas du blanc : noir
      sur ce rose tient 5,8:1, blanc n'en tiendrait que 3,7 et
@@ -96,7 +96,7 @@
   --taille-titre: clamp(2.75rem, 1.5rem + 5.5vw, 6rem);
   --taille-texte: clamp(1.375rem, 1.1rem + 0.75vw, 1.75rem);
   /* Seule exception à ces deux tailles : la barre de navigation.
-     Six rubriques + le logo doivent tenir sur une ligne dès
+     Six rubriques + le nom du cinéma doivent tenir sur une ligne dès
      1200px de large ; elle grandit ensuite avec l'écran et
      rejoint la taille courante du site sur les grands moniteurs. */
   --taille-nav: clamp(1.3rem, 0.7rem + 0.85vw, 1.75rem);
@@ -276,24 +276,34 @@ button {
   }
 }
 
-/* Le logo ramène à l'accueil. Au survol, sa case se remplit de rose
-   fluo — comme la signature de l'agence tout en bas : les deux
-   bornes de la page réagissent de la même façon. */
-.site-header__logo {
+/* Le nom du cinéma ramène à l'accueil. Il est écrit, pas dessiné :
+   mêmes capitales et même graisse que les rubriques voisines, mais
+   plus grand — c'est le nom de la maison, il passe devant ses
+   rubriques. Au survol, sa case se remplit de rose fluo — comme la
+   signature de l'agence tout en bas : les deux bornes de la page
+   réagissent de la même façon. */
+.site-header__nom {
   display: flex;
   position: relative;
   z-index: 10;
   align-items: center;
-  gap: 0.75rem;
+  /* Le rose du survol a besoin de respirer autour des lettres ; le
+     calage négatif ramène le nom au bord de la barre, aligné sur le
+     reste du site. */
+  padding: 0.15em 0.4em;
+  margin-left: -0.4em;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 1rem + 2vw, 2.25rem);
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  color: var(--ink);
   transition: background 0.2s ease-out;
 }
-.site-header__logo:hover,
-.site-header__logo:focus-visible {
+.site-header__nom:hover,
+.site-header__nom:focus-visible {
   background: var(--rose-fluo);
-}
-.site-header__logo img { height: 2rem; width: auto; }
-@media (min-width: 768px) {
-  .site-header__logo img { height: 2.5rem; }
 }
 
 /* Le bouton du menu n'est plus qu'un carré : plus de mot à côté,
@@ -346,11 +356,11 @@ button {
     background: var(--paper);
     border-bottom: var(--ligne) solid var(--ink);
   }
-  .site-header__logo {
-    display: flex;
-    /* Le logo garde ses proportions, quoi qu'il arrive. */
+  .site-header__nom {
+    /* Le nom ne se laisse jamais comprimer par les six rubriques. */
     flex-shrink: 0;
     padding: 0 1.5rem;
+    margin-left: 0;
   }
 
   .nav-bar {
@@ -720,8 +730,9 @@ body:not([data-page="home"]) .main-area {
 
 /* La signature de l'agence : une case comme les autres, même
    graisse que ses voisines. Elle ne s'en distingue que d'une
-   façon — c'est la seule case du site, avec le logo, qui échappe
-   au tirage des couleurs : elle se remplit de rose fluo au survol. */
+   façon — c'est la seule case du site, avec le nom du cinéma, qui
+   échappe au tirage des couleurs : elle se remplit de rose fluo au
+   survol. */
 .site-footer__signature {
   transition: background 0.2s ease-out, color 0.2s ease-out;
 }

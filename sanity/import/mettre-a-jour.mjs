@@ -25,7 +25,7 @@
         en « Terminé », quittent le site, et restent consultables
         dans le Studio. Rien n'est supprimé ;
      4. il remet les TARIFS, les COORDONNÉES et les TEXTES DES PAGES,
-        sans toucher au logo ni à l'image de partage déjà déposés ;
+        sans toucher à l'image de partage déjà déposée ;
      5. il remplace la FRISE et les INFORMATIONS par les vraies, et
         supprime celles qui avaient été inventées pendant la mise au
         point du site. Sanity garde un historique : une suppression
@@ -352,7 +352,7 @@ async function traiterLesReglages() {
         "Cinéma d'art et essai rue du Maupas 4 à Lausanne : deux salles de 18 et 14 places, films en version originale et en français.",
     })
     .commit();
-  dire("   ✎ Réglages du cinéma (le logo et l'image de partage sont conservés)");
+  dire("   ✎ Réglages du cinéma (l'image de partage est conservée)");
 
   await client.createIfNotExists({ _id: "abonnements", _type: "abonnements" });
   await client

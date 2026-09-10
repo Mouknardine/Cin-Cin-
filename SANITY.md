@@ -117,7 +117,7 @@ Citations de presse   les citations affichées sur les fiches de film
 Textes des pages      Accueil · Films · Agenda · Événement · Histoire ·
                       Membership · Contact
 Réglages du cinéma    adresse, horaires, téléphones, e-mails, tarifs,
-                      salles, logo, réseaux sociaux
+                      salles, réseaux sociaux
 Billets vendus        les commandes de la billetterie en ligne
 ```
 

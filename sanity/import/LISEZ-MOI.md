@@ -60,7 +60,7 @@ restent consultables dans le Studio. Rien n'est supprimé.
 **Les tarifs, les coordonnées, les formules et les textes des sept
 pages** sont remis d'après ce que le cinéma publie : 16.- / 10.-, carte
 annuelle 60.-, rue du Maupas 4, les deux téléphones, l'IBAN, les trois
-salles. Le logo et l'image de partage déjà déposés ne sont pas touchés.
+salles. L'image de partage déjà déposée n'est pas touchée.
 
 **La frise et les informations** sont remplacées par les vraies (2001 et
 2005 avec leurs architectes, designers et graphistes ; les projections

@@ -3,8 +3,8 @@
    accueil compris : c'est le seul repère de navigation du site,
    il doit être au même endroit partout)
 
-   Le logo reste toujours tout à gauche et ramène à l'accueil ;
-   les six rubriques suivent, dans l'ordre du menu.
+   Le nom du cinéma reste toujours tout à gauche et ramène à
+   l'accueil ; les six rubriques suivent, dans l'ordre du menu.
    Les couleurs des cases sont tirées au hasard (couleurs.js) :
    aucune rubrique n'a « sa » couleur attitrée.
    ============================================================ */
@@ -106,35 +106,18 @@
     });
   }
 
-  /* Pose le logo une seule fois, quand on sait lequel afficher :
-     celui déposé dans Sanity, sinon celui livré avec le site. */
-  function poserLogo(img, root) {
-    var D = window.ZinemaData;
-    var R = window.ZinemaRender;
-    if (!D || !R) return;
-    D.getReglages().then(function (reglages) {
-      var logo = !D.estUneErreur(reglages) && reglages ? reglages.logo : null;
-      var src = R.sanityImageUrl(logo, 440) || root + "assets/img/zinema-logo.png";
-      img.alt = (logo && logo.alt) || "Zinéma";
-      img.src = src;
-      img.style.visibility = "visible";
-    });
-  }
-
   function init() {
     var root = document.body.dataset.root || "";
 
     var header = document.createElement("header");
     header.className = "site-header";
     header.innerHTML =
-      /* Le logo se règle dans « Réglages du cinéma → Identité ».
-         L'emplacement est réservé aux bonnes dimensions et l'image
-         n'est posée qu'une fois : on ne voit donc jamais un logo
-         remplacé par un autre sous les yeux du visiteur, et la
-         page ne saute pas. */
-      '<a href="' + root + '" class="site-header__logo" aria-label="Zinéma — accueil">' +
-      '<img alt="Zinéma" width="220" height="54" style="visibility:hidden">' +
-      "</a>" +
+      /* Le nom du cinéma s'écrit, il ne se dessine plus. Il est
+         posé dans la même graisse et les mêmes capitales que les
+         rubriques voisines, simplement plus grand : la barre est
+         alors d'un seul tenant typographique, et rien n'attend
+         d'image pour s'afficher. */
+      '<a href="' + root + '" class="site-header__nom" aria-label="Zinéma — accueil">Zinéma</a>' +
       navBarHTML(root, document.body.dataset.page) +
       /* Pas de mot « Menu » à côté du bouton : le carré et ses deux
          barres suffisent. L'intitulé reste porté par aria-label,
@@ -145,7 +128,6 @@
       '<span class="menu-toggle__bar menu-toggle__bar--2"></span>' +
       "</span></button>";
 
-    poserLogo(header.querySelector(".site-header__logo img"), root);
     poserTitreEtDescription(document.body.dataset.page);
 
     var nav = document.createElement("nav");
