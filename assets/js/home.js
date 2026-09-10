@@ -7,8 +7,10 @@
    menu, et une case de texte posée au milieu d'un mur d'images se
    lit comme un trou, pas comme un bouton.
 
-   Ici : le défilement infini et le choix des affiches. La forme
-   du mur, elle, est décrite dans home-grille.js.
+   Ici : le défilement infini, et lui seul. La forme du mur vit
+   dans home-grille.js, la répartition des affiches dans ses cases
+   dans home-mur.js, et le choix de ce qui monte sur le mur dans
+   home-choix.js.
    ============================================================ */
 (function () {
   "use strict";
@@ -16,145 +18,13 @@
   var root = document.body.dataset.root || "";
   var app = document.getElementById("app");
   var G = window.ZinemaHomeGrille;
+  var M = window.ZinemaHomeMur;
 
   /* Seize copies du cycle empilées, et l'on se tient toujours vers
      la huitième : le visiteur peut défiler longtemps dans les deux
      sens avant qu'on le ramène discrètement au centre. */
   var COPIES = 16;
   var JUMP = 8;
-
-  /* ---------------- Jamais deux fois la même affiche l'une sous l'autre
-     Le mur est une boucle : sous la dernière rangée d'un cycle vient la
-     première rangée du suivant. En choisissant l'affiche d'après le rang
-     de la case DANS LE CYCLE, deux cases voisines verticalement pouvaient
-     tomber sur la même affiche au raccord — c'est ce qu'on voyait avec
-     cinq films seulement.
-
-     Deux règles suffisent à l'empêcher :
-
-     1. L'affiche se choisit d'après la POSITION VERTICALE de la case dans
-        sa colonne, cycles compris. Deux cases l'une sous l'autre prennent
-        alors deux affiches voisines dans la liste : jamais la même.
-
-     2. La liste est allongée jusqu'à une longueur qui divise le saut du
-        défilement infini (huit cycles). Le mur se répète donc exactement
-        là où le défilement se recale, et le visiteur ne voit jamais une
-        affiche changer sous ses yeux.
-     ---------------------------------------------------------------- */
-
-  /** Les longueurs de mur acceptables : elles doivent contenir toutes
-      les affiches, et diviser le saut du défilement pour que la boucle
-      reste invisible. */
-  function longueursPossibles(nombre, parColonne) {
-    var saut = JUMP * parColonne; // le saut, compté en rangées
-    var possibles = [];
-    for (var l = 1; l <= saut; l++) {
-      if (saut % l === 0 && l >= nombre) possibles.push(l);
-    }
-    return possibles;
-  }
-
-  /* Compose une suite d'affiches en boucle où aucune ne se retrouve
-     collée à elle-même. « Collée » se lit dans les deux sens : à un
-     rang d'écart (l'une sous l'autre) et à « parColonne » rangs d'écart
-     (l'une à côté de l'autre, la grille étant remplie colonne par
-     colonne).
-
-     On pose les affiches une par une, en prenant à chaque fois la moins
-     utilisée qui ne fâche personne, et on revient sur ses pas quand on
-     se bloque. Les murs font au plus vingt-quatre cases : la recherche
-     est immédiate. Aucun tirage au sort — le mur doit être le même d'un
-     affichage à l'autre. */
-  function composerLaSuite(nombre, longueur, ecarts) {
-    var suite = [];
-    var compte = [];
-    var i;
-    for (i = 0; i < longueur; i++) suite.push(-1);
-    for (i = 0; i < nombre; i++) compte.push(0);
-
-    function fache(place, affiche) {
-      for (var e = 0; e < ecarts.length; e++) {
-        var d = ecarts[e];
-        var avant = ((place - d) % longueur + longueur) % longueur;
-        var apres = (place + d) % longueur;
-        if (avant !== place && suite[avant] === affiche) return true;
-        if (apres !== place && suite[apres] === affiche) return true;
-      }
-      return false;
-    }
-
-    function poser(place) {
-      if (place === longueur) return true;
-      var ordre = [];
-      for (var a = 0; a < nombre; a++) ordre.push(a);
-      ordre.sort(function (x, y) {
-        return compte[x] - compte[y] || x - y;
-      });
-      for (var k = 0; k < ordre.length; k++) {
-        var affiche = ordre[k];
-        if (fache(place, affiche)) continue;
-        suite[place] = affiche;
-        compte[affiche] += 1;
-        if (poser(place + 1)) return true;
-        suite[place] = -1;
-        compte[affiche] -= 1;
-      }
-      return false;
-    }
-
-    return poser(0) ? suite : null;
-  }
-
-  function construireLeMur(items, parColonne) {
-    var nombre = items.length;
-    if (nombre < 2) return items.slice();
-    var longueurs = longueursPossibles(nombre, parColonne);
-    /* On vise d'abord le mur idéal : ni voisine du dessus, ni voisine de
-       côté. Deux cas ne l'admettent pas, et ce n'est pas faute d'avoir
-       cherché — c'est arithmétique. Sur ordinateur, le mur a trois
-       colonnes :
-
-         · avec DEUX affiches, une rangée de trois cases en répète
-           forcément une ;
-         · avec TROIS, interdire les voisines des deux côtés revient à
-           exiger que trois cases consécutives soient toujours
-           différentes, ce qui force un motif qui se répète tous les
-           trois rangs — or la longueur du mur doit diviser le saut du
-           défilement (seize rangs), et aucun multiple de trois ne
-           divise seize.
-
-       Dans ces deux cas on garde la règle qui compte, celle qui saute
-       aux yeux : jamais deux fois la même affiche l'une sous l'autre. */
-    var exigences = [[1, parColonne], [1]];
-    for (var e = 0; e < exigences.length; e++) {
-      var horizontal = exigences[e].length > 1;
-      for (var l = 0; l < longueurs.length; l++) {
-        var longueur = longueurs[l];
-        /* Si l'écart entre deux colonnes retombe pile sur un tour de
-           mur, les deux colonnes lisent la même case : la voisine de
-           côté serait forcément identique. Cette longueur-là ne peut
-           pas tenir la promesse, on passe à la suivante. */
-        if (horizontal && parColonne % longueur === 0) continue;
-        var suite = composerLaSuite(nombre, longueur, exigences[e]);
-        if (suite) {
-          return suite.map(function (indice) {
-            return items[indice];
-          });
-        }
-      }
-    }
-    return items.slice();
-  }
-
-  function filmForSlot(mur, parColonne, copyIndex, posterIndex) {
-    var colonne = Math.floor(posterIndex / parColonne);
-    var rangee = posterIndex % parColonne;
-    /* La position de la case sur son axe vertical, en rangées, décalée
-       d'une colonne à l'autre pour que deux voisines de la même rangée
-       ne portent pas la même affiche non plus. */
-    var position = copyIndex * parColonne + rangee + colonne * parColonne;
-    return mur[position % mur.length];
-  }
 
   function buildCanvas(items) {
     app.innerHTML =
@@ -166,62 +36,53 @@
     var trackEl = app.querySelector(".home-canvas__track");
     var stageEl = app.querySelector(".home-canvas__stage");
 
-    function config() {
-      return window.innerWidth < 768 ? G.mobile : G.desktop;
-    }
-    function scale() {
-      return window.innerWidth / config().designWidth;
-    }
-    function cyclePx() {
-      return config().cycleHeight * scale();
-    }
+    /* La géométrie du moment. Elle est recalculée à chaque mise en
+       page, et relue par le défilement : d'où cette variable
+       partagée plutôt qu'un calcul répété. */
+    var g = null;
 
-    /* Écran d'arrivée : le mur s'ouvre pile sur le haut d'un cycle,
-       donc sur une rangée entière d'affiches, jamais coupée. On
-       recule d'une bande noire (gap) pour que la rangée ne vienne
+    /* Écran d'arrivée : le mur s'ouvre sur le haut d'un cycle, donc
+       sur le haut de la première colonne — la seule qui ne soit pas
+       décalée. On recule d'un trait pour que l'affiche ne vienne
        pas se coller sous la barre de navigation : le mur commence
        par le même filet que celui qui sépare deux affiches, et le
-       rythme des bandes est identique partout, bords compris. Ces
-       pixels-là sont vides par construction — dans un cycle, la
-       dernière rangée se termine exactement un gap avant la fin —
-       donc aucune affiche n'apparaît en haut de l'écran.
+       rythme du quadrillage est identique partout, bords compris.
        On part de la copie centrale, pour pouvoir défiler dans les
        deux sens. */
     function startTop() {
-      var c = config();
-      return (JUMP * c.cycleHeight - c.gap) * scale();
+      return JUMP * g.cycle - g.ligne;
     }
 
     function layout() {
-      var c = config();
-      var s = scale();
-      trackEl.style.height = c.cycleHeight * COPIES * s + "px";
-      stageEl.style.width = c.designWidth + "px";
-      stageEl.style.height = c.cycleHeight * COPIES + "px";
-      stageEl.style.transform = "scale(" + s + ")";
+      g = G.grille(scrollEl.clientWidth || window.innerWidth);
 
-      var mur = items.length ? construireLeMur(items, c.perColumn) : [];
+      var hauteurTotale = g.cycle * COPIES + g.debord;
+      trackEl.style.height = hauteurTotale + "px";
+      stageEl.style.height = hauteurTotale + "px";
+
+      var cases = G.casesDuCycle(g);
+      var afficheDe = M.construire(items, g, JUMP);
+      var ecran = scrollEl.clientHeight || window.innerHeight;
 
       var html = "";
-      for (var copyIdx = 0; copyIdx < COPIES; copyIdx++) {
-        html += '<div class="home-canvas__copy" style="top:' + copyIdx * c.cycleHeight + "px;width:" + c.designWidth + "px;height:" + c.cycleHeight + 'px">';
-        var posterIdx = 0;
-        c.slots.forEach(function (slot) {
-          var content;
-          if (items.length > 0) {
-            /* Chargement immédiat pour la seule rangée visible à
-               l'arrivée : celle du haut de la copie centrale. */
-            var priority = copyIdx === JUMP && slot.top === 0;
-            content = G.caseHTML(root, filmForSlot(mur, c.perColumn, copyIdx, posterIdx), priority);
-            posterIdx += 1;
-          } else {
-            content = G.caseVideHTML();
-          }
+      for (var copie = 0; copie < COPIES; copie++) {
+        html += '<div class="home-canvas__copy" style="top:' + copie * g.cycle + "px;height:" + g.cycle + 'px">';
+        for (var i = 0; i < cases.length; i++) {
+          var c = cases[i];
+          /* Chargement immédiat pour les seules cases visibles à
+             l'arrivée : celles du haut de la copie centrale, et
+             celles de la copie d'avant qui débordent sur elle. */
+          var priority =
+            (copie === JUMP && c.top < ecran) ||
+            (copie === JUMP - 1 && c.top + c.height > g.cycle);
           html +=
-            '<div class="home-canvas__slot" style="left:' + slot.left + "px;top:" + slot.top + "px;width:" + slot.width + "px;height:" + slot.height + 'px">' +
-            content +
+            '<div class="home-canvas__slot" style="left:' + c.left +
+            "px;top:" + c.top +
+            "px;width:" + c.width +
+            "px;height:" + c.height + 'px">' +
+            G.caseHTML(root, afficheDe(c.colonne, c.rang, copie), priority) +
             "</div>";
-        });
+        }
         html += "</div>";
       }
       stageEl.innerHTML = html;
@@ -236,7 +97,7 @@
     });
 
     function recentre() {
-      var c = cyclePx();
+      var c = g.cycle;
       var y = scrollEl.scrollTop;
       if (y < c * (JUMP - 4)) {
         scrollEl.scrollTo({ top: y + JUMP * c, left: 0, behavior: "instant" });
@@ -256,7 +117,7 @@
         if (ticking) return;
         ticking = true;
         requestAnimationFrame(function () {
-          var c = cyclePx();
+          var c = g.cycle;
           var y = scrollEl.scrollTop;
           var max = scrollEl.scrollHeight - scrollEl.clientHeight;
           if (y < c * 2 || y > max - c * 2) recentre();
@@ -266,109 +127,41 @@
       { passive: true }
     );
 
+    /* Au redimensionnement, la grille change de forme : on la
+       redessine, et l'on revient au point de départ plutôt que de
+       retomber n'importe où dans un mur qui n'a plus les mêmes
+       hauteurs. */
     var resizeTimer = null;
+    var largeurConnue = scrollEl.clientWidth;
     window.addEventListener("resize", function () {
       if (resizeTimer) clearTimeout(resizeTimer);
       resizeTimer = setTimeout(function () {
+        /* Sur téléphone, la barre d'adresse qui se replie déclenche
+           un « resize » sans que la largeur change : redessiner le
+           mur y ferait sauter la lecture pour rien. */
+        if (scrollEl.clientWidth === largeurConnue) return;
+        largeurConnue = scrollEl.clientWidth;
         layout();
         scrollEl.scrollTo({ top: startTop(), left: 0, behavior: "instant" });
       }, 150);
     });
   }
 
-  /* Une affiche réellement déposée dans Sanity, par opposition à
-     l'affiche typographique que le site dessine à partir du titre
-     quand il n'y en a pas encore. */
-  function isRealImage(image) {
-    return window.ZinemaRender.hasRealImage(image);
-  }
-
-  /* Ce qui remonte sur l'accueil se décide tout seul, sans case à
-     cocher dans le Studio :
-       - les films à l'affiche d'abord, avant-premières ensuite,
-         puis cycles et films annoncés ;
-       - à statut égal, celui dont la prochaine séance est la plus
-         proche passe devant ;
-       - les événements en cours ou à venir qui ont un visuel.
-     Publier un film ou un événement suffit donc à le voir apparaître. */
-  var RANG_STATUT = { "a-laffiche": 0, "avant-premiere": 1, cycle: 2, prochainement: 3 };
-
-  function prochaineSeanceParFilm(seances) {
-    var parFilm = {};
-    (seances || []).forEach(function (s) {
-      if (!s.film || !s.film._id) return;
-      var cle = s.film._id;
-      var quand = s.date + " " + (s.time || "");
-      if (!parFilm[cle] || quand < parFilm[cle]) parFilm[cle] = quand;
-    });
-    return parFilm;
-  }
-
-  function selectHomeItems(films, evenements, seances) {
-    var prochaine = prochaineSeanceParFilm(seances);
-
-    var filmItems = (films || [])
-      .filter(function (f) {
-        return f.status !== "passe";
-      })
-      .sort(function (a, b) {
-        /* Les films dont l'affiche est déposée passent devant : le
-           mur montre d'abord de vraies affiches, et complète avec
-           les affiches typographiques du site pour les films dont
-           l'affiche n'est pas encore arrivée. */
-        var ia = isRealImage(a.poster) ? 0 : 1;
-        var ib = isRealImage(b.poster) ? 0 : 1;
-        if (ia !== ib) return ia - ib;
-        var ra = RANG_STATUT[a.status];
-        var rb = RANG_STATUT[b.status];
-        ra = ra === undefined ? 9 : ra;
-        rb = rb === undefined ? 9 : rb;
-        if (ra !== rb) return ra - rb;
-        var pa = prochaine[a._id] || "9999";
-        var pb = prochaine[b._id] || "9999";
-        if (pa !== pb) return pa < pb ? -1 : 1;
-        return String(a.title).localeCompare(String(b.title), "fr");
-      })
-      .slice(0, 8)
-      .map(function (f) {
-        return {
-          title: f.title,
-          poster: f.poster,
-          /* Repris pour l'affiche typographique, qui écrit le titre,
-             la réalisation et l'année. */
-          director: f.director,
-          year: f.year,
-          slug: f.slug,
-          href: "film/?s=" + encodeURIComponent(f.slug),
-        };
-      });
-
-    var eventItems = (evenements || [])
-      .filter(function (e) {
-        return isRealImage(e.image);
-      })
-      .slice(0, 3)
-      .map(function (e) {
-        return { title: e.title, poster: e.image, href: "evenements/" };
-      });
-
-    return filmItems.concat(eventItems);
-  }
-
   var D = window.ZinemaData;
   var R = window.ZinemaRender;
+  var C = window.ZinemaHomeChoix;
 
   app.innerHTML = '<div class="home-canvas"></div>';
 
-  Promise.all([D.getFilms(), D.getEvenements(), D.getScreenings(), D.getPage("home")]).then(function (r) {
-    var films = r[0], evenements = r[1], seances = r[2], page = r[3];
+  Promise.all([D.getFilms(), D.getEvenements(), D.getScreenings()]).then(function (r) {
+    var films = r[0], evenements = r[1], seances = r[2];
 
     if (D.estUneErreur(films)) {
       app.innerHTML = R.etatErreur();
       return;
     }
 
-    var items = selectHomeItems(
+    var items = C.selection(
       films,
       D.estUneErreur(evenements) ? [] : evenements,
       D.estUneErreur(seances) ? [] : seances

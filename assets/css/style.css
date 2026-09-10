@@ -576,9 +576,9 @@ body:not([data-page="home"]) .main-area {
   z-index: 0;
   overflow: hidden;
   /* Le mur est noir : c'est lui qu'on voit entre les affiches, et
-     ce sont ces bandes qui séparent une affiche de sa voisine. Un
-     fond clair les aurait juste posées sur du vide ; le noir les
-     tient, comme les cloisons d'un panneau d'affichage. */
+     ce sont ces traits qui séparent une affiche de sa voisine.
+     Ce sont exactement les traits du reste du site (--ligne) :
+     l'accueil se lit comme la page Films, en plus grand. */
   background: var(--ink);
 }
 @media (min-width: 768px) {
@@ -593,8 +593,12 @@ body:not([data-page="home"]) .main-area {
   overscroll-behavior: contain;
 }
 .home-canvas__track { position: relative; width: 100%; }
-.home-canvas__stage { transform-origin: top left; }
-.home-canvas__copy { position: absolute; left: 0; }
+.home-canvas__stage { position: relative; width: 100%; }
+.home-canvas__copy { position: absolute; left: 0; width: 100%; }
+/* Une case qui déborde du bas de sa copie n'est pas coupée : la
+   copie suivante porte exactement le même vide en haut de cette
+   colonne, les deux s'emboîtent à un trait près. C'est ce
+   débordement qui permet aux colonnes d'être décalées. */
 .home-canvas__slot { position: absolute; }
 
 /* Une case du mur : rien que l'affiche. Le titre y figure déjà,
@@ -649,15 +653,6 @@ body:not([data-page="home"]) .main-area {
   transition: opacity 0.2s;
 }
 .canvas-poster:hover .canvas-poster__plus { opacity: 1; }
-
-/* Case de secours (aucun film avec affiche) : le mur reste plein.
-   Elle prend le noir éclairci des cases en attente — un rectangle
-   clair attirerait l'œil sur ce qui est justement un manque. */
-.canvas-block {
-  height: 100%;
-  width: 100%;
-  background: var(--mur-vide);
-}
 
 /* La page Agenda est un tableau Mondrian comme le reste du
    site : sa mise en page vit dans agenda-mondrian.css. */
