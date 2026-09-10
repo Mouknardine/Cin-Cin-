@@ -132,16 +132,18 @@
     return liste;
   }
 
-  /* L'affiche seule. Le titre reste porté par l'attribut « alt » de
-     l'image : invisible à l'œil, il reste lu par les lecteurs
-     d'écran et par les moteurs de recherche. */
+  /* L'affiche seule, rien par-dessus. Le titre reste porté par
+     l'attribut « alt » de l'image : invisible à l'œil, il reste lu
+     par les lecteurs d'écran et par les moteurs de recherche. Au
+     survol, l'affiche grossit légèrement dans son cadre : c'est le
+     seul signe qu'elle est cliquable, et il suffit. */
   function caseHTML(root, item, priority) {
     var R = global.ZinemaRender;
     return (
       '<a href="' + root + item.href + '" class="canvas-poster">' +
       '<div class="canvas-poster__image">' +
       R.posterHTML(item, { priority: priority }) +
-      '<span class="canvas-poster__plus">+</span></div></a>'
+      "</div></a>"
     );
   }
 

@@ -644,25 +644,6 @@ body:not([data-page="home"]) .main-area {
   transition: transform 0.4s var(--ease-editorial);
 }
 .canvas-poster:hover .poster img { transform: scale(1.04); }
-.canvas-poster__plus {
-  pointer-events: none;
-  position: absolute;
-  right: 0.375rem;
-  top: 0.375rem;
-  display: flex;
-  height: 2.5rem;
-  width: 2.5rem;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: var(--paper);
-  font-weight: 700;
-  font-size: var(--taille-texte);
-  box-shadow: 0 1px 4px rgba(16, 15, 12, 0.25);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.canvas-poster:hover .canvas-poster__plus { opacity: 1; }
 
 /* La page Agenda est un tableau Mondrian comme le reste du
    site : sa mise en page vit dans agenda-mondrian.css. */
