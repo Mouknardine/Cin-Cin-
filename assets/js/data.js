@@ -145,7 +145,7 @@
   var CHAMPS_FILM =
     '_id,"slug":coalesce(slug.current,_id),title,originalTitle,director,year,country,duration,' +
     "language,subtitles,ageRating,genres,status,releaseDate,synopsis,poster,stillImages,trailerUrl," +
-    'price,sumupCheckoutUrl,"review":review->{_id,quote,author,source,url}';
+    'price,sumupCheckoutUrl,presseUrl';
 
   var CHAMPS_SEANCE =
     "_id,date,time,room,versionNote,status,price,sumupCheckoutUrl," +
@@ -223,10 +223,12 @@
     },
 
     /** Les étapes de la frise de la page Histoire. */
-    getHistory: function () {
+    /** La page Histoire : la phrase d'accueil et les étapes de la
+        frise, dans une seule fiche. */
+    getHistoire: function () {
       return cachee("histoire", function () {
         return sanityFetch(
-          '*[_type == "historyEntry"] | order(order asc) {_id,year,title,body,image,order}'
+          '*[_type == "histoire"][0]{intro,etapes[]{year,title,body,image}}'
         );
       });
     },
@@ -254,35 +256,6 @@
         return sanityFetch(
           '*[_type == "abonnements"][0]{intro,formules,beneficiaire,iban,ccp,banque,notePaiement}'
         );
-      });
-    },
-
-    /* ---------------- Les pages du site ----------------
-       Une fiche par page (Accueil, Films, Agenda, Événements,
-       Location, Abonnements, Infos pratiques, Histoire) : titre de l'onglet,
-       introduction, message quand il n'y a rien, description pour
-       Google. Les sept fiches arrivent en une seule requête, puis
-       chaque page pioche la sienne. */
-    getPages: function () {
-      return cachee("pages", function () {
-        return sanityFetch(
-          '*[_type == "page"]{pageId,titre,intro,seoDescription}'
-        ).then(function (liste) {
-          if (estUneErreur(liste)) return liste;
-          var parId = {};
-          (liste || []).forEach(function (p) {
-            if (p && p.pageId) parId[p.pageId] = p;
-          });
-          return parId;
-        });
-      });
-    },
-
-    /** La fiche d'une page précise, ou null si elle n'existe pas. */
-    getPage: function (pageId) {
-      return ZinemaData.getPages().then(function (pages) {
-        if (estUneErreur(pages)) return null;
-        return pages[pageId] || null;
       });
     },
   };

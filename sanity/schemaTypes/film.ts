@@ -203,12 +203,11 @@ export const film = defineType({
         "Collez l'adresse complète de la vidéo YouTube ou Vimeo (ex. https://www.youtube.com/watch?v=…). Un bouton « Voir la bande-annonce » apparaît alors sur la fiche.",
     }),
     defineField({
-      name: "review",
-      title: "Article de presse à mettre en avant",
-      type: "reference",
-      to: [{ type: "review" }],
+      name: "presseUrl",
+      title: "Article de presse",
+      type: "url",
       description:
-        "Facultatif. Il suffit de coller le lien de l'article : la fiche du film affichera « Article de presse », cliquable. Si une phrase mérite d'être mise en avant, ajoutez-la en citation. Créez-le ici avec « Create new », ou d'abord dans « Critiques presse ».",
+        "Facultatif. Collez l'adresse de l'article : la fiche du film affiche « Article de presse », cliquable. Rien d'autre à remplir.",
     }),
 
     /* ---------------- Encadrés repliables ---------------- */

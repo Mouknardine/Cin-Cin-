@@ -179,22 +179,6 @@
     return '<div class="m-semaine">' + colonnes + "</div>";
   }
 
-  /* Le paragraphe d'introduction se règle dans le Studio
-     (« Pages du site → Textes des pages »). */
-  /* L'introduction seule, dans son cadre, pour les pages qui n'ont
-     rien d'autre à afficher. */
-  function cadreIntro() {
-    return intro ? '<article class="mondrian">' + introHTML() + "</article>" : "";
-  }
-
-  function introHTML() {
-    if (!intro) return "";
-    return (
-      '<div class="m-bande m-bande--intro"><div class="m-cell m-intro ' +
-      C.classe() + '">' + R.escapeHtml(intro) + "</div></div>"
-    );
-  }
-
   function render() {
     /* Aucune séance : rien n'est affiché. Voir evenements.js. */
     if (days.length === 0) {
@@ -204,7 +188,6 @@
 
     app.innerHTML =
       '<article class="mondrian mondrian--agenda">' +
-      introHTML() +
       modesHTML() +
       (mode === "jour" ? dayViewHTML() : weekViewHTML()) +
       "</article>";
@@ -224,25 +207,17 @@
   }
 
   var D = window.ZinemaData;
-  var intro = "";
 
   app.innerHTML = R.etatChargement("de l'agenda");
 
-  Promise.all([D.getScreenings(), D.getPage("agenda")]).then(function (r) {
-    var screenings = r[0];
-    var page = r[1];
-    intro = (page && page.intro) || "";
-
-
+  D.getScreenings().then(function (screenings) {
     if (D.estUneErreur(screenings)) {
       app.innerHTML = R.etatErreur();
       return;
     }
-    /* Le paragraphe d'introduction reste affiché même quand il n'y a
-       rien à montrer : sinon un texte écrit dans le Studio semblerait
-       ne servir à rien. Rien d'autre n'est ajouté. */
+    /* Aucune séance : la page reste vide, sans phrase pour le dire. */
     if (!screenings.length) {
-      app.innerHTML = cadreIntro();
+      app.innerHTML = "";
       return;
     }
 

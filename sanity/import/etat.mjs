@@ -52,14 +52,13 @@ async function etat() {
         "seances": count(*[_type == "screening" && references(^._id) && date >= $aujourdhui])
       },
       "reglages": *[_type == "siteSettings"][0]{address, phone, tarifPlein, tarifReduit, "salles": salles[].nom},
-      "pages": *[_type == "page" && !(_id in path("drafts.**"))].pageId,
-      "frise": *[_type == "historyEntry" && !(_id in path("drafts.**"))] | order(order asc){year, title},
+      "frise": *[_id == "histoire"][0].etapes[]{year, title},
       "informations": *[_type == "evenement" && !(_id in path("drafts.**"))]{title, dateDebut, dateFin},
       "seances": *[_type == "screening" && date >= $aujourdhui] | order(date asc, time asc)[0...8]{
         date, time, room, "film": film->title
       },
       "seancesTotal": count(*[_type == "screening" && date >= $aujourdhui]),
-      "critiques": count(*[_type == "review"])
+      "articlesDePresse": count(*[_type == "film" && defined(presseUrl)])
     }`,
     { aujourdhui }
   );
@@ -91,12 +90,10 @@ async function etat() {
     dire(`  Salles    : ${(r.salles || []).join(", ") || "—"}`);
   }
 
-  titre("Textes des pages");
-  dire("  " + (tout.pages.length ? tout.pages.join(", ") : "aucun"));
-
-  titre(`Frise de l'histoire (${tout.frise.length})`);
-  for (const e of tout.frise) dire(`  · ${e.year} — ${e.title}`);
-  if (!tout.frise.length) dire("  vide");
+  const frise = tout.frise || [];
+  titre(`Page Histoire (${frise.length} étape${frise.length > 1 ? "s" : ""})`);
+  for (const e of frise) dire(`  · ${e.year} — ${e.title}`);
+  if (!frise.length) dire("  vide");
 
   titre(`Informations et événements (${tout.informations.length})`);
   for (const e of tout.informations) {
@@ -108,7 +105,7 @@ async function etat() {
   for (const s of tout.seances) dire(`  · ${s.date} ${s.time} — ${s.film || "?"} (${s.room || "?"})`);
   if (!tout.seancesTotal) dire("  aucune — la page Agenda affiche son message d'attente");
 
-  dire(`\nCritiques de presse enregistrées : ${tout.critiques}\n`);
+  dire(`\nFilms avec un lien d'article de presse : ${tout.articlesDePresse}\n`);
 }
 
 etat().catch((erreur) => {

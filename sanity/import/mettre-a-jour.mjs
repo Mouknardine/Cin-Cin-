@@ -24,12 +24,12 @@
      3. il RETIRE de l'affiche tous les autres films : ils passent
         en « Terminé », quittent le site, et restent consultables
         dans le Studio. Rien n'est supprimé ;
-     4. il remet les TARIFS, les COORDONNÉES et les TEXTES DES PAGES,
-        sans toucher à l'image de partage déjà déposée ;
-     5. il remplace la FRISE et les INFORMATIONS par les vraies, et
-        supprime celles qui avaient été inventées pendant la mise au
-        point du site. Sanity garde un historique : une suppression
-        se rattrape depuis le Studio.
+     4. il remet les TARIFS et les COORDONNÉES, sans toucher à
+        l'image de partage déjà déposée ;
+     5. il remplace la PAGE HISTOIRE et les INFORMATIONS par les
+        vraies, et supprime celles qui avaient été inventées pendant
+        la mise au point du site. Sanity garde un historique : une
+        suppression se rattrape depuis le Studio.
 
    Le lancer deux fois ne change rien de plus : il compare avant
    d'écrire.
@@ -143,8 +143,6 @@ async function traiterLesFilms() {
 
   for (const { film, existant } of aMettreAJour) {
     const modification = client.patch(existant._id).set(champsDuFilm(film));
-    /* Pas de citation de presse inventée sur une fiche du programme. */
-    modification.unset(["review"]);
     /* On ne touche à l'adresse de la page que si elle n'en a pas :
        la changer casserait les liens déjà partagés. */
     if (!existant.slug) {
@@ -219,45 +217,9 @@ async function traiterLesSeances(filmsDuProgramme) {
   }
 }
 
-/* ---------------- Les citations de presse ----------------
-   Une citation rattachée à un film terminé ne s'affiche plus nulle
-   part, mais encombre le Studio. */
-async function traiterLesCritiques(filmsDuProgramme) {
-  titre("Les citations de presse");
-  /* Deux questions simples valent mieux qu'une requête savante : on
-     demande les citations, puis celles qui servent encore. « Encore
-     utilisée » se juge sur les films du programme, pas sur ce qui est
-     à l'affiche à cet instant : les autres films sortent du site dans
-     la foulée, leurs citations avec eux. */
-  const [critiques, encoreUtilisees] = await Promise.all([
-    client.fetch(`*[_type == "review" && !(_id in path("drafts.**"))]{_id, quote, source}`),
-    client.fetch(`*[_type == "film" && _id in $ids && defined(review._ref)].review._ref`, {
-      ids: [...filmsDuProgramme],
-    }),
-  ]);
-  const gardees = new Set(encoreUtilisees || []);
-  const orphelines = critiques.filter((critique) => !gardees.has(critique._id));
-  if (!orphelines.length) {
-    dire("   Rien à retirer.");
-    return;
-  }
-  for (const critique of orphelines) {
-    await client.delete(critique._id);
-    await client.delete("drafts." + critique._id).catch(() => {});
-    dire(`   ✗ supprimée : « ${String(critique.quote || "").slice(0, 60)}… » (${critique.source || "?"})`);
-  }
-}
-
-/* ---------------- Le ménage ----------------
-   Une fiche de film ne contient rien d'irremplaçable, SAUF son
-   affiche : le titre, la réalisation et le synopsis se retapent en
-   trente secondes, une affiche non. La règle est donc simple et sans
-   risque : une fiche qui ne porte AUCUNE affiche déposée et qui n'est
-   pas au programme s'en va pour de bon. Celles qui en portent une
-   restent, en « Terminé » — invisibles sur le site, prêtes à revenir.
-
-   Cela emporte aussi les brouillons jamais publiés, ces fiches vides
-   nées d'un clic malheureux, que rien d'autre ne signale. */
+/* ---------------- Le ménage dans les fiches ----------------
+   Une fiche de film sans affiche, restée d'un essai, n'affiche rien
+   nulle part mais encombre le Studio. */
 async function traiterLeMenage(filmsDuProgramme) {
   titre("Le ménage dans les fiches");
 
@@ -388,40 +350,6 @@ async function traiterLesReglages() {
    sans contenu n'affiche rien du tout. Une case qui annonce qu'il n'y
    a rien prend autant de place qu'une vraie information et n'en
    apprend aucune. */
-const PAGES = [
-  ["home", "Zinéma — Cinéma d'art et essai à Lausanne", null,
-   "Cinéma d'art et essai rue du Maupas 4 à Lausanne : deux salles de 18 et 14 places, films en version originale et en français."],
-  ["films", "Films — Zinéma", null,
-   "Les films à l'affiche et à venir au Zinéma, rue du Maupas 4 à Lausanne."],
-  ["agenda", "Agenda — Zinéma", null,
-   "Toutes les séances du Zinéma, jour par jour, salle par salle."],
-  ["evenements", "Événements — Zinéma", null,
-   "Séances spéciales, locations de salle et informations du Zinéma, à Lausanne."],
-  ["histoire", "Histoire — Zinéma", null,
-   "Le Zinéma, salle de cinéma fondée en juin 2001 par Laurent Serge Toplitsch, rue du Maupas à Lausanne."],
-  ["membership", "Tarifs & carte de membre — Zinéma", null,
-   "Tarifs du Zinéma : 16.- plein tarif, 10.- tarif réduit, carte annuelle de membre de soutien à 60.-."],
-  ["contact", "Infos pratiques — Zinéma", null,
-   "Adresse, téléphone, tarifs et accès du Zinéma, rue du Maupas 4 à 1004 Lausanne."],
-];
-
-async function traiterLesPages() {
-  titre("Les textes des sept pages");
-  for (const [pageId, titrePage, intro, seoDescription] of PAGES) {
-    const id = "page-" + pageId;
-    await client.createIfNotExists({ _id: id, _type: "page", pageId });
-    const modification = client
-      .patch(id)
-      .set({ pageId, titre: titrePage, seoDescription })
-      /* Reste des versions précédentes du site : le champ n'existe plus. */
-      .unset(["messageVide"]);
-    if (intro) modification.set({ intro });
-    else modification.unset(["intro"]);
-    await modification.commit();
-    dire(`   ✎ ${pageId}`);
-  }
-}
-
 /* Un paragraphe de texte, au format que Sanity attend. */
 const bloc = (texte, cle) => ({
   _type: "block",
@@ -431,9 +359,14 @@ const bloc = (texte, cle) => ({
   children: [{ _type: "span", _key: cle + "s", text: texte, marks: [] }],
 });
 
+/* La page Histoire tient dans une seule fiche : la phrase
+   d'accueil et les étapes de la frise, dans l'ordre de lecture. */
+const HISTOIRE_INTRO =
+  "Une salle de cinéma de quartier ouverte en juin 2001 dans le quartier de Chauderon à Lausanne";
+
 const FRISE = [
   {
-    _id: "histoire-2001", order: 1, year: "2001", title: "Ouverture",
+    _key: "etape-1", year: "2001", title: "Ouverture",
     body: [
       bloc("Le Zinéma est fondé en juin 2001 par Laurent Serge Toplitsch, à la rue du Maupas 4.", "h1a"),
       bloc("Architecture : Christophe Piguet (Lausanne), Manuel Borruat (Bienne) et Etienne Gillabert (Paris), pour le maître d'ouvrage Laurent Toplitsch.", "h1b"),
@@ -442,7 +375,7 @@ const FRISE = [
     ],
   },
   {
-    _id: "histoire-2005", order: 2, year: "2005", title: "Architecture, design et graphisme",
+    _key: "etape-2", year: "2005", title: "Architecture, design et graphisme",
     body: [
       bloc("Architecture : François Valenta (Lausanne), pour le maître d'ouvrage Laurent Toplitsch.", "h2a"),
       bloc("Design : Fulguro — Cédric Decroux, Axel Jaccard et Yves Fidalgo (Lausanne).", "h2b"),
@@ -473,8 +406,21 @@ const INFORMATIONS = [
   },
 ];
 
-/* La frise et les informations n'ont pas d'état « Terminé » : ce qui
-   avait été inventé doit donc partir pour de bon. */
+/* La page Histoire est une fiche unique : on la réécrit en entier,
+   il n'y a rien à supprimer à côté. */
+async function ecrireLHistoire() {
+  titre("La page Histoire");
+  await client.createOrReplace({
+    _id: "histoire",
+    _type: "histoire",
+    intro: HISTOIRE_INTRO,
+    etapes: FRISE.map((etape) => ({ _type: "etape", ...etape })),
+  });
+  for (const etape of FRISE) dire(`   ✎ ${etape.year} — ${etape.title}`);
+}
+
+/* Les informations n'ont pas d'état « Terminé » : ce qui avait été
+   inventé doit donc partir pour de bon. */
 async function remplacer(type, documents, etiquette) {
   titre(etiquette);
   const garder = documents.map((d) => d._id);
@@ -506,17 +452,15 @@ async function principal() {
   );
   const filmsDuProgramme = await traiterLesFilms();
   await traiterLesSeances(filmsDuProgramme);
-  await traiterLesCritiques(filmsDuProgramme);
   await traiterLeMenage(filmsDuProgramme);
   await traiterLesReglages();
-  await traiterLesPages();
-  await remplacer("historyEntry", FRISE, "La frise de la page Histoire");
+  await ecrireLHistoire();
   await remplacer("evenement", INFORMATIONS, "Les informations en cours");
 
   titre("Il reste à faire à la main");
   dire("   Les horaires des séances, depuis la fiche de chaque film.");
   dire("   Tant qu'il n'y en a pas, la page Agenda affiche son message d'attente.");
-  dire("   Les citations de presse, si vous voulez en mettre une en avant.");
+  dire("   Les liens d'articles de presse, sur la fiche de chaque film.");
   dire(
     SIMULATION
       ? "\nSimulation terminée : rien n'a été modifié.\n"

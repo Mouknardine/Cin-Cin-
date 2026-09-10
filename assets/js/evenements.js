@@ -139,35 +139,22 @@
 
   app.innerHTML = R.etatChargement("des événements");
 
-  Promise.all([D.getEvenements(), D.getPage("evenements")]).then(function (r) {
-    var evenements = r[0];
-    var page = r[1];
-
+  D.getEvenements().then(function (evenements) {
     if (D.estUneErreur(evenements)) {
       app.innerHTML = R.etatErreur();
       return;
     }
 
-    var intro =
-      page && page.intro
-        ? bande(
-            "m-bande--intro",
-            '<div class="m-cell m-intro ' + C.classe() + '">' +
-              R.escapeHtml(page.intro) + "</div>"
-          )
-        : "";
-
     /* Rien à annoncer : on n'annonce rien. Une case qui dit « il n'y
        a rien » occupe autant de place qu'une vraie annonce et n'en
-       apprend aucune. Seul le paragraphe d'introduction subsiste,
-       s'il a été écrit — c'est du texte voulu, pas un bouche-trou. */
+       apprend aucune. */
     if (!evenements.length) {
-      app.innerHTML = intro ? cadre(intro) : "";
+      app.innerHTML = "";
       return;
     }
 
     app.innerHTML = cadre(
-      intro + uneHTML(evenements[0]) + evenements.slice(1).map(annonceHTML).join("")
+      uneHTML(evenements[0]) + evenements.slice(1).map(annonceHTML).join("")
     );
   });
 })();

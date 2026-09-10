@@ -222,54 +222,21 @@
     });
   }
 
-  /* La presse ferme la fiche : toute la case est cliquable et ouvre
-     l'article quand son lien existe.
-
-     Deux cas, et le plus courant est le second :
-
-     - une citation a été saisie : on l'affiche entre guillemets,
-       signée du journal ;
-     - il n'y a qu'un lien : la case annonce simplement « Article de
-       presse ». C'est le cas normal — trouver une phrase à citer
-       prend du temps, coller un lien n'en prend aucun.
-
-     Sans citation NI lien, la case disparaît et la rangée du bas se
-     repartage sa largeur.
-
-     Les valeurs sont nettoyées avant d'être jugées : un champ rempli
-     d'un simple espace n'est pas un contenu, et affichait jusqu'ici
-     une paire de guillemets vides. */
+  /* La presse ferme la fiche : une case cliquable qui ouvre
+     l'article. Il n'y a qu'un lien à coller dans le Studio, rien
+     d'autre — une citation demandait de relire l'article et de
+     choisir une phrase, ce que personne ne faisait. Sans lien, la
+     case disparaît et la rangée du bas se repartage sa largeur. */
   function presseHTML(film) {
-    var review = film.review;
-    if (!review) return "";
-
-    var citation = String(review.quote || "").trim();
-    var lien = String(review.url || "").trim();
-    if (!citation && !lien) return "";
-
-    var signature = [review.author, review.source]
-      .map(function (valeur) {
-        return String(valeur || "").trim();
-      })
-      .filter(Boolean)
-      .join(", ");
-
-    var corps = citation
-      ? '<p class="m-presse__citation">« ' + R.escapeHtml(citation) + " »</p>"
-      : '<p class="m-presse__lien">Article de presse</p>';
-
-    var contenu =
+    var lien = String(film.presseUrl || "").trim();
+    if (!lien) return "";
+    return (
+      '<a class="m-cell m-presse ' + C.classe() + '" href="' + R.escapeHtml(lien) +
+      '" target="_blank" rel="noopener noreferrer" aria-label="Lire l\'article de presse">' +
       '<p class="m-cell__label">La presse</p>' +
-      corps +
-      (signature ? '<p class="m-presse__signature">— ' + R.escapeHtml(signature) + "</p>" : "");
-
-    if (lien) {
-      return (
-        '<a class="m-cell m-presse ' + C.classe() + '" href="' + R.escapeHtml(lien) + '" target="_blank" rel="noopener noreferrer" aria-label="Lire l\'article de presse">' +
-        contenu + "</a>"
-      );
-    }
-    return '<div class="m-cell m-presse ' + C.classe() + '">' + contenu + "</div>";
+      '<p class="m-presse__lien">Article de presse</p>' +
+      "</a>"
+    );
   }
 
   /* Une bande : une rangée de cases qui traverse le tableau.

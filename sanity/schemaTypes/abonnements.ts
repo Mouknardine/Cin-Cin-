@@ -16,6 +16,17 @@ export const abonnements = defineType({
   ],
   fields: [
     defineField({
+      name: "intro",
+      title: "Phrase d'accueil",
+      type: "text",
+      rows: 3,
+      group: "formules",
+      description:
+        "Le texte en haut de la page, avant les tarifs. Facultatif : laissez vide pour ouvrir directement sur les prix.",
+      validation: (Rule) =>
+        Rule.max(600).warning("Au-delà de ~600 signes, le texte cesse d'être lu."),
+    }),
+    defineField({
       name: "formules",
       title: "Les formules proposées",
       type: "array",

@@ -47,10 +47,12 @@
   }
 
   /* Le titre de l'onglet du navigateur et la description qui
-     apparaît dans Google se règlent page par page dans le Studio
-     (« Pages du site »). Les valeurs écrites dans le fichier HTML
-     servent de point de départ : tant qu'un champ est vide dans
-     Sanity, on ne touche à rien. */
+     apparaît dans Google sont écrits en tête de chaque fichier
+     HTML : ils ne changent qu'une fois tous les dix ans, et un
+     réglage de plus dans le Studio ne servait qu'à les y répéter.
+     Ne restent ici que les valeurs que le fichier HTML ne peut pas
+     connaître seul : l'adresse exacte de la page ouverte, et
+     l'image de partage réglée dans le Studio. */
   function poserMeta(attribut, nom, contenu) {
     if (!contenu) return;
     var meta = document.head.querySelector("meta[" + attribut + '="' + nom + '"]');
@@ -62,22 +64,12 @@
     meta.setAttribute("content", contenu);
   }
 
-  function poserTitreEtDescription(pageId) {
+  function poserPartageEtAdresse() {
     var D = window.ZinemaData;
     var R = window.ZinemaRender;
-    if (!D || !R || !pageId) return;
-    Promise.all([D.getPage(pageId), D.getReglages()]).then(function (r) {
-      var page = r[0];
-      var reglages = D.estUneErreur(r[1]) ? null : r[1];
-
-      if (page && page.titre) {
-        document.title = page.titre;
-        poserMeta("property", "og:title", page.titre);
-      }
-      if (page && page.seoDescription) {
-        poserMeta("name", "description", page.seoDescription);
-        poserMeta("property", "og:description", page.seoDescription);
-      }
+    if (!D || !R) return;
+    D.getReglages().then(function (resultat) {
+      var reglages = D.estUneErreur(resultat) ? null : resultat;
 
       /* L'image qui s'affiche quand quelqu'un partage l'adresse du
          cinéma sur WhatsApp, Facebook ou Instagram — réglée dans
@@ -128,7 +120,7 @@
       '<span class="menu-toggle__bar menu-toggle__bar--2"></span>' +
       "</span></button>";
 
-    poserTitreEtDescription(document.body.dataset.page);
+    poserPartageEtAdresse();
 
     var nav = document.createElement("nav");
     nav.className = "main-nav";

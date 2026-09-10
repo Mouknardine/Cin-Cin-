@@ -98,10 +98,9 @@ la commande suffit à les rendre nettes.
   salle était en fermeture estivale). Elles se créent depuis la fiche de
   chaque film, rubrique « Séances de ce film ». Tant qu'il n'y en a pas,
   la page Agenda affiche son message d'attente.
-- **Les citations de presse.** Les articles sont connus (La Liberté,
-  Cineuropa, RTS, Le Temps) mais une citation ne s'invente pas :
-  recopiez la phrase à mettre en avant dans « Critiques presse », puis
-  choisissez-la depuis la fiche du film.
+- **Les liens d'articles de presse.** Ils se collent dans la fiche du
+  film, champ « Article de presse ». La page du film affiche alors
+  « Article de presse », cliquable.
 
 ## Les trois fichiers
 

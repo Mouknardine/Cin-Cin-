@@ -152,20 +152,20 @@
 
   app.innerHTML = R.etatChargement("de l'histoire du cinéma");
 
-  Promise.all([D.getHistory(), D.getPage("histoire")]).then(function (resultats) {
-    var entrees = resultats[0];
-    var page = resultats[1];
-
-    if (D.estUneErreur(entrees)) {
+  D.getHistoire().then(function (contenu) {
+    if (D.estUneErreur(contenu)) {
       app.innerHTML = R.etatErreur();
       return;
     }
 
-    /* L'introduction se règle dans « Pages du site → Histoire ».
-       Vide, il n'y a simplement pas de paragraphe — et l'âge du
-       cinéma prend alors toute la largeur en ouverture, plutôt que
-       de laisser un trait noir courir à sa droite. */
-    var intro = (page && page.intro) || "";
+    contenu = contenu || {};
+    var entrees = contenu.etapes || [];
+
+    /* La phrase d'accueil se règle dans la fiche Histoire, avec les
+       étapes. Vide, il n'y a simplement pas de paragraphe — et l'âge
+       du cinéma prend alors toute la largeur en ouverture, plutôt
+       que de laisser un trait noir courir à sa droite. */
+    var intro = String(contenu.intro || "").trim();
     var caseIntro = intro
       ? '<div class="m-cell m-histoire__intro ' + C.classe() + '">' + R.escapeHtml(intro) + "</div>"
       : "";

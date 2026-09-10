@@ -98,10 +98,9 @@
 
   app.innerHTML = R.etatChargement("des abonnements");
 
-  Promise.all([D.getReglages(), D.getAbonnements(), D.getPage("membership")]).then(function (r) {
+  Promise.all([D.getReglages(), D.getAbonnements()]).then(function (r) {
     var reglages = r[0];
     var abo = r[1];
-    var page = r[2];
 
     if (D.estUneErreur(reglages) || D.estUneErreur(abo)) {
       app.innerHTML = R.etatErreur();
@@ -133,10 +132,13 @@
     var banque = caseBanque(abo);
     var bandeBanque = banque ? bande("m-bande--banque", banque) : "";
 
-    var intro = page && page.intro
+    /* La phrase d'accueil se règle dans la fiche Membership, avec
+       les formules — au même endroit que ce qu'elle annonce. */
+    var texteIntro = String(abo.intro || "").trim();
+    var intro = texteIntro
       ? bande(
           "m-bande--intro",
-          '<div class="m-cell m-intro ' + C.classe() + '">' + R.escapeHtml(page.intro) + "</div>"
+          '<div class="m-cell m-intro ' + C.classe() + '">' + R.escapeHtml(texteIntro) + "</div>"
         )
       : "";
 

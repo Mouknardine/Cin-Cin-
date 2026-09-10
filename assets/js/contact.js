@@ -103,10 +103,7 @@
 
   app.innerHTML = R.etatChargement("des infos pratiques");
 
-  Promise.all([D.getReglages(), D.getPage("contact")]).then(function (r) {
-    var reglages = r[0];
-    var page = r[1];
-
+  D.getReglages().then(function (reglages) {
     if (D.estUneErreur(reglages)) {
       app.innerHTML = R.etatErreur();
       return;
@@ -145,15 +142,8 @@
         '<p class="m-contact__acces-texte">' + R.escapeHtml(acces) + "</p></div>"
       : "";
 
-    var caseIntro =
-      page && page.intro
-        ? '<div class="m-cell m-intro ' + C.classe() + '">' +
-          R.escapeHtml(page.intro) + "</div>"
-        : "";
-
     app.innerHTML =
       '<article class="mondrian mondrian--contact">' +
-      bande("m-bande--intro", [caseIntro]) +
       bande("m-bande--adresse", [caseAdresse]) +
       bande("m-bande--carte", [caseCarte]) +
       /* Le lien vers Google Maps suit immédiatement la carte : c'est

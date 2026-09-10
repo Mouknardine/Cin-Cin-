@@ -52,15 +52,12 @@ Pour une séance isolée (une soirée exceptionnelle) : **Agenda → Séances à
 venir → +**, puis quatre champs — le film, la date, l'heure, la salle. Le
 titre, l'affiche, la durée, la version et le prix viennent du film.
 
-### Modifier un texte de page
-**Textes des pages → le nom de la page.**
-
 ### Charger d'un coup la programmation
 Depuis l'onglet **Actions** du dépôt, workflow **« Mettre Sanity à
 jour »** : il lit le Studio (`voir`), dit ce qui changerait
 (`simulation`), ou verse le contenu réel du cinéma — films du programme
-avec leurs affiches, tarifs, coordonnées, frise, textes des pages — en
-retirant de l'affiche les films qui n'y sont plus (`appliquer`).
+avec leurs affiches, tarifs, coordonnées, page Histoire — en retirant
+de l'affiche les films qui n'y sont plus (`appliquer`).
 Rien à installer.
 
 Voir [sanity/import/LISEZ-MOI.md](sanity/import/LISEZ-MOI.md). Utile pour
@@ -103,19 +100,17 @@ y crée est publié directement, sans passer par un brouillon.
 
 ## Le menu du Studio
 
-Neuf entrées, pas une de plus. Chacune porte le nom de la page du site
+Huit entrées, pas une de plus. Chacune porte le nom de la page du site
 où son contenu apparaît, et **rien n'existe à deux endroits**.
 
 ```
 Films                 les fiches de film — et, dans chaque fiche, ses horaires
 Agenda                Séances à venir · Séances passées
 Événement             cycles, brunchs, séances spéciales
-Histoire              les étapes de la frise
-Membership            formules et paiement
-Citations de presse   les citations affichées sur les fiches de film
+Location              les espaces à louer et l'adresse des demandes
+Histoire              la phrase d'accueil et les étapes de la frise
+Membership            phrase d'accueil, formules et paiement
 ─────
-Textes des pages      Accueil · Films · Agenda · Événement · Histoire ·
-                      Membership · Contact
 Réglages du cinéma    adresse, horaires, téléphones, e-mails, tarifs,
                       salles, réseaux sociaux
 Billets vendus        les commandes de la billetterie en ligne
@@ -132,30 +127,23 @@ ligne affiche déjà l'affiche, le titre, l'état du film et sa réalisation.
 Pour déplacer un film d'un onglet du site à l'autre, on ouvre sa fiche et
 on change « Où en est ce film ? ».
 
-## Modifier une page du site
+## Où se modifie le texte d'une page
 
-Dans **Textes des pages**, chaque page du site a sa fiche, rangée dans
-l'ordre exact du menu du site : Accueil · Films · Agenda · Événements ·
-Histoire · Abonnements · Infos pratiques. Pour modifier la page Agenda,
-on clique donc simplement sur « Agenda ».
+Le texte d'une page vit dans la rubrique qui porte son nom, avec ce
+qu'il annonce : la phrase d'accueil de la page Histoire est dans
+**Histoire**, celle de la page Abonnements dans **Membership**, celle
+de la page Location dans **Location**. Il n'y a pas de rubrique
+séparée pour les textes : chercher à deux endroits pour une page,
+c'était en oublier un.
 
-Chaque fiche contient quatre choses :
+Les pages Films, Agenda et Événements n'ont pas de phrase d'accueil :
+elles s'ouvrent directement sur leur contenu.
 
-| Champ | Où ça se voit |
-|---|---|
-| **Titre de la page** | Dans l'onglet du navigateur, dans les signets, et comme titre bleu cliquable dans les résultats Google. Il ne s'affiche pas sur la page elle-même — les pages du site s'ouvrent directement sur leur contenu, sans bandeau de titre. |
-| **Paragraphe d'introduction** | En haut de la page, au-dessus du contenu. Laissé vide, il n'y a simplement pas de paragraphe. |
-| **Message quand la page n'a rien à afficher** | Ce que lit un visiteur quand il n'y a pas encore de séance, de film ou d'événement. Le site n'invente jamais de contenu pour combler un vide : c'est cette phrase qui s'affiche. |
-| **Description pour Google** | Le texte gris sous le titre dans les résultats de recherche. |
-
-Le **contenu** d'une page (les films, les séances, les événements) ne se
-règle pas ici : il vient des rubriques du haut du menu. Une fiche de page
-ne sert qu'à ce qui entoure ce contenu.
-
-Le contenu de ces pages, lui, vit dans les rubriques du haut du menu :
-les films dans **Films**, les séances dans la fiche de leur film, les
-étapes de la frise dans **Histoire**, les formules dans **Membership**,
-et l'adresse comme les horaires dans **Réglages du cinéma**.
+Le **titre de l'onglet du navigateur** et la **description qui apparaît
+dans Google** ne se règlent pas dans le Studio. Ils sont écrits dans le
+code du site, en tête de chaque page : ils ne changent qu'à de rares
+occasions, et un réglage de plus dans le Studio ne servait qu'à les y
+répéter. Pour les modifier, il faut passer par l'agence.
 
 ## Ce qui est lié à quoi (pour ne rien saisir deux fois)
 
@@ -173,7 +161,8 @@ et l'adresse comme les horaires dans **Réglages du cinéma**.
   nombre de places se modifie.
 - **Un événement** peut pointer vers des films : leurs affiches apparaissent
   alors sur l'événement sans rien recopier.
-- **Une critique** rattachée à un film s'affiche sur sa fiche.
+- **Un article de presse** est un simple lien collé dans la fiche du film :
+  la page du film affiche « Article de presse », cliquable.
 
 ## Ce qui se décide tout seul (rien à régler)
 

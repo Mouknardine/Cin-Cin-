@@ -64,23 +64,6 @@
     );
   }
 
-  /* Le paragraphe d'introduction se règle dans le Studio
-     (« Pages du site → Textes des pages »). Vide, il n'y a
-     simplement pas de bande. */
-  /* L'introduction seule, dans son cadre, pour les pages qui n'ont
-     rien d'autre à afficher. */
-  function cadreIntro() {
-    return intro ? '<article class="mondrian">' + introHTML() + "</article>" : "";
-  }
-
-  function introHTML() {
-    if (!intro) return "";
-    return (
-      '<div class="m-bande m-bande--intro"><div class="m-cell m-intro ' +
-      C.classe() + '">' + R.escapeHtml(intro) + "</div></div>"
-    );
-  }
-
   function filtreHTML(filtre) {
     return (
       '<button type="button" class="m-filtre ' + C.classeVive() +
@@ -111,7 +94,7 @@
       : "";
 
     app.innerHTML =
-      '<article class="mondrian">' + introHTML() + filtresHTML + filmsHTML + "</article>";
+      '<article class="mondrian">' + filtresHTML + filmsHTML + "</article>";
 
     app.querySelectorAll(".m-filtre").forEach(function (btn) {
       btn.addEventListener("click", function () {
@@ -122,24 +105,17 @@
   }
 
   var D = window.ZinemaData;
-  var intro = "";
-
   app.innerHTML = R.etatChargement("des films");
 
-  Promise.all([D.getFilms(), D.getPage("films")]).then(function (r) {
-    var films = r[0];
-    var page = r[1];
-    intro = (page && page.intro) || "";
-
+  D.getFilms().then(function (films) {
     if (D.estUneErreur(films)) {
       app.innerHTML = R.etatErreur();
       return;
     }
-    /* Le paragraphe d'introduction reste affiché même quand il n'y a
-       rien à montrer : sinon un texte écrit dans le Studio semblerait
-       ne servir à rien. Rien d'autre n'est ajouté. */
+    /* Aucun film publié : la page reste vide, sans phrase pour le
+       dire. */
     if (!films.length) {
-      app.innerHTML = cadreIntro();
+      app.innerHTML = "";
       return;
     }
     allFilms = films;

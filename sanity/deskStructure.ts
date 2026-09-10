@@ -1,19 +1,15 @@
-import type { StructureResolver, StructureBuilder } from "sanity/structure";
+import type { StructureResolver } from "sanity/structure";
 import {
   ArchiveIcon,
   BookIcon,
   CalendarIcon,
   CogIcon,
   CreditCardIcon,
-  DocumentTextIcon,
   HomeIcon,
   PlayIcon,
   SparklesIcon,
-  StarIcon,
   UsersIcon,
 } from "@sanity/icons";
-
-import { idDeLaFiche, PAGES } from "./schemaTypes/page";
 
 /* ============================================================
    L'organisation du Studio.
@@ -121,16 +117,18 @@ export const deskStructure: StructureResolver = (S) =>
 
       /* ---------------- Histoire ----------------
          La frise n'est plus dans le menu du site : on y entre par
-         une case de la page Infos. Elle se modifie
-         toujours ici, au même endroit qu'avant. */
+         une case de la page Infos. Elle se modifie ici, dans une
+         seule fiche — la phrase d'accueil et les étapes, dans
+         l'ordre où la page se lit. */
       S.listItem()
         .id("histoire")
         .title("Histoire")
         .icon(BookIcon)
         .child(
-          S.documentTypeList("historyEntry")
-            .title("Les étapes de la frise")
-            .defaultOrdering([{ field: "order", direction: "asc" }])
+          S.document()
+            .schemaType("histoire")
+            .documentId("histoire")
+            .title("Histoire")
         ),
 
       /* ---------------- Membership ---------------- */
@@ -145,43 +143,7 @@ export const deskStructure: StructureResolver = (S) =>
             .title("Formules et paiement")
         ),
 
-      /* ---------------- Citations de presse ----------------
-         Elles s'affichent sur la fiche d'un film. On peut les créer
-         depuis le film ; cette entrée sert à les retrouver ensuite. */
-      S.listItem()
-        .id("citations")
-        .title("Citations de presse")
-        .icon(StarIcon)
-        .child(S.documentTypeList("review").title("Citations de presse")),
-
       S.divider(),
-
-      /* ---------------- Les textes des pages ----------------
-         Une fiche par page du site, dans l'ordre de la navigation :
-         titre de l'onglet, paragraphe d'introduction, message quand
-         la page n'a rien à montrer, description pour Google. */
-      S.listItem()
-        .id("textes")
-        .title("Textes des pages")
-        .icon(DocumentTextIcon)
-        .child(
-          S.list()
-            .title("Textes des pages")
-            .items(
-              PAGES.map((p) =>
-                S.listItem()
-                  .id(`texte-${p.id}`)
-                  .title(p.titre)
-                  .icon(DocumentTextIcon)
-                  .child(
-                    S.document()
-                      .schemaType("page")
-                      .documentId(idDeLaFiche(p.id))
-                      .title(p.titre)
-                  )
-              ) as ReturnType<StructureBuilder["listItem"]>[]
-            )
-        ),
 
       /* ---------------- Réglages ----------------
          Adresse, horaires, téléphones, e-mails, tarifs, salles,

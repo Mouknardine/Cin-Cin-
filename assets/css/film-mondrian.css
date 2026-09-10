@@ -376,18 +376,13 @@ button.m-seances__chip:focus-visible {
   color: var(--paper);
 }
 
-/* ---------- Bande presse : la citation, à la fin de la fiche ----------
-   Une seule case sur sa bande : elle reste basse, elle ne prend
-   que la hauteur de son texte. */
+/* ---------- Bande presse : le lien vers l'article, à la fin de la
+   fiche. Une seule case sur sa bande : elle reste basse, elle ne
+   prend que la hauteur de son texte. */
 
-.m-presse__citation,
 .m-presse__lien {
   font-weight: 400;
   line-height: 1.35;
-}
-.m-presse__signature {
-  font-weight: 800;
-  text-transform: uppercase;
 }
 
 /* ---------- Bande actions : retour & achat ---------- */
