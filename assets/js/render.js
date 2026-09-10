@@ -254,6 +254,24 @@
     return generatedPosterHTML(film.title, film.director, film.year, film.slug);
   }
 
+  /* ---------------- Le triangle de lecture ----------------
+     Le triangle de lecture existe comme caractère typographique,
+     mais les téléphones le remplacent d'eux-mêmes par un émoji en
+     couleur : le bouton de bande-annonce passait alors du noir du
+     site à une flèche bleue, au hasard des appareils et des mises
+     à jour du système.
+     Le triangle est donc dessiné, plus jamais écrit. Il prend la
+     couleur du texte qui l'entoure (currentColor) : il s'inverse
+     tout seul au survol du bouton, comme avant. */
+  function triangleLecture() {
+    return (
+      '<span class="m-ba__play" aria-hidden="true">' +
+      '<svg viewBox="0 0 18 20" focusable="false" aria-hidden="true">' +
+      '<path d="M0 0 L18 10 L0 20 Z" fill="currentColor"></path>' +
+      "</svg></span>"
+    );
+  }
+
   /* ---------------- États d'une page ----------------
      Trois situations, trois messages honnêtes — jamais de contenu
      inventé pour combler un vide. */
@@ -337,6 +355,7 @@
     sanityImageUrl: sanityImageUrl,
     afficheUrl: afficheUrl,
     posterHTML: posterHTML,
+    triangleLecture: triangleLecture,
     generatedPosterHTML: generatedPosterHTML,
   };
 })(window);

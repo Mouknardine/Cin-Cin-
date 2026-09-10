@@ -211,6 +211,17 @@
   border: var(--ligne) solid var(--ink);
   transition: background 0.2s ease-out, color 0.2s ease-out;
 }
+/* Le triangle est dessiné, pas écrit : voir triangleLecture dans
+   render.js. Sa taille se règle ici, en parts du texte courant,
+   pour qu'il grandisse avec le bouton. */
+.m-ba__play svg {
+  display: block;
+  width: 0.95em;
+  height: 1.05em;
+  /* Un triangle qui pointe à droite paraît collé à gauche quand on
+     le centre au millimètre : on le pousse d'un cheveu. */
+  margin-left: 0.08em;
+}
 .m-ba__media--bouton:hover .m-ba__play,
 .m-ba__media--bouton:focus-visible .m-ba__play {
   background: var(--ink);

@@ -195,7 +195,7 @@
       media =
         '<button type="button" class="m-ba__media m-ba__media--bouton" data-embed="' + R.escapeHtml(embed) + '" aria-label="Lire la bande-annonce">' +
         '<img src="https://i.ytimg.com/vi/' + idYoutube[1] + '/hqdefault.jpg" alt="" loading="lazy" width="480" height="360">' +
-        '<span class="m-ba__play" aria-hidden="true">▶</span></button>';
+        R.triangleLecture() + "</button>";
     } else if (embed) {
       media =
         '<div class="m-ba__media"><iframe src="' + R.escapeHtml(embed) + '" title="Bande-annonce — ' + R.escapeHtml(titre) + '" ' +
