@@ -87,9 +87,18 @@
     return "c-" + suivante();
   }
 
+  /* Le même hasard, ouvert à autre chose que les couleurs : une
+     liste de tailles de cases, par exemple. On obtient un tireur
+     indépendant, avec les mêmes garanties — tout est servi avant
+     d'être remélangé, jamais deux fois de suite la même valeur. */
+  function tirage(liste) {
+    return tireur(liste);
+  }
+
   global.ZinemaCouleurs = {
     couleurs: COULEURS,
     suivante: suivante,
+    tirage: tirage,
     classe: classe,
     classeVive: classeVive,
     classeSansSurvol: classeSansSurvol,

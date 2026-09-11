@@ -84,7 +84,7 @@
 }
 
 /* ---------- Le renvoi vers l'Histoire ----------
-   L'Histoire du cinéma a quitté le menu : cette case est la seule
+   La frise a quitté le menu : « Notre histoire » est la seule
    porte d'entrée. Elle se lit donc comme un titre, pas comme une
    ligne d'information de plus. */
 
@@ -95,6 +95,86 @@
   letter-spacing: -0.01em;
   font-size: var(--taille-titre);
   line-height: 1;
+}
+
+/* ---------- Les remerciements ----------
+   Une grande case qui en contient de plus petites : l'intitulé à
+   gauche, puis un nom par sous-case. C'est la seule rangée du site
+   dont les cases ont des TAILLES différentes, tirées au hasard au
+   même titre que les couleurs — sans quoi une liste de noms donne
+   une grille régulière, l'exact contraire d'un Mondrian.
+
+   Trois formats, et une règle qui vaut pour les trois : une case
+   peut grandir autant que la rangée le permet, mais jamais
+   rétrécir en dessous de son nom — « Loterie Romande » ne se coupe
+   pas en deux pour tenir dans une petite case.
+
+     ┌───────────────┬──────────────┬────────────────┬───────────┐
+     │ REMERCIEMENTS │ Ville de     │ Loterie        │ État de   │
+     │               │ Lausanne     │ Romande        │ Vaud      │
+     └───────────────┴──────────────┴────────────────┴───────────┘ */
+
+/* L'intitulé se cale sur son texte : ce sont les noms qui doivent
+   occuper la rangée, pas le mot « Remerciements ». */
+.m-merci__titre {
+  flex: 0 1 auto;
+  justify-content: center;
+}
+
+/* La liste est une bande dans la bande : les noms se partagent
+   toute la largeur restante et passent à la ligne quand il n'y en
+   a plus assez. */
+.m-merci__liste {
+  flex: 1 1 60%;
+}
+
+.m-merci {
+  justify-content: flex-end;
+  gap: 0.25rem;
+  min-width: min-content;
+}
+.m-merci__nom {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  /* Un nom se coupe aux espaces, jamais au trait d'union : on
+     n'écrit pas « Lo-terie ». */
+  hyphens: manual;
+  overflow-wrap: break-word;
+}
+.m-merci__mention {
+  font-weight: 400;
+  opacity: 0.7;
+  line-height: 1.2;
+  font-size: 0.75em;
+}
+
+/* Les trois formats. La part de largeur et la taille du nom
+   avancent ensemble : une grande case porte un grand nom, sinon
+   elle paraît vide. */
+.m-merci--petite  { flex: 1 1 8rem;  font-size: 0.8em; }
+.m-merci--moyenne { flex: 2 1 12rem; font-size: 1em; }
+.m-merci--grande  { flex: 3 1 16rem; font-size: 1.3em; }
+
+/* Sur téléphone, la rangée reste une vraie rangée : deux ou trois
+   noms courts s'y serrent côte à côte. La règle générale de cette
+   page (une case = toute la largeur) ferait ici une colonne de
+   cases identiques — une liste, plus un tableau. */
+@media (max-width: 899px) {
+  /* Deux niveaux à relever : la grande case et les sous-cases
+     qu'elle contient. Sans la seconde ligne, chaque nom reprendrait
+     toute la largeur et les trois formats ne se verraient plus. */
+  .mondrian--contact .m-bande--remerciements > *,
+  .mondrian--contact .m-merci__liste > * {
+    flex: 1 1 auto;
+  }
+  .mondrian--contact .m-merci {
+    padding: 0.75rem;
+  }
+  .mondrian--contact .m-merci--petite  { flex: 1 1 7rem; }
+  .mondrian--contact .m-merci--moyenne { flex: 2 1 9rem; }
+  .mondrian--contact .m-merci--grande  { flex: 3 1 11rem; }
 }
 
 /* ---------- Ordinateur ---------- */

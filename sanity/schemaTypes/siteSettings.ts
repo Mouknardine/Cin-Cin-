@@ -116,6 +116,45 @@ export const siteSettings = defineType({
         "Transports publics, arrêt le plus proche, parking, accès en fauteuil roulant. Affiché sur la page Infos.",
     }),
     defineField({
+      name: "remerciements",
+      title: "Remerciements",
+      type: "array",
+      group: "pratique",
+      description:
+        "Celles et ceux que le cinéma remercie : institutions, soutiens, personnes. Une case par nom, affichée sur la page Infos sous « Notre histoire ». Glissez un nom pour le déplacer ; la couleur et la taille de chaque case sont tirées au hasard à chaque visite. Sans aucun nom, la rubrique n'apparaît pas du tout sur le site.",
+      of: [
+        {
+          type: "object",
+          name: "remerciement",
+          fields: [
+            {
+              name: "nom",
+              title: "Nom",
+              type: "string",
+              description:
+                "Ce qui s'affiche en grand dans la case. Ex. Loterie Romande, Ville de Lausanne, État de Vaud.",
+              validation: (Rule) => Rule.required().error("Écrivez le nom à remercier."),
+            },
+            {
+              name: "mention",
+              title: "Pour quoi (facultatif)",
+              type: "string",
+              description:
+                "Deux ou trois mots, en petit sous le nom. Ex. « soutien à la programmation », « projection », « graphisme ». À laisser vide si le nom se suffit.",
+            },
+            {
+              name: "url",
+              title: "Lien (facultatif)",
+              type: "url",
+              description:
+                "Si la case doit être cliquable, l'adresse complète du site. Ex. https://entreprise.loro.ch",
+            },
+          ],
+          preview: { select: { title: "nom", subtitle: "mention" } },
+        },
+      ],
+    }),
+    defineField({
       name: "mapUrl",
       title: "Lien Google Maps particulier",
       type: "url",

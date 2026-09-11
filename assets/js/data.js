@@ -158,6 +158,7 @@
   var CHAMPS_REGLAGES =
     "shareImage,address,phone,phoneSecondary,email," +
     "openingHours,accessInfo,mapUrl,tarifPlein,tarifReduit,conditionsReduit,salles," +
+    '"remerciements": remerciements[]{nom,mention,url},' +
     "socialLinks,seoDescription";
 
   /* ---------------- API publique ---------------- */

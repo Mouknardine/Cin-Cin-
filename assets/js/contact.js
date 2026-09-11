@@ -6,8 +6,8 @@
    est tirée au hasard à chaque affichage.
 
    L'adresse ouvre la page, la carte à côté ; viennent ensuite les
-   horaires, les coordonnées, l'accès et les réseaux — une
-   information par case. Tout vient de Sanity : une case qui n'a
+   horaires, les coordonnées, l'accès, puis « Notre histoire » et
+   les remerciements — une information par case. Tout vient de Sanity : une case qui n'a
    rien à dire n'est pas affichée, jamais de case vide.
    ============================================================ */
 (function () {
@@ -17,6 +17,7 @@
   var app = document.getElementById("contact-app");
   var R = window.ZinemaRender;
   var C = window.ZinemaCouleurs;
+  var Merci = window.ZinemaRemerciements;
 
   /* Une bande vide laisserait un trait noir en travers du tableau :
      on ne l'écrit que si elle a au moins une case. */
@@ -170,12 +171,17 @@
       /* La rangée qui ferme la page, à l'endroit où l'on a fini de
          chercher un renseignement. Le chemin des séances ouvre la
          rangée : le pied de page ne le porte pas, et une page d'infos
-         ne doit pas être un cul-de-sac. L'Histoire du cinéma suit —
-         elle a quitté le menu, cette case en est la seule porte. */
+         ne doit pas être un cul-de-sac. « Notre histoire » suit —
+         la frise a quitté le menu, cette case en est la seule porte.
+
+         Les remerciements ferment la page, juste sous elle : ils
+         appartiennent à la même histoire, et c'est la place qu'on
+         leur donne au générique d'un film. */
       bande("m-bande--pages", [
         R.caseVoirLesSeances(),
-        caseInterne("L'histoire du Zinéma", root + "histoire/"),
+        caseInterne("Notre histoire", root + "histoire/"),
       ]) +
+      Merci.bande(reglages.remerciements) +
       "</article>";
   });
 })();
