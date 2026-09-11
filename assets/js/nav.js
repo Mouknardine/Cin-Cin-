@@ -152,6 +152,12 @@
       toggle.setAttribute("aria-expanded", String(open));
       toggle.setAttribute("aria-label", open ? "Fermer le menu" : "Ouvrir le menu");
       nav.classList.toggle("is-open", open);
+      /* Le menu est posé APRÈS l'en-tête dans la page : le CSS ne
+         peut pas remonter de l'un à l'autre. C'est donc le corps de
+         la page qui porte l'état ouvert, et l'en-tête s'y accorde —
+         le nom du cinéma y prend la taille des rubriques (voir
+         .menu-ouvert dans style.css). */
+      document.body.classList.toggle("menu-ouvert", open);
       document.documentElement.style.overflow = open ? "hidden" : "";
     }
     toggle.addEventListener("click", function () {

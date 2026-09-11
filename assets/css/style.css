@@ -306,6 +306,25 @@ button {
   background: var(--rose-fluo);
 }
 
+/* ---------- Menu déroulant ouvert ----------
+   Dans le menu, le nom du cinéma est une entrée comme les autres :
+   il s'écrit donc à la taille des rubriques (--taille-titre), et la
+   barre s'ouvre pour le laisser passer. Écrit plus petit, il avait
+   l'air d'une étiquette posée au-dessus de la liste plutôt que de
+   sa première ligne.
+
+   La barre ne mesure alors plus une hauteur fixe : elle prend celle
+   du nom. Cela ne décale rien dans la page — l'en-tête est en
+   position fixe, et le contenu est de toute façon masqué par le
+   menu pendant ce temps. */
+.menu-ouvert .site-header {
+  height: auto;
+}
+.menu-ouvert .site-header__nom {
+  font-size: var(--taille-titre);
+  line-height: 0.9;
+}
+
 /* Le bouton du menu n'est plus qu'un carré : plus de mot à côté,
    donc plus de typographie ni d'espacement à régler ici. */
 .menu-toggle {
