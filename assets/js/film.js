@@ -271,6 +271,10 @@
       '<div class="m-affiche m-affiche--film' + (vraieAffiche ? "" : " m-affiche--generee") + '">' +
       R.posterHTML(film, { priority: true }) + "</div>";
 
+    var jourDePresence = film.presence
+      ? R.formatDateSortieCourte(film.presenceDate)
+      : "";
+
     var infosHTML =
       celluleInfo("Année", film.year ? String(film.year) : "") +
       celluleInfo("Pays", film.country) +
@@ -280,7 +284,17 @@
          rester orphelin en bout de ligne. */
       celluleInfo("Genre", (film.genres || []).join(" ·\u00A0")) +
       celluleInfo("Version", [film.language, film.subtitles].filter(Boolean).join(" ")) +
-      celluleInfo("Âge", film.ageRating);
+      celluleInfo("Âge", film.ageRating) +
+      /* L'invité·e annoncé dans le Studio. La même information qu'en
+         page Événements, mais ici au moment où l'on choisit sa
+         séance — c'est là qu'elle décide d'une venue. Le jour rejoint
+         l'intitulé quand il est précisé ; sinon l'invité·e est là à
+         toutes les séances du film, et il n'y a rien à ajouter. */
+      celluleInfo(
+        "En présence de" +
+          (jourDePresence ? " · " + R.escapeHtml(jourDePresence) : ""),
+        film.presence
+      );
 
     var synopsisHTML =
       '<div class="m-cell m-synopsis ' + C.classe() + '"><p class="m-cell__label">Synopsis</p>' +

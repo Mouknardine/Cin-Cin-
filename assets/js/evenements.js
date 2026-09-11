@@ -18,6 +18,12 @@
    La page n'affiche que les événements en cours ou à venir : ceux
    dont le dernier jour est passé s'archivent tout seuls dans le
    Studio, sans rien décocher.
+
+   Sous les événements saisis à la main viennent les films que la
+   page annonce d'elle-même — ceux qui sortent prochainement, et
+   ceux qui passent en présence de quelqu'un. Ils sont construits
+   à partir des fiches de film, sans rien à ressaisir : voir
+   evenements-films.js.
    ============================================================ */
 (function () {
   "use strict";
@@ -25,6 +31,7 @@
   var app = document.getElementById("evenements-app");
   var R = window.ZinemaRender;
   var C = window.ZinemaCouleurs;
+  var Films = window.ZinemaEvenementsFilms;
 
   var categoryLabels = {
     cycle: "Cycle",
@@ -139,22 +146,43 @@
 
   app.innerHTML = R.etatChargement("des événements");
 
-  D.getEvenements().then(function (evenements) {
-    if (D.estUneErreur(evenements)) {
+  /* Les deux sources arrivent ensemble : les événements saisis dans
+     le Studio, et les films que la page déduit toute seule. La page
+     ne s'affiche qu'une fois, avec tout — plutôt que de sauter sous
+     les yeux du visiteur quand la seconde réponse arrive. */
+  Promise.all([D.getEvenements(), D.getFilmsAnnonces()]).then(function (reponses) {
+    var evenements = reponses[0];
+    var films = reponses[1];
+
+    /* Une seule des deux sources en panne suffit à fausser la page :
+       on le dit, on n'affiche pas la moitié d'un programme en
+       laissant croire que c'est tout. */
+    if (D.estUneErreur(evenements) || D.estUneErreur(films)) {
       app.innerHTML = R.etatErreur();
       return;
     }
 
+    /* Sanity a répondu qu'il n'y a rien : une liste vide, pas une
+       panne. Les deux se distinguent plus haut. */
+    evenements = evenements || [];
+
+    var bandesFilms = Films.bandes(films);
+
     /* Rien à annoncer : on n'annonce rien. Une case qui dit « il n'y
        a rien » occupe autant de place qu'une vraie annonce et n'en
        apprend aucune. */
-    if (!evenements.length) {
+    if (!evenements.length && !bandesFilms) {
       app.innerHTML = "";
       return;
     }
 
-    app.innerHTML = cadre(
-      uneHTML(evenements[0]) + evenements.slice(1).map(annonceHTML).join("")
-    );
+    /* Sans événement saisi, ce sont les films qui ouvrent la page :
+       la grande mise en page de l'événement épinglé n'a alors
+       personne à mettre en avant. */
+    var annonces = evenements.length
+      ? uneHTML(evenements[0]) + evenements.slice(1).map(annonceHTML).join("")
+      : "";
+
+    app.innerHTML = cadre(annonces + bandesFilms);
   });
 })();

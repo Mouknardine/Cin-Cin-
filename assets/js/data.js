@@ -145,6 +145,7 @@
   var CHAMPS_FILM =
     '_id,"slug":coalesce(slug.current,_id),title,originalTitle,director,year,country,duration,' +
     "language,subtitles,ageRating,genres,status,releaseDate,synopsis,poster,stillImages,trailerUrl," +
+    "presence,presenceDate," +
     'price,sumupCheckoutUrl,presseUrl';
 
   var CHAMPS_SEANCE =
@@ -209,6 +210,26 @@
             CHAMPS_SEANCE + "}",
           { today: aujourdhui() }
         ).then(trierSeances);
+      });
+    },
+
+    /** Les films que la page Événements annonce d'elle-même : ceux
+        qui sortent prochainement, et ceux qui passent en présence de
+        quelqu'un. Un film peut être les deux : il n'est alors annoncé
+        qu'une fois, la requête ne le renvoyant qu'une fois.
+
+        Chacun repart avec sa prochaine séance non annulée, pour
+        pouvoir dire QUAND venir — sans elle, « en présence de la
+        réalisatrice » n'apprend rien d'utile. */
+    getFilmsAnnonces: function () {
+      return cachee("films-annonces", function () {
+        return sanityFetch(
+          '*[_type == "film" && status != "passe" && ' +
+            '(status == "prochainement" || (defined(presence) && presence != ""))]{' + CHAMPS_FILM +
+            ',"prochaineSeance": *[_type == "screening" && references(^._id) && ' +
+            'date >= $today && status != "annule"] | order(date asc, time asc)[0]{date,time}}',
+          { today: aujourdhui() }
+        );
       });
     },
 

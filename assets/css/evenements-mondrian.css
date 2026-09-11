@@ -66,6 +66,68 @@
   line-height: 1.2;
 }
 
+/* ---------- Les films que la page annonce d'elle-même ----------
+   Les sorties prochaines et les séances en présence de quelqu'un
+   viennent des fiches de film, pas d'un événement saisi à la main
+   (voir evenements-films.js). Une bande par film :
+
+     ┌────────┬────────────┬─────────────┬──────────────┬────────┐
+     │ AFFI-  │ PROCHAINE- │ LE TITRE    │ EN PRÉSENCE  │ VOIR   │
+     │ CHE    │ MENT       │ DU FILM     │ DE …         │ LE FILM│
+     └────────┴────────────┴─────────────┴──────────────┴────────┘
+
+   L'affiche garde une largeur modeste et fixe, à toutes les
+   tailles d'écran : c'est un repère dans la bande, pas l'image
+   d'ouverture de la page. Cette règle vient APRÈS celle du mode
+   mobile plus haut (« chaque case prend toute la largeur »), qu'elle
+   vise aussi précisément — sans quoi l'affiche occuperait tout
+   l'écran du téléphone. */
+
+.m-bande--film > .m-annonce__affiche {
+  flex: 0 0 clamp(5.5rem, 26vw, 9rem);
+  padding: 0;
+  /* Une image ne se laisse pas pousser par son mot le plus long :
+     la règle ci-dessous ne vaut que pour les cases de texte. */
+  min-width: 0;
+}
+
+/* Aucune case ne descend sous son mot le plus long. Forcées plus
+   bas, elles coupaient « septembre » en « septembr / e ». */
+.m-bande--film > * {
+  min-width: min-content;
+}
+
+/* Le titre du film est un lien, mais il se lit comme le titre des
+   autres annonces : c'est la case elle-même qui réagit au survol,
+   il n'a pas besoin d'être souligné pour se signaler. */
+.m-annonce__film-titre {
+  text-decoration: none;
+  /* Le titre d'un événement peut être coupé n'importe où (« anywhere »)
+     parce qu'il est seul dans une case large. Le titre d'un film
+     partage sa bande avec quatre autres cases : on ne le coupe qu'en
+     dernier recours, jamais au milieu d'un mot qui tiendrait ailleurs. */
+  overflow-wrap: break-word;
+}
+
+/* Une date et un nom propre ne se coupent pas au trait d'union :
+   « vendredi 18 sep-tembre » et « la réalisa-trice » se lisent deux
+   fois. Ces deux cases reviennent donc à la ligne aux espaces
+   seulement, comme les repères de la fiche film. */
+.m-annonce__quand .m-cell__value,
+.m-annonce__presence .m-cell__value {
+  hyphens: manual;
+}
+
+@media (max-width: 899px) {
+  /* Sur téléphone, le titre tient à côté de l'affiche : seule sur sa
+     ligne, celle-ci laisserait un trait noir courir à sa droite — un
+     trou dans le tableau. Les autres cases s'empilent normalement
+     sous elles, chacune sur toute la largeur. */
+  .mondrian--evenements .m-bande--film > .m-annonce__titre {
+    flex: 1 1 0;
+  }
+}
+
 /* ---------- Ordinateur ---------- */
 
 @media (min-width: 900px) {
@@ -92,6 +154,26 @@
   .m-annonce__lien {
     flex: 0 1 auto;
     white-space: nowrap;
+  }
+
+  /* Les trois cases de texte partent de zéro et se partagent la
+     largeur restante — le titre en prend le double. Parties de leur
+     texte au contraire (« flex-basis: auto »), elles réclamaient à
+     elles trois plus que la rangée et la dernière passait à la ligne,
+     alors qu'il y avait la place pour les trois. */
+  .m-bande--film > .m-annonce__titre {
+    flex: 2 1 0;
+  }
+  /* Le minimum est redit ici : la règle générale des annonces impose
+     12rem à la case de date, et 12rem ne suffisent pas à écrire
+     « PROCHAINEMENT » — le mot sortait de sa case. */
+  .m-bande--film > .m-annonce__quand {
+    flex: 1 1 0;
+    min-width: min-content;
+  }
+  .m-bande--film > .m-annonce__presence {
+    flex: 1 1 0;
+    min-width: min-content;
   }
 }
 

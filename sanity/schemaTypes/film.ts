@@ -187,6 +187,31 @@ export const film = defineType({
       components: { input: ChampSeancesDuFilm },
     }),
 
+    /* ---------------- La séance en présence de quelqu'un ----------------
+       Rempli, ce champ suffit : le film s'annonce tout seul sur la
+       page Événements, sans qu'on ait à créer un événement à côté.
+       Vide, il ne se passe rien — c'est le champ lui-même qui dit
+       « oui » ou « non », il n'y a pas de case à cocher qui pourrait
+       le contredire. */
+    defineField({
+      name: "presence",
+      title: "Séance en présence de…",
+      type: "string",
+      description:
+        "Le nom de l'invité·e, écrit tel qu'il doit se lire après « En présence de ». Ex. « la réalisatrice Jeanne Dupont », « l'équipe du film », « Jean Dupont, monteur ». Le film apparaît alors tout seul sur la page Événements. Laissez vide s'il n'y a pas d'invité.",
+    }),
+    defineField({
+      name: "presenceDate",
+      title: "Jour de cette séance",
+      type: "date",
+      options: { dateFormat: "DD/MM/YYYY" },
+      /* Inutile de demander un jour tant qu'il n'y a pas d'invité :
+         le champ n'apparaît qu'une fois le nom écrit. */
+      hidden: ({ document }) => !document?.presence,
+      description:
+        "Le jour où l'invité·e sera là, s'il ne vient que pour une séance. Laissez vide s'il est présent à toutes les séances du film : la page Événements annoncera alors la prochaine.",
+    }),
+
     defineField({
       name: "stillImages",
       title: "Photos du film",
