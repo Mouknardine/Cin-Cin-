@@ -3,10 +3,11 @@
  * assistants de programmation et de duplication, suppression de séances.
  */
 import {AddIcon, ChevronLeftIcon, ChevronRightIcon, CopyIcon, SyncIcon} from '@sanity/icons'
-import {Box, Button, Card, Container, Dialog, Flex, Stack, Text, useToast} from '@sanity/ui'
-import {useCallback, useMemo, useState} from 'react'
+import {Box, Button, Card, Container, Dialog, Flex, Select, Stack, Text, useToast} from '@sanity/ui'
+import {useCallback, useEffect, useMemo, useState} from 'react'
 import {useClient} from 'sanity'
 
+import {useCinemas} from '../hooks/useCinemas'
 import {useDonneesPlanning} from '../hooks/useDonneesPlanning'
 import {API_VERSION, type SeancePlanning} from '../types'
 import {
@@ -34,8 +35,33 @@ export function PlanificationTool(): React.JSX.Element {
   const [seanceASupprimer, setSeanceASupprimer] = useState<SeancePlanning | null>(null)
   const [suppressionEnCours, setSuppressionEnCours] = useState(false)
 
+  /* On programme un cinéma à la fois : mélanger deux villes dans la
+     même grille rendrait l'alerte de conflit fausse, et la semaine
+     illisible. */
+  const {cinemas, chargement: chargementCinemas, erreur: erreurCinemas} = useCinemas()
+  const [cinemaId, setCinemaId] = useState<string>('')
+  useEffect(() => {
+    /* Le premier cinéma est choisi tout seul : là où il n'y en a qu'un,
+       l'outil se comporte exactement comme avant. */
+    setCinemaId((actuel) =>
+      actuel && cinemas.some((c) => c._id === actuel) ? actuel : (cinemas[0]?._id ?? ''),
+    )
+  }, [cinemas])
+  const cinema = useMemo(
+    () => cinemas.find((c) => c._id === cinemaId) ?? null,
+    [cinemaId, cinemas],
+  )
+
   const finSemaine = useMemo(() => finDeSemaine(debutSemaine), [debutSemaine])
-  const {films, seances, chargement, erreur, recharger} = useDonneesPlanning(debutSemaine, finSemaine)
+  const {films, seances, chargement, erreur, recharger} = useDonneesPlanning(
+    cinema,
+    debutSemaine,
+    finSemaine,
+  )
+
+  /* Sans salle, il n'y a nulle part où poser une séance : les deux
+     assistants restent fermés et on dit pourquoi. */
+  const cinemaPret = Boolean(cinema && cinema.salles.length > 0)
 
   const semainePrecedente = useCallback(
     () => setDebutSemaine((jour: string) => ajouterJours(jour, -7)),
@@ -67,12 +93,33 @@ export function PlanificationTool(): React.JSX.Element {
     <Container width={5} padding={4}>
       <Stack space={4}>
         <Flex align="center" justify="space-between" gap={3} wrap="wrap">
-          <Stack space={2}>
+          <Stack space={3}>
             <Text size={3} weight="bold">
               Planification des séances
             </Text>
+            {cinemas.length > 1 && (
+              <Box style={{maxWidth: 280}}>
+                <Select
+                  value={cinemaId}
+                  onChange={(e) => setCinemaId(e.currentTarget.value)}
+                  aria-label="Cinéma à programmer"
+                >
+                  {cinemas.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.nom}
+                    </option>
+                  ))}
+                </Select>
+              </Box>
+            )}
             <Text size={1} muted>
-              {formatPeriodeSemaine(debutSemaine)} · {seances.length} séance{seances.length > 1 ? 's' : ''}
+              {[
+                cinemas.length === 1 ? cinema?.nom : null,
+                formatPeriodeSemaine(debutSemaine),
+                `${seances.length} séance${seances.length > 1 ? 's' : ''}`,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
             </Text>
           </Stack>
           <Flex gap={2} wrap="wrap">
@@ -84,27 +131,47 @@ export function PlanificationTool(): React.JSX.Element {
               icon={CopyIcon}
               text="Dupliquer la semaine"
               mode="ghost"
+              disabled={!cinemaPret}
               onClick={() => setDialogOuvert('dupliquer')}
             />
             <Button
               icon={AddIcon}
               text="Programmer un film"
               tone="primary"
+              disabled={!cinemaPret}
               onClick={() => setDialogOuvert('programmer')}
             />
           </Flex>
         </Flex>
 
-        {erreur && (
+        {(erreur || erreurCinemas) && (
           <Card padding={3} radius={2} tone="critical">
-            <Text size={1}>{erreur}</Text>
+            <Text size={1}>{erreur ?? erreurCinemas}</Text>
+          </Card>
+        )}
+
+        {!chargementCinemas && cinemas.length === 0 && (
+          <Card padding={3} radius={2} tone="caution" border>
+            <Text size={1}>
+              Aucun cinéma n'est encore enregistré. Créez-en un dans « Cinémas » : une séance a
+              besoin de savoir où elle a lieu, et dans quelle salle.
+            </Text>
+          </Card>
+        )}
+
+        {cinema && cinema.salles.length === 0 && (
+          <Card padding={3} radius={2} tone="caution" border>
+            <Text size={1}>
+              {cinema.nom} n'a encore aucune salle. Ajoutez-les dans sa fiche, sous « Tarifs &
+              salles », puis revenez ici.
+            </Text>
           </Card>
         )}
 
         <GrilleSemaine
           debutSemaine={debutSemaine}
           seances={seances}
-          chargement={chargement}
+          chargement={chargement || chargementCinemas}
           onSupprimer={setSeanceASupprimer}
         />
 
@@ -116,16 +183,18 @@ export function PlanificationTool(): React.JSX.Element {
         </Text>
       </Stack>
 
-      {dialogOuvert === 'programmer' && (
+      {dialogOuvert === 'programmer' && cinema && (
         <DialogProgrammerFilm
+          cinema={cinema}
           films={films}
           debutSemaine={debutSemaine}
           onFermer={fermerDialog}
           onCree={recharger}
         />
       )}
-      {dialogOuvert === 'dupliquer' && (
+      {dialogOuvert === 'dupliquer' && cinema && (
         <DialogDupliquerSemaine
+          cinema={cinema}
           debutSemaine={debutSemaine}
           seancesSemaine={seances}
           onFermer={fermerDialog}

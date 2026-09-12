@@ -18,7 +18,9 @@ import {
 
    1. Chaque entrée porte le nom de la page du site où son contenu
       apparaît — Films, Agenda, Événements, Location, Histoire,
-      Membership, Infos. Aucun mot inventé.
+      Membership, Infos. Aucun mot inventé. « Cinémas » fait
+      exception : cette fiche alimente la page Infos de chaque
+      cinéma, et il y en a autant que de cinémas.
 
    2. Une chose, un seul endroit. Pas de liste qui répète une autre
       liste, pas de raccourci qui rouvre une fiche déjà accessible
@@ -145,19 +147,22 @@ export const deskStructure: StructureResolver = (S) =>
 
       S.divider(),
 
-      /* ---------------- Réglages ----------------
-         Adresse, horaires, téléphones, e-mails, tarifs, salles,
-         réseaux sociaux. Un seul endroit, atteint d'un seul
-         chemin. */
+      /* ---------------- Cinémas ----------------
+         Une fiche par cinéma : son adresse, ses horaires, ses
+         téléphones, ses e-mails, ses tarifs, ses salles, ses
+         réseaux sociaux.
+
+         Les films, eux, sont communs : ils sont saisis une fois et
+         apparaissent partout où ils sont programmés. C'est la
+         séance qui dit dans quel cinéma un film passe. */
       S.listItem()
-        .id("reglages")
-        .title("Réglages du cinéma")
+        .id("cinemas")
+        .title("Cinémas")
         .icon(CogIcon)
         .child(
-          S.document()
-            .schemaType("siteSettings")
-            .documentId("siteSettings")
-            .title("Réglages du cinéma")
+          S.documentTypeList("siteSettings")
+            .title("Cinémas")
+            .defaultOrdering([{ field: "nom", direction: "asc" }])
         ),
 
       S.listItem()

@@ -32,12 +32,17 @@ const LOCATION_DELAI_ENTRE_DEMANDES_S = 450;
  *
  * Celle de la fiche « Location » si elle est remplie, sinon l'e-mail
  * du cinéma. Aucune des deux : on ne peut rien envoyer, et on le dit.
+ *
+ * Le cinéma est nommé explicitement : un seul Studio alimente
+ * plusieurs cinémas, et « le premier de la liste » aurait pu être
+ * celui d'une autre ville. C'est le même identifiant que CINEMA_ID
+ * dans assets/js/data.js — un site, un cinéma.
  */
 function locationDestinataire(): string
 {
     $lu = sanityLire(
         '{"location": *[_type == "location"][0].emailDemandes,'
-        . ' "cinema": *[_type == "siteSettings"][0].email}'
+        . ' "cinema": *[_id == "siteSettings"][0].email}'
     );
 
     foreach ([$lu['location'] ?? '', $lu['cinema'] ?? ''] as $piste) {

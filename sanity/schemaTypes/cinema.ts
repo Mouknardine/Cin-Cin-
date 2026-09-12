@@ -1,22 +1,34 @@
 import { defineField, defineType } from "sanity";
 
-import { listeDesSalles, PLACES_PAR_DEFAUT, SALLES } from "../salles";
-
 /* ============================================================
-   Les réglages du cinéma : ce qui ne change presque jamais, mais
-   qui est repris partout sur le site (en-tête, pied de page, page
-   Infos pratiques, boutons d'achat) et par la caisse en ligne.
+   UN CINÉMA : son adresse, ses horaires, ses tarifs, ses salles,
+   ses réseaux. Tout ce qui ne change presque jamais, mais qui est
+   repris partout sur son site (en-tête, pied de page, page Infos,
+   boutons d'achat) et par sa caisse en ligne.
+
+   Il y a une fiche par cinéma. Les FILMS, eux, sont communs à tous
+   les cinémas : un film saisi une fois s'affiche partout où il est
+   programmé. C'est la séance qui dit dans quel cinéma il passe.
+
+   Chaque site déclare le cinéma qu'il représente et ne lit que sa
+   fiche : deux cinémas ne se mélangent jamais.
 
    Les tarifs et les salles sont lus par le SERVEUR au moment de
    l'achat (dossier /api) : c'est lui qui calcule le montant à payer
    et le nombre de places restantes, jamais le navigateur du client,
    qui pourrait être trafiqué. Modifier un prix ici le change donc
    réellement à la caisse en ligne.
+
+   Le nom interne du modèle est resté « siteSettings », celui qu'il
+   portait du temps où il n'y avait qu'un cinéma. Le renommer aurait
+   voulu dire réécrire toutes les fiches déjà enregistrées et toutes
+   les requêtes du site en même temps, pour un mot que personne ne
+   voit dans le Studio.
    ============================================================ */
 
-export const siteSettings = defineType({
+export const cinema = defineType({
   name: "siteSettings",
-  title: "Réglages du cinéma",
+  title: "Cinéma",
   type: "document",
   groups: [
     { name: "identite", title: "Identité", default: true },
@@ -29,6 +41,25 @@ export const siteSettings = defineType({
        Il n'y a plus de champ « logo » : le nom du cinéma est écrit
        en haut de chaque page, dans la typographie du site, et non
        plus déposé sous forme d'image. */
+    defineField({
+      name: "nom",
+      title: "Nom du cinéma",
+      type: "string",
+      group: "identite",
+      description:
+        "Tel qu'il s'écrit sur son site et sur son programme. Ex. Zinéma.",
+      validation: (Rule) => Rule.required().error("Donnez un nom à ce cinéma."),
+    }),
+    defineField({
+      name: "slug",
+      title: "Nom court du cinéma",
+      type: "slug",
+      group: "identite",
+      description:
+        "Un seul mot, sans accent ni espace, qui identifie ce cinéma. Cliquez sur « Generate » : il se fabrique tout seul à partir du nom. C'est ce mot que le site du cinéma déclare pour savoir qu'il parle de lui — ne plus le modifier une fois le site en ligne, sinon ses pages se videraient.",
+      options: { source: "nom", maxLength: 60 },
+      validation: (Rule) => Rule.required().error("Le nom court est obligatoire."),
+    }),
     defineField({
       name: "shareImage",
       title: "Image de partage",
@@ -203,11 +234,11 @@ export const siteSettings = defineType({
     }),
     defineField({
       name: "salles",
-      title: "Nombre de places par salle",
+      title: "Les salles de ce cinéma",
       type: "array",
       group: "tarifs",
       description:
-        "Sert à ne jamais vendre plus de billets qu'il n'y a de sièges. Les noms de salles sont fixes (ils sont utilisés partout dans le site) ; seul le nombre de places se modifie ici.",
+        "Une ligne par salle de projection : son nom, puis son nombre de places. C'est la liste que proposent les séances de ce cinéma, et c'est elle qui empêche de vendre plus de billets qu'il n'y a de sièges.\n\nL'ordre compte : à heure égale, le programme se lit dans cet ordre. Rangez d'abord la salle principale.\n\nAttention en renommant une salle : les séances déjà programmées gardent l'ancien nom et le Studio vous signalera qu'elles pointent vers une salle qui n'existe plus. Mieux vaut renommer puis corriger ces séances.",
       of: [
         {
           type: "object",
@@ -215,10 +246,10 @@ export const siteSettings = defineType({
           fields: [
             {
               name: "nom",
-              title: "Salle",
+              title: "Nom de la salle",
               type: "string",
-              options: { list: listeDesSalles },
-              validation: (Rule) => Rule.required(),
+              description: "Tel qu'il s'affiche sur le programme. Ex. Salle 1, Grande salle, Hall-Bar.",
+              validation: (Rule) => Rule.required().error("Donnez un nom à cette salle."),
             },
             {
               name: "places",
@@ -239,17 +270,20 @@ export const siteSettings = defineType({
           },
         },
       ],
-      initialValue: SALLES.map((nom) => ({ nom, places: PLACES_PAR_DEFAUT[nom] })),
       validation: (Rule) =>
-        Rule.custom((salles?: { nom?: string }[]) => {
-          if (!salles) return true;
-          const manquantes = SALLES.filter(
-            (nom) => !salles.some((salle) => salle?.nom === nom)
-          );
-          return manquantes.length
-            ? `Il manque le nombre de places pour : ${manquantes.join(", ")}.`
-            : true;
-        }),
+        Rule.required()
+          .min(1)
+          .error("Un cinéma a au moins une salle : sans elle, aucune séance ne peut être programmée.")
+          .custom((salles?: { nom?: string }[]) => {
+            if (!salles) return true;
+            /* Deux salles du même nom rendraient le comptage des places
+               ambigu : la caisse ne saurait pas laquelle compter. */
+            const noms = salles.map((salle) => (salle?.nom ?? "").trim().toLowerCase());
+            const doublon = noms.find((nom, i) => nom && noms.indexOf(nom) !== i);
+            return doublon
+              ? `Deux salles portent le même nom (« ${doublon} ») : donnez-leur des noms différents.`
+              : true;
+          }),
     }),
 
     /* ---------------- Réseaux & référencement ---------------- */
@@ -304,8 +338,19 @@ export const siteSettings = defineType({
     }),
   ],
   preview: {
-    prepare() {
-      return { title: "Réglages du cinéma" };
+    select: { nom: "nom", adresse: "address" },
+    prepare({ nom, adresse }) {
+      /* La ville suffit à distinguer deux cinémas dans la liste : elle
+         est sur la dernière ligne de l'adresse postale, après le code
+         postal. */
+      const lignes = String(adresse ?? "")
+        .split(/\s*\n\s*|,\s*/)
+        .filter(Boolean);
+      const derniere = lignes[lignes.length - 1] ?? "";
+      return {
+        title: nom || "Cinéma sans nom",
+        subtitle: derniere.replace(/^\d{4,}\s+/, "") || undefined,
+      };
     },
   },
 });

@@ -5,11 +5,23 @@
 /** Version d'API Sanity utilisée par l'outil. */
 export const API_VERSION = '2025-02-19'
 
-/* Les salles du cinéma viennent de sanity/salles.ts, la source unique :
-   les redéclarer ici les avait déjà fait diverger — l'outil ne
-   proposait que deux salles quand le schéma en acceptait trois, et
-   le Hall-Bar était donc impossible à programmer d'ici. */
-export {SALLES, comparerSeances, rangDeSalle} from '../../salles'
+/* L'ordre du programme vient de sanity/ordreDesSeances.ts, la source
+   unique : le redéclarer ici l'avait déjà fait diverger — l'outil ne
+   proposait que deux salles quand le schéma en acceptait trois, et le
+   Hall-Bar était donc impossible à programmer d'ici.
+
+   Les NOMS des salles, eux, ne sont plus écrits nulle part dans le
+   code : chaque cinéma déclare les siennes dans sa fiche, et l'outil
+   les lit pour le cinéma choisi en haut de l'écran. */
+export {comparerSeances, comparerSeancesSelon} from '../../ordreDesSeances'
+
+/** Un cinéma, réduit à ce que l'outil doit en savoir. */
+export interface CinemaPlanning {
+  _id: string
+  nom: string
+  /** Ses salles, dans l'ordre du programme. */
+  salles: string[]
+}
 
 /** Un film tel que chargé pour la planification. */
 export interface FilmPlanning {
@@ -31,6 +43,7 @@ export interface SeancePlanning {
 
 /** Une séance à créer (pas encore enregistrée). */
 export interface NouvelleSeance {
+  cinemaId: string
   filmId: string
   date: string
   heure: string

@@ -11,13 +11,15 @@ import {TrashIcon} from '@sanity/icons'
 import {Box, Button, Flex, Select, Text, TextInput} from '@sanity/ui'
 import {useCallback, useMemo} from 'react'
 
-import {SALLES, type Creneau} from '../types'
+import type {Creneau} from '../types'
 import {heureDeFin} from '../utils/conflits'
 import {JOURS_SEMAINE} from '../utils/dates'
 
 interface Props {
   creneau: Creneau
   index: number
+  /** Les salles du cinéma programmé, dans l'ordre de sa fiche. */
+  salles: readonly string[]
   suppressionPossible: boolean
   /** Durée du film choisi, pour annoncer l'heure de fin. Null tant qu'aucun film n'est choisi. */
   dureeFilm: number | null
@@ -30,6 +32,7 @@ interface Props {
 export function LigneCreneau({
   creneau,
   index,
+  salles,
   suppressionPossible,
   dureeFilm,
   filmChoisi,
@@ -89,7 +92,7 @@ export function LigneCreneau({
 
       <Box flex={3}>
         <Select value={creneau.salle} onChange={changerSalle} aria-label="Salle">
-          {SALLES.map((salle) => (
+          {salles.map((salle) => (
             <option key={salle} value={salle}>
               {salle}
             </option>

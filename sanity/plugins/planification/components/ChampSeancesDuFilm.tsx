@@ -2,7 +2,7 @@
  * Bloc « Séances de ce film », posé dans le formulaire d'un film.
  *
  * Tout se fait ici, sans quitter la fiche :
- *   - voir les séances à venir du film ;
+ *   - voir les séances à venir du film, dans tous les cinémas ;
  *   - en ajouter plusieurs d'un coup (les créneaux de la semaine × un
  *     nombre de semaines) ;
  *   - marquer une séance « complet » ou « annulée » ;
@@ -16,7 +16,7 @@ import {Box, Button, Card, Flex, Select, Spinner, Stack, Text, useToast} from '@
 import {useCallback, useEffect, useState} from 'react'
 import {useClient, useFormValue} from 'sanity'
 
-import {comparerSeances} from '../../../salles'
+import {comparerSeances} from '../../../ordreDesSeances'
 import {API_VERSION} from '../types'
 import {debutDeSemaine, formatJourCourt} from '../utils/dates'
 import {supprimerSeance} from '../utils/mutations'
@@ -27,6 +27,8 @@ interface SeanceResumee {
   date: string
   heure: string
   salle: string
+  /** Le cinéma où elle a lieu : un même film passe dans plusieurs. */
+  cinema: string
   statut: string
 }
 
@@ -66,7 +68,8 @@ export function ChampSeancesDuFilm(): React.JSX.Element {
         `{
           "seances": *[_type == "screening" && film._ref == $id && date >= $today]
             | order(date asc, time asc)
-            {_id, date, "heure": time, "salle": room, "statut": status},
+            {_id, date, "heure": time, "salle": room, "statut": status,
+             "cinema": coalesce(cinema->nom, "Cinéma à indiquer")},
           "publie": defined(*[_id == $id][0]._id)
         }`,
         {id, today: aujourdhui()},
@@ -149,9 +152,9 @@ export function ChampSeancesDuFilm(): React.JSX.Element {
               <Stack space={2}>
                 {seances.map((s) => (
                   <Flex key={s._id} align="center" gap={2}>
-                    <Box style={{minWidth: '11rem'}}>
+                    <Box style={{minWidth: '15rem'}}>
                       <Text size={1}>
-                        {formatJourCourt(s.date)} · {s.heure} · {s.salle}
+                        {formatJourCourt(s.date)} · {s.heure} · {s.cinema} · {s.salle}
                       </Text>
                     </Box>
                     <Box flex={1}>
@@ -200,7 +203,7 @@ export function ChampSeancesDuFilm(): React.JSX.Element {
             <Text size={1} muted>
               {jamaisPublie
                 ? "Publiez d'abord ce film (bouton Publish, en bas) : une séance a besoin d'un film publié pour s'afficher sur le site."
-                : "Vous indiquez les horaires de la semaine — par exemple mercredi 19:00 en Salle 1 et samedi 21:00 en Salle 2 — et le nombre de semaines. Toutes les séances sont créées d'un coup et l'agenda du site se remplit aussitôt."}
+                : "Vous choisissez le cinéma, puis les horaires de la semaine — par exemple mercredi 19:00 en Salle 1 et samedi 21:00 en Salle 2 — et le nombre de semaines. Toutes les séances sont créées d'un coup et l'agenda du site se remplit aussitôt."}
             </Text>
           </Stack>
         </Stack>

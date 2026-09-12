@@ -1,13 +1,28 @@
 /**
- * Assistant « Programmer un film » : on choisit un film, ses créneaux hebdomadaires
- * et la période — toutes les séances sont créées d'un coup, sans les conflits de salle.
+ * Assistant « Programmer un film » : on choisit un cinéma, un film, ses
+ * créneaux hebdomadaires et la période — toutes les séances sont créées
+ * d'un coup, sans les conflits de salle.
+ *
+ * Le cinéma est parfois déjà connu : ouvert depuis l'onglet
+ * Planification, il programme le cinéma affiché. Ouvert depuis la fiche
+ * d'un film, il ne l'est pas, et l'assistant le demande — c'est la seule
+ * chose qu'un film ne peut pas savoir de lui-même, puisqu'il passe
+ * potentiellement dans plusieurs cinémas.
  */
 import {AddIcon} from '@sanity/icons'
-import {Box, Button, Dialog, Flex, Select, Stack, Text, TextInput, useToast} from '@sanity/ui'
-import {useCallback, useMemo, useState} from 'react'
+import {Box, Button, Card, Dialog, Flex, Select, Stack, Text, TextInput, useToast} from '@sanity/ui'
+import {useCallback, useEffect, useMemo, useState} from 'react'
 import {useClient} from 'sanity'
 
-import {API_VERSION, type Creneau, type FilmPlanning, type RapportCreation, type SeanceCandidate} from '../types'
+import {useCinemas} from '../hooks/useCinemas'
+import {
+  API_VERSION,
+  type CinemaPlanning,
+  type Creneau,
+  type FilmPlanning,
+  type RapportCreation,
+  type SeanceCandidate,
+} from '../types'
 import {verifierNouvellesSeances} from '../utils/conflits'
 import {ajouterJours, debutDeSemaine} from '../utils/dates'
 import {chargerSeancesPeriode, creerSeances} from '../utils/mutations'
@@ -15,6 +30,11 @@ import {LigneCreneau} from './LigneCreneau'
 import {RapportResultat} from './RapportResultat'
 
 interface Props {
+  /**
+   * Le cinéma à programmer, quand l'appelant le connaît. Sans lui,
+   * l'assistant propose la liste des cinémas.
+   */
+  cinema?: CinemaPlanning
   films: FilmPlanning[]
   /** Le mercredi qui ouvre la semaine affichée : date de départ proposée. */
   debutSemaine: string
@@ -27,10 +47,13 @@ interface Props {
   filmImpose?: FilmPlanning
 }
 
-/* Mercredi : le premier jour de la semaine de cinéma, donc le décalage 0. */
-const CRENEAU_INITIAL: Creneau = {jour: 0, heure: '19:00', salle: 'Salle 1'}
+/* Mercredi : le premier jour de la semaine de cinéma, donc le décalage 0.
+   La salle reste vide jusqu'à ce qu'un cinéma soit connu : ce sont ses
+   salles, et elles ne sont plus les mêmes partout. */
+const CRENEAU_INITIAL: Creneau = {jour: 0, heure: '19:00', salle: ''}
 
 function genererCandidates(
+  cinema: CinemaPlanning,
   film: FilmPlanning,
   creneaux: Creneau[],
   dateDebut: string,
@@ -43,6 +66,7 @@ function genererCandidates(
       const date = ajouterJours(premierMercredi, semaine * 7 + creneau.jour)
       if (date < dateDebut) continue
       candidates.push({
+        cinemaId: cinema._id,
         filmId: film._id,
         titre: film.titre,
         duree: film.duree,
@@ -56,6 +80,7 @@ function genererCandidates(
 }
 
 export function DialogProgrammerFilm({
+  cinema: cinemaImpose,
   films,
   debutSemaine,
   onFermer,
@@ -64,6 +89,23 @@ export function DialogProgrammerFilm({
 }: Props): React.JSX.Element {
   const client = useClient({apiVersion: API_VERSION})
   const toast = useToast()
+
+  /* La liste des cinémas n'est chargée que si l'appelant ne sait pas
+     lequel programmer. */
+  const {cinemas, chargement: chargementCinemas} = useCinemas(!cinemaImpose)
+  const [cinemaId, setCinemaId] = useState(cinemaImpose?._id ?? '')
+  useEffect(() => {
+    if (cinemaImpose) return
+    setCinemaId((actuel) =>
+      actuel && cinemas.some((c) => c._id === actuel) ? actuel : (cinemas[0]?._id ?? ''),
+    )
+  }, [cinemaImpose, cinemas])
+
+  const cinema = useMemo(
+    () => cinemaImpose ?? cinemas.find((c) => c._id === cinemaId) ?? null,
+    [cinemaImpose, cinemaId, cinemas],
+  )
+  const salles = cinema?.salles ?? []
 
   const [filmId, setFilmId] = useState(filmImpose?._id ?? '')
   const [creneaux, setCreneaux] = useState<Creneau[]>([CRENEAU_INITIAL])
@@ -75,11 +117,29 @@ export function DialogProgrammerFilm({
   const [enCours, setEnCours] = useState(false)
   const [rapport, setRapport] = useState<RapportCreation | null>(null)
 
+  /* Changer de cinéma change les salles : un créneau qui pointait vers
+     une salle de l'autre cinéma est ramené sur la première de celui-ci,
+     plutôt que de rester sur un nom que la caisse ne saurait pas
+     compter. */
+  useEffect(() => {
+    if (salles.length === 0) return
+    setCreneaux((liste) =>
+      liste.map((creneau) =>
+        salles.includes(creneau.salle) ? creneau : {...creneau, salle: salles[0]},
+      ),
+    )
+    /* `salles` est un tableau reconstruit à chaque rendu : c'est le
+       cinéma qui compte, et lui seul. */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cinema])
+
   const film = useMemo(
     () => filmImpose ?? films.find((f) => f._id === filmId),
     [filmImpose, films, filmId],
   )
-  const formulaireValide = Boolean(film && dateDebut && creneaux.every((c) => c.heure))
+  const formulaireValide = Boolean(
+    cinema && film && dateDebut && creneaux.every((c) => c.heure && c.salle),
+  )
 
   const modifierCreneau = useCallback((index: number, creneau: Creneau) => {
     setCreneaux((liste) => liste.map((c, i) => (i === index ? creneau : c)))
@@ -89,19 +149,21 @@ export function DialogProgrammerFilm({
   }, [])
   const ajouterCreneau = useCallback(() => {
     setCreneaux((liste) => {
-      const dernierJour = liste[liste.length - 1]?.jour ?? CRENEAU_INITIAL.jour
-      return [...liste, {...CRENEAU_INITIAL, jour: Math.min(dernierJour + 1, 6)}]
+      const modele = {...CRENEAU_INITIAL, salle: salles[0] ?? ''}
+      const dernierJour = liste[liste.length - 1]?.jour ?? modele.jour
+      return [...liste, {...modele, jour: Math.min(dernierJour + 1, 6)}]
     })
-  }, [])
+  }, [salles])
 
   const creer = useCallback(async () => {
-    if (!film) return
+    if (!cinema || !film) return
     setEnCours(true)
     try {
-      const candidates = genererCandidates(film, creneaux, dateDebut, nbSemaines)
+      const candidates = genererCandidates(cinema, film, creneaux, dateDebut, nbSemaines)
       const dates = candidates.map((c) => c.date)
       const existantes = await chargerSeancesPeriode(
         client,
+        cinema,
         dates.reduce((min, d) => (d < min ? d : min), dates[0]),
         dates.reduce((max, d) => (d > max ? d : max), dates[0]),
       )
@@ -114,25 +176,56 @@ export function DialogProgrammerFilm({
     } finally {
       setEnCours(false)
     }
-  }, [client, creneaux, dateDebut, film, nbSemaines, onCree, toast])
+  }, [cinema, client, creneaux, dateDebut, film, nbSemaines, onCree, toast])
 
   const totalPrevu = creneaux.length * nbSemaines
+  const titreDialogue = filmImpose
+    ? `Programmer « ${filmImpose.titre} »`
+    : 'Programmer un film'
+
+  /* Rien à programmer tant qu'il n'y a pas un cinéma avec au moins une
+     salle : on le dit, plutôt que d'afficher un formulaire qui ne peut
+     rien produire. */
+  const obstacle = chargementCinemas
+    ? 'Chargement des cinémas…'
+    : !cinema
+      ? "Aucun cinéma n'est encore enregistré. Créez-en un dans « Cinémas » : une séance a besoin de savoir où elle a lieu."
+      : salles.length === 0
+        ? `${cinema.nom} n'a encore aucune salle. Ajoutez-les dans sa fiche, sous « Tarifs & salles ».`
+        : null
 
   return (
-    <Dialog
-      id="programmer-film"
-      header={filmImpose ? `Programmer « ${filmImpose.titre} »` : 'Programmer un film'}
-      onClose={onFermer}
-      width={1}
-    >
+    <Dialog id="programmer-film" header={titreDialogue} onClose={onFermer} width={1}>
       <Box padding={4}>
         {rapport ? (
           <Stack space={4}>
             <RapportResultat rapport={rapport} />
             <Button text="Fermer" tone="primary" onClick={onFermer} />
           </Stack>
+        ) : obstacle ? (
+          <Stack space={4}>
+            <Card padding={3} radius={2} tone="caution" border>
+              <Text size={1}>{obstacle}</Text>
+            </Card>
+            <Button text="Fermer" mode="ghost" onClick={onFermer} />
+          </Stack>
         ) : (
           <Stack space={4}>
+            {cinemaImpose ? null : (
+              <Stack space={2}>
+                <Text size={1} weight="semibold">
+                  Cinéma
+                </Text>
+                <Select value={cinemaId} onChange={(e) => setCinemaId(e.currentTarget.value)}>
+                  {cinemas.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.nom}
+                    </option>
+                  ))}
+                </Select>
+              </Stack>
+            )}
+
             {filmImpose ? null : (
               <Stack space={2}>
                 <Text size={1} weight="semibold">
@@ -185,6 +278,7 @@ export function DialogProgrammerFilm({
                   key={index}
                   creneau={creneau}
                   index={index}
+                  salles={salles}
                   suppressionPossible={creneaux.length > 1}
                   dureeFilm={film?.duree ?? null}
                   filmChoisi={Boolean(film)}
@@ -234,10 +328,10 @@ export function DialogProgrammerFilm({
               onClick={creer}
             />
             <Text size={1} muted>
-              Les doublons et les conflits de salle sont détectés automatiquement : seules les
-              séances possibles seront créées, et un bilan s'affichera. Une salle est occupée
-              jusqu'à la minute exacte de fin du film : deux séances peuvent s'enchaîner sans
-              aucun battement.
+              Les doublons et les conflits de salle sont détectés automatiquement, cinéma par
+              cinéma : seules les séances possibles seront créées, et un bilan s'affichera. Une
+              salle est occupée jusqu'à la minute exacte de fin du film : deux séances peuvent
+              s'enchaîner sans aucun battement.
             </Text>
           </Stack>
         )}

@@ -37,7 +37,9 @@ function chargerContexte(string $idSeance): array
             _id, date, time, room, status,
             "filmTitre": film->title
           },
-          "reglages": *[_type == "siteSettings"][0]{tarifPlein, tarifReduit, salles},
+          "cinemaDeLaSeance": *[_type == "screening" && _id == $id][0]
+             .cinema->{tarifPlein, tarifReduit, salles},
+          "cinemaHistorique": *[_id == "siteSettings"][0]{tarifPlein, tarifReduit, salles},
           "prises": *[_type == "commande" && seance._ref == $id
              && (statut == "payee" || (statut == "en-attente" && creeLe > $limite))
           ]{billetsPlein, billetsReduit}
@@ -56,7 +58,19 @@ function chargerContexte(string $idSeance): array
         echec('Cette séance est passée.', 409);
     }
 
-    $reglages = $donnees['reglages'] ?? [];
+    /* Le prix et le nombre de sièges viennent du cinéma OÙ A LIEU LA
+       SÉANCE : un seul Studio alimente plusieurs cinémas, et deux
+       cinémas n'ont ni les mêmes tarifs ni les mêmes salles.
+
+       La seconde piste ne sert qu'aux séances enregistrées avant que
+       le Studio ne connaisse plusieurs cinémas : elles ne disent pas
+       encore où elles ont lieu. Le script
+       sanity/import/reprendre-les-cinemas.mjs les rattache à Zinéma,
+       après quoi cette piste peut disparaître. */
+    $reglages = $donnees['cinemaDeLaSeance'] ?? null;
+    if (!is_array($reglages)) {
+        $reglages = $donnees['cinemaHistorique'] ?? [];
+    }
     $places = placesDeLaSalle($reglages['salles'] ?? [], (string) ($seance['room'] ?? ''));
 
     $dejaPris = 0;
@@ -73,10 +87,11 @@ function chargerContexte(string $idSeance): array
     ];
 }
 
-/* Le nombre de sièges d'une salle, tel que renseigné dans les
-   réglages du site. Salle inconnue : on refuse la vente plutôt que
-   de deviner — mieux vaut une caisse fermée qu'une salle vendue
-   deux fois. */
+/* Le nombre de sièges d'une salle, tel que renseigné dans la fiche
+   du cinéma. Salle inconnue : on refuse la vente plutôt que de
+   deviner — mieux vaut une caisse fermée qu'une salle vendue deux
+   fois. C'est ce qui arrive si une salle est renommée dans sa fiche
+   sans que ses séances suivent. */
 function placesDeLaSalle(array $salles, string $nom): int
 {
     foreach ($salles as $salle) {

@@ -6,13 +6,21 @@ import {Box, Button, Dialog, Select, Stack, Text, useToast} from '@sanity/ui'
 import {useCallback, useMemo, useState} from 'react'
 import {useClient} from 'sanity'
 
-import {API_VERSION, type RapportCreation, type SeanceCandidate, type SeancePlanning} from '../types'
+import {
+  API_VERSION,
+  type CinemaPlanning,
+  type RapportCreation,
+  type SeanceCandidate,
+  type SeancePlanning,
+} from '../types'
 import {verifierNouvellesSeances} from '../utils/conflits'
 import {ajouterJours, finDeSemaine, formatPeriodeSemaine} from '../utils/dates'
 import {chargerSeancesPeriode, creerSeances} from '../utils/mutations'
 import {RapportResultat} from './RapportResultat'
 
 interface Props {
+  /** Le cinéma dont on recopie la semaine : la copie y reste. */
+  cinema: CinemaPlanning
   /** Le mercredi qui ouvre la semaine à recopier. */
   debutSemaine: string
   seancesSemaine: SeancePlanning[]
@@ -21,6 +29,7 @@ interface Props {
 }
 
 export function DialogDupliquerSemaine({
+  cinema,
   debutSemaine,
   seancesSemaine,
   onFermer,
@@ -42,6 +51,7 @@ export function DialogDupliquerSemaine({
     setEnCours(true)
     try {
       const candidates: SeanceCandidate[] = seancesSemaine.map((seance) => ({
+        cinemaId: cinema._id,
         filmId: seance.filmId,
         titre: seance.filmTitre,
         duree: seance.filmDuree,
@@ -49,7 +59,12 @@ export function DialogDupliquerSemaine({
         heure: seance.heure,
         salle: seance.salle,
       }))
-      const existantes = await chargerSeancesPeriode(client, debutCible, finDeSemaine(debutCible))
+      const existantes = await chargerSeancesPeriode(
+        client,
+        cinema,
+        debutCible,
+        finDeSemaine(debutCible),
+      )
       const {aCreer, doublons, conflits} = verifierNouvellesSeances(candidates, existantes)
       await creerSeances(client, aCreer)
       setRapport({creees: aCreer.length, doublons, conflits})
@@ -59,10 +74,15 @@ export function DialogDupliquerSemaine({
     } finally {
       setEnCours(false)
     }
-  }, [client, debutCible, decalage, onCree, seancesSemaine, toast])
+  }, [cinema, client, debutCible, decalage, onCree, seancesSemaine, toast])
 
   return (
-    <Dialog id="dupliquer-semaine" header="Dupliquer la semaine" onClose={onFermer} width={1}>
+    <Dialog
+      id="dupliquer-semaine"
+      header={`Dupliquer la semaine du ${cinema.nom}`}
+      onClose={onFermer}
+      width={1}
+    >
       <Box padding={4}>
         {rapport ? (
           <Stack space={4}>

@@ -1,11 +1,16 @@
 /**
- * Charge les films et les séances de la semaine affichée,
- * et se met à jour tout seul quand le contenu change dans Sanity.
+ * Charge les films et les séances de la semaine affichée POUR UN
+ * CINÉMA, et se met à jour tout seul quand le contenu change dans
+ * Sanity.
+ *
+ * Les films sont communs à tous les cinémas ; les séances, non. Tant
+ * qu'aucun cinéma n'est choisi, il n'y a donc pas de semaine à
+ * montrer.
  */
 import {useCallback, useEffect, useRef, useState} from 'react'
 import {useClient} from 'sanity'
 
-import {API_VERSION, type FilmPlanning, type SeancePlanning} from '../types'
+import {API_VERSION, type CinemaPlanning, type FilmPlanning, type SeancePlanning} from '../types'
 import {chargerFilms, chargerSeancesPeriode} from '../utils/mutations'
 
 interface DonneesPlanning {
@@ -18,7 +23,11 @@ interface DonneesPlanning {
 
 const DELAI_RAFRAICHISSEMENT_MS = 1200
 
-export function useDonneesPlanning(debut: string, fin: string): DonneesPlanning {
+export function useDonneesPlanning(
+  cinema: CinemaPlanning | null,
+  debut: string,
+  fin: string,
+): DonneesPlanning {
   const client = useClient({apiVersion: API_VERSION})
   const [films, setFilms] = useState<FilmPlanning[]>([])
   const [seances, setSeances] = useState<SeancePlanning[]>([])
@@ -30,9 +39,20 @@ export function useDonneesPlanning(debut: string, fin: string): DonneesPlanning 
 
   useEffect(() => {
     let annule = false
+
+    /* Aucun cinéma choisi : rien à charger, et surtout aucune séance à
+       afficher — elles appartiendraient à n'importe qui. */
+    if (!cinema) {
+      setFilms([])
+      setSeances([])
+      setErreur(null)
+      setChargement(false)
+      return
+    }
+
     setChargement(true)
 
-    Promise.all([chargerFilms(client), chargerSeancesPeriode(client, debut, fin)])
+    Promise.all([chargerFilms(client), chargerSeancesPeriode(client, cinema, debut, fin)])
       .then(([listeFilms, listeSeances]) => {
         if (annule) return
         setFilms(listeFilms)
@@ -50,7 +70,7 @@ export function useDonneesPlanning(debut: string, fin: string): DonneesPlanning 
     return () => {
       annule = true
     }
-  }, [client, debut, fin, version])
+  }, [cinema, client, debut, fin, version])
 
   /* Écoute les changements (autre onglet, autre personne) et recharge avec un léger délai. */
   const minuteur = useRef<ReturnType<typeof setTimeout> | null>(null)

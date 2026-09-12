@@ -1,0 +1,85 @@
+name: Reprendre les cinémas
+
+# Le Studio connaît maintenant plusieurs cinémas. Le contenu saisi
+# avant ce changement ne dit pas encore de quel cinéma il parle : ce
+# workflow le lui dit, une fois pour toutes, sans rien installer sur
+# son ordinateur.
+#
+# Il utilise le même secret que « Mettre Sanity à jour » :
+#
+#   SANITY_WRITE_TOKEN
+#
+# À lancer UNE FOIS, juste après avoir publié le nouveau Studio.
+# Le relancer ensuite ne change rien de plus : il compare avant
+# d'écrire.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Que faire ?"
+        type: choice
+        required: true
+        default: simulation
+        options:
+          - simulation # dit ce qui changerait, sans rien écrire
+          - appliquer # écrit vraiment dans le Studio
+
+  # Deuxième porte d'entrée, pour qui n'a pas le bouton « Run workflow »
+  # (un assistant travaillant sur le dépôt, par exemple) : créer l'une
+  # de ces deux branches déclenche le mode correspondant. Elles ne
+  # servent qu'à ça et peuvent être supprimées juste après.
+  push:
+    branches:
+      - cinemas/simulation
+      - cinemas/appliquer
+
+jobs:
+  cinemas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Le mode vient soit du menu « Run workflow », soit du nom de la
+      # branche qui a déclenché l'exécution.
+      - name: Quel mode ?
+        id: mode
+        run: |
+          MODE="${{ inputs.mode }}"
+          if [ -z "$MODE" ]; then
+            case "${{ github.ref_name }}" in
+              cinemas/appliquer) MODE=appliquer ;;
+              *)                 MODE=simulation ;;
+            esac
+          fi
+          echo "valeur=$MODE" >> "$GITHUB_OUTPUT"
+          echo "Mode : $MODE"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Le jeton Sanity est-il renseigné ?
+        env:
+          JETON: ${{ secrets.SANITY_WRITE_TOKEN }}
+        run: |
+          if [ -z "$JETON" ]; then
+            echo "::error::Le secret SANITY_WRITE_TOKEN n'existe pas encore. Le créer dans Settings → Secrets and variables → Actions, à partir d'un jeton « Editor » de https://www.sanity.io/manage (projet vle63mzm → API → Tokens)."
+            exit 1
+          fi
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Simuler la reprise
+        if: steps.mode.outputs.valeur == 'simulation'
+        env:
+          SANITY_WRITE_TOKEN: ${{ secrets.SANITY_WRITE_TOKEN }}
+        run: node sanity/import/reprendre-les-cinemas.mjs
+
+      - name: Appliquer la reprise
+        if: steps.mode.outputs.valeur == 'appliquer'
+        env:
+          SANITY_WRITE_TOKEN: ${{ secrets.SANITY_WRITE_TOKEN }}
+        run: node sanity/import/reprendre-les-cinemas.mjs --appliquer

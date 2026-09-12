@@ -93,7 +93,8 @@ Dans le Studio Sanity → **Réglages du site** → onglet
 
 - **Plein tarif** et **Tarif réduit**, en francs ;
 - **Salles et nombre de places** — le nom doit être écrit
-  *exactement* comme dans les séances (« Salle 1 », « Salle 2 »).
+  *exactement* comme dans les séances du même cinéma. Les salles sont
+  déclarées dans la fiche du cinéma, et chaque cinéma a les siennes.
 
 Ces valeurs sont celles que le serveur utilise réellement pour
 facturer et pour compter les places. Une salle absente de cette

@@ -51,7 +51,8 @@ async function etat() {
         "hauteur": poster.asset->metadata.dimensions.height,
         "seances": count(*[_type == "screening" && references(^._id) && date >= $aujourdhui])
       },
-      "reglages": *[_type == "siteSettings"][0]{address, phone, tarifPlein, tarifReduit, "salles": salles[].nom},
+      "cinemas": *[_type == "siteSettings"]{"nom": coalesce(nom, "Cinéma sans nom"),
+        address, phone, tarifPlein, tarifReduit, "salles": salles[].nom} | order(lower(nom) asc),
       "frise": *[_id == "histoire"][0].etapes[]{year, title},
       "informations": *[_type == "evenement" && !(_id in path("drafts.**"))]{title, dateDebut, dateFin},
       "seances": *[_type == "screening" && date >= $aujourdhui] | order(date asc, time asc)[0...8]{
@@ -80,14 +81,15 @@ async function etat() {
   const visibles = tout.films.filter((f) => f.status !== "passe");
   dire(`\n  → ${visibles.length} film(s) visibles sur le site, ${tout.films.length - visibles.length} terminé(s).`);
 
-  titre("Réglages du cinéma");
-  const r = tout.reglages;
-  if (!r) dire("  Aucun réglage publié.");
-  else {
-    dire(`  Adresse   : ${String(r.address || "—").replace(/\n/g, ", ")}`);
-    dire(`  Téléphone : ${r.phone || "—"}`);
-    dire(`  Tarifs    : ${r.tarifPlein ?? "—"}.- / ${r.tarifReduit ?? "—"}.- réduit`);
-    dire(`  Salles    : ${(r.salles || []).join(", ") || "—"}`);
+  const cinemas = tout.cinemas || [];
+  titre(`Cinémas (${cinemas.length})`);
+  if (!cinemas.length) dire("  Aucun cinéma publié.");
+  for (const c of cinemas) {
+    dire(`  · ${c.nom}`);
+    dire(`    Adresse   : ${String(c.address || "—").replace(/\n/g, ", ")}`);
+    dire(`    Téléphone : ${c.phone || "—"}`);
+    dire(`    Tarifs    : ${c.tarifPlein ?? "—"}.- / ${c.tarifReduit ?? "—"}.- réduit`);
+    dire(`    Salles    : ${(c.salles || []).join(", ") || "—"}`);
   }
 
   const frise = tout.frise || [];

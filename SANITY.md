@@ -111,8 +111,8 @@ Location              les espaces à louer et l'adresse des demandes
 Histoire              la phrase d'accueil et les étapes de la frise
 Membership            phrase d'accueil, formules et paiement
 ─────
-Réglages du cinéma    adresse, horaires, téléphones, e-mails, tarifs,
-                      salles, réseaux sociaux
+Cinémas               une fiche par cinéma : adresse, horaires, téléphones,
+                      e-mails, tarifs, salles, réseaux sociaux
 Billets vendus        les commandes de la billetterie en ligne
 ```
 
@@ -147,18 +147,22 @@ répéter. Pour les modifier, il faut passer par l'agence.
 
 ## Ce qui est lié à quoi (pour ne rien saisir deux fois)
 
-- **Une séance** ne demande que quatre choses : le film, la date, l'heure, la
-  salle. Le titre, l'affiche, la durée, la version, le prix et le lien de
-  paiement sont repris de la fiche du film.
-- **Les tarifs** sont écrits une seule fois dans « Réglages du cinéma →
-  Tarifs & salles ». Ils s'affichent sur la page Abonnements, sur les boutons
-  d'achat, et **ce sont eux que la caisse en ligne facture réellement**. Un
-  film ou une séance peut imposer un prix différent (ciné-goûter, soirée
-  spéciale) : il prend alors le pas.
-- **Le nombre de places par salle** sert à ne jamais vendre plus de billets
-  qu'il n'y a de sièges. Les *noms* des salles sont fixes (« Salle 1 »,
-  « Salle 2 ») parce qu'ils servent de clé partout dans le site ; seul le
-  nombre de places se modifie.
+- **Un film est commun à tous les cinémas.** Il est saisi une fois et
+  programmé autant de fois qu'on veut : c'est la séance, et elle seule, qui
+  dit dans quel cinéma il passe.
+- **Une séance** ne demande que cinq choses : le cinéma, le film, la date,
+  l'heure, la salle. Le titre, l'affiche, la durée, la version, le prix et le
+  lien de paiement sont repris de la fiche du film.
+- **Les tarifs** sont écrits une seule fois par cinéma, dans « Cinémas →
+  Tarifs & salles ». Ils s'affichent sur la page Abonnements de ce cinéma, sur
+  ses boutons d'achat, et **ce sont eux que sa caisse en ligne facture
+  réellement**. Un film ou une séance peut imposer un prix différent
+  (ciné-goûter, soirée spéciale) : il prend alors le pas.
+- **Les salles appartiennent à leur cinéma** : chacun déclare les siennes dans
+  sa fiche, avec leur nombre de places, ce qui empêche de vendre plus de
+  billets qu'il n'y a de sièges. L'ordre de la liste est celui du programme.
+  Renommer une salle n'est pas anodin : les séances déjà programmées gardent
+  l'ancien nom, et le Studio le signale.
 - **Un événement** peut pointer vers des films : leurs affiches apparaissent
   alors sur l'événement sans rien recopier.
 - **Un article de presse** est un simple lien collé dans la fiche du film :
@@ -175,6 +179,41 @@ répéter. Pour les modifier, il faut passer par l'agence.
 - **L'affiche d'un film qui n'en a pas encore** : le site en dessine une,
   typographique, à partir du titre. Elle disparaît dès qu'une vraie affiche
   est déposée.
+
+## Plusieurs cinémas, un seul Studio
+
+Le même Studio alimente plusieurs cinémas. Les **films** y sont communs : un
+film est saisi une fois et apparaît partout où il est programmé. Tout le
+reste appartient à son cinéma — adresse, horaires, tarifs, salles, réseaux,
+et bien sûr les séances.
+
+Dans le Studio, il n'y a rien de particulier à savoir : on crée une fiche par
+cinéma dans « Cinémas », et chaque séance commence par dire où elle a lieu.
+L'onglet « Planification » programme un cinéma à la fois, choisi en haut de
+l'écran ; l'alerte qui repère deux films dans la même salle ne compare donc
+jamais deux villes.
+
+### Ouvrir le site d'un nouveau cinéma
+
+Côté technique, quatre choses, dans cet ordre :
+
+1. **Sa fiche**, dans « Cinémas », avec son nom court — un seul mot, sans
+   accent. C'est lui qui identifie le cinéma.
+2. **Son site** : une copie de ce dépôt, où `CINEMA_ID` dans
+   `assets/js/data.js` porte l'identifiant de sa fiche. Sans ça, le site
+   afficherait les horaires du voisin.
+3. **Son domaine autorisé dans Sanity** (API → CORS origins). Tant que ce
+   n'est pas fait, le site s'affiche mais toutes ses pages sont vides.
+4. **Sa caisse en ligne**, s'il vend des billets : son propre `config.php`
+   sur son serveur. Les tarifs et les places, eux, viennent de sa fiche : le
+   serveur lit le cinéma de la séance achetée.
+
+### Reprendre le contenu déjà saisi
+
+Les séances enregistrées avant que le Studio ne connaisse plusieurs cinémas
+ne disent pas encore où elles ont lieu. Un script les rattache à Zinéma, en
+une fois : onglet **Actions → Reprendre les cinémas**, mode `simulation` pour
+voir, puis `appliquer`. À lancer juste après avoir publié le nouveau Studio.
 
 ## Les garde-fous
 

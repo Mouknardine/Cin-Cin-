@@ -27,6 +27,25 @@
   var SANITY_DATASET = "production";
   var SANITY_API_VERSION = "2024-06-01";
 
+  /* ---------------- Quel cinéma est-ce ? ----------------
+     Un seul Studio alimente plusieurs cinémas : les FILMS y sont
+     communs, saisis une fois, mais chaque cinéma a sa fiche (adresse,
+     horaires, tarifs, salles) et ses séances. Ce site-ci ne lit que
+     les siennes.
+
+     La valeur est l'identifiant de la fiche du cinéma dans Sanity.
+     Celle de Zinéma Lausanne s'appelle « siteSettings » : c'est le nom
+     qu'elle portait du temps où il n'y avait qu'un cinéma, et le
+     renommer n'aurait servi qu'à réécrire des liens qui fonctionnent.
+     Un autre site mettra ici l'identifiant de SA fiche.
+
+     Une séance qui ne dit pas encore dans quel cinéma elle a lieu est
+     acceptée : ce sont les séances enregistrées avant que le Studio ne
+     connaisse plusieurs cinémas. Le script
+     sanity/import/reprendre-les-cinemas.mjs les rattache à Zinéma ;
+     cette tolérance pourra disparaître ensuite. */
+  var CINEMA_ID = "siteSettings";
+
   /* ---------------- Billetterie en ligne ----------------
      true  = le site ouvre son panneau d'achat, le serveur calcule le
              prix, crée le paiement et envoie le billet par e-mail.
@@ -108,11 +127,13 @@
      devant « Salle 1 » par ordre alphabétique), c'est donc fait ici,
      une seule fois, pour toutes les pages du site.
 
-     Cette liste est le reflet de SALLES dans sanity/salles.ts, qui
-     reste la source unique des noms de salles. Une salle inconnue —
-     un nom saisi à la main, une salle ajoutée là-bas mais pas ici —
-     n'est jamais perdue : elle se range simplement après les autres,
-     par ordre alphabétique. */
+     Les salles de chaque cinéma sont désormais déclarées dans sa
+     fiche, dans l'ordre du programme. Cette liste est celle de CE
+     cinéma, recopiée ici : les pages trient leurs séances avant même
+     d'avoir lu la fiche, et attendre celle-ci ferait clignoter tout
+     l'agenda. Une salle inconnue — renommée dans la fiche, oubliée
+     ici — n'est jamais perdue : elle se range simplement après les
+     autres, par ordre alphabétique. */
   var ORDRE_SALLES = ["Salle 1", "Salle 2", "Hall-Bar"];
 
   function rangSalle(nom) {
@@ -147,6 +168,13 @@
     "language,subtitles,ageRating,genres,status,releaseDate,synopsis,poster,stillImages,trailerUrl," +
     "presence,presenceDate," +
     'price,sumupCheckoutUrl,presseUrl';
+
+  /* Le filtre commun à toutes les requêtes de séances : celles de ce
+     cinéma, plus celles qui n'en déclarent pas encore (voir
+     CINEMA_ID). Écrit une fois ici pour ne pas diverger d'une page à
+     l'autre — une seule requête oubliée montrerait les horaires d'une
+     autre ville. */
+  var SEANCE_DE_CE_CINEMA = '(!defined(cinema) || cinema._ref == $cinema)';
 
   var CHAMPS_SEANCE =
     "_id,date,time,room,versionNote,status,price,sumupCheckoutUrl," +
@@ -193,9 +221,10 @@
          rempli l'adresse reste parfaitement accessible. */
       return sanityFetch(
         '*[_type == "film" && (slug.current == $slug || _id == $slug)][0]{' + CHAMPS_FILM +
-          ',"screenings": *[_type == "screening" && references(^._id) && date >= $today]' +
+          ',"screenings": *[_type == "screening" && references(^._id) && date >= $today' +
+          " && " + SEANCE_DE_CE_CINEMA + "]" +
           " | order(date asc, time asc) {" + CHAMPS_SEANCE + "}}",
-        { slug: slug, today: aujourdhui() }
+        { slug: slug, today: aujourdhui(), cinema: CINEMA_ID }
       ).then(function (film) {
         if (film && !estUneErreur(film)) film.screenings = trierSeances(film.screenings);
         return film;
@@ -206,9 +235,9 @@
     getScreenings: function () {
       return cachee("seances", function () {
         return sanityFetch(
-          '*[_type == "screening" && date >= $today] | order(date asc, time asc) {' +
-            CHAMPS_SEANCE + "}",
-          { today: aujourdhui() }
+          '*[_type == "screening" && date >= $today && ' + SEANCE_DE_CE_CINEMA + "]" +
+            " | order(date asc, time asc) {" + CHAMPS_SEANCE + "}",
+          { today: aujourdhui(), cinema: CINEMA_ID }
         ).then(trierSeances);
       });
     },
@@ -227,8 +256,9 @@
           '*[_type == "film" && status != "passe" && ' +
             '(status == "prochainement" || (defined(presence) && presence != ""))]{' + CHAMPS_FILM +
             ',"prochaineSeance": *[_type == "screening" && references(^._id) && ' +
-            'date >= $today && status != "annule"] | order(date asc, time asc)[0]{date,time}}',
-          { today: aujourdhui() }
+            'date >= $today && status != "annule" && ' + SEANCE_DE_CE_CINEMA + "]" +
+            " | order(date asc, time asc)[0]{date,time}}",
+          { today: aujourdhui(), cinema: CINEMA_ID }
         );
       });
     },
@@ -258,7 +288,10 @@
     /** Les réglages du cinéma : adresse, tarifs, horaires, réseaux. */
     getReglages: function () {
       return cachee("reglages", function () {
-        return sanityFetch('*[_type == "siteSettings"][0]{' + CHAMPS_REGLAGES + "}");
+        return sanityFetch(
+          '*[_id == $cinema][0]{' + CHAMPS_REGLAGES + "}",
+          { cinema: CINEMA_ID }
+        );
       });
     },
 

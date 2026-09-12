@@ -4,7 +4,7 @@ import { film } from "./film";
 import { screening } from "./screening";
 import { evenement } from "./evenement";
 import { histoire } from "./histoire";
-import { siteSettings } from "./siteSettings";
+import { cinema } from "./cinema";
 import { abonnements } from "./abonnements";
 import { location } from "./location";
 import { commande } from "./commande";
@@ -18,8 +18,10 @@ export const schemaTypes = [
   screening,
   evenement,
 
+  // Un cinéma : sa fiche existe autant de fois qu'il y a de cinémas
+  cinema,
+
   // Documents uniques (une seule fiche pour tout le site)
-  siteSettings,
   abonnements,
   location,
   histoire,
@@ -28,8 +30,9 @@ export const schemaTypes = [
   commande,
 ];
 
-/** Types dont il n'existe qu'une seule fiche : pas de bouton « créer ». */
-export const typesUniques = ["siteSettings", "abonnements", "location", "histoire"];
+/** Types dont il n'existe qu'une seule fiche : pas de bouton « créer ».
+    Le cinéma n'en fait plus partie : il y en a un par salle de cinéma. */
+export const typesUniques = ["abonnements", "location", "histoire"];
 
 /** Types que personne ne crée à la main depuis le Studio. */
 export const typesNonCreables = [...typesUniques, "commande"];

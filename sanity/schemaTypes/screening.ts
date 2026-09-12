@@ -1,18 +1,23 @@
 import { defineField, defineType, type SanityDocument } from "sanity";
 
 import { intervallesSeChevauchent } from "../plugins/planification/utils/conflits";
-import { listeDesSalles, SALLES } from "../salles";
+import { ChampSalle } from "./components/ChampSalle";
 
 /* ============================================================
-   Une séance : un film, une date, une heure, une salle.
+   Une séance : un cinéma, un film, une date, une heure, une salle.
 
    Presque tout est hérité du film (titre, affiche, durée, prix,
-   lien de paiement) : il n'y a donc que quatre champs à remplir.
+   lien de paiement) : il n'y a donc que cinq champs à remplir.
    L'onglet « Planification » en haut du Studio permet d'en créer
    des dizaines d'un coup plutôt qu'une par une.
+
+   C'est la séance, et elle seule, qui dit dans quel cinéma un film
+   passe. Les films sont communs à tous les cinémas : ils sont
+   saisis une fois et programmés autant de fois qu'on veut.
    ============================================================ */
 
 interface ScreeningEnCours extends SanityDocument {
+  cinema?: { _ref?: string };
   film?: { _ref?: string };
   date?: string;
   time?: string;
@@ -44,7 +49,10 @@ export const screening = defineType({
       const seance = document as ScreeningEnCours | undefined;
       const { date, time, room } = seance ?? {};
       const filmRef = seance?.film?._ref;
-      if (!date || !time || !room || !filmRef) return true;
+      const cinemaRef = seance?.cinema?._ref;
+      /* Sans cinéma, la question n'a pas de sens : deux « Salle 1 »
+         de deux villes différentes ne se gênent pas. */
+      if (!date || !time || !room || !filmRef || !cinemaRef) return true;
 
       const client = contexte.getClient({ apiVersion: "2024-06-01" });
       const idPublie = (seance?._id ?? "").replace(/^drafts\./, "");
@@ -55,11 +63,12 @@ export const screening = defineType({
         `{
           "duree": *[_id == $filmRef][0].duration,
           "autres": *[_type == "screening" && date == $date && room == $room
+            && cinema._ref == $cinemaRef
             && !(_id in [$idPublie, $idBrouillon])]{
             "heure": time, "duree": film->duration, "titre": film->title
           }
         }`,
-        { filmRef, date, room, idPublie, idBrouillon: `drafts.${idPublie}` }
+        { filmRef, date, room, cinemaRef, idPublie, idBrouillon: `drafts.${idPublie}` }
       );
 
       const genante = autres.find((autre) =>
@@ -71,6 +80,18 @@ export const screening = defineType({
       return true;
     }).warning(),
   fields: [
+    /* Le cinéma en premier : c'est lui qui décide des salles
+       proposées plus bas, et une séance sans lieu n'existe pas. */
+    defineField({
+      name: "cinema",
+      title: "Dans quel cinéma ?",
+      type: "reference",
+      to: [{ type: "siteSettings" }],
+      description:
+        "Le cinéma où ce film passe. Les salles proposées ci-dessous sont celles de ce cinéma.",
+      validation: (Rule) =>
+        Rule.required().error("Indiquez dans quel cinéma la séance a lieu."),
+    }),
     defineField({
       name: "film",
       title: "Quel film ?",
@@ -102,10 +123,9 @@ export const screening = defineType({
       title: "Salle",
       type: "string",
       description:
-        "Le nombre de places de chaque salle se règle dans « Réglages du cinéma → Tarifs & salles ».",
-      options: { list: listeDesSalles, layout: "radio" },
-      initialValue: SALLES[0],
-      validation: (Rule) => Rule.required(),
+        "Les salles de ce cinéma, et le nombre de places de chacune, se règlent dans sa fiche, sous « Tarifs & salles ».",
+      components: { input: ChampSalle },
+      validation: (Rule) => Rule.required().error("Indiquez la salle."),
     }),
     defineField({
       name: "status",
@@ -168,18 +188,22 @@ export const screening = defineType({
     select: {
       titre: "film.title",
       media: "film.poster",
+      cinema: "cinema.nom",
       date: "date",
       time: "time",
       room: "room",
       status: "status",
       mention: "versionNote",
     },
-    prepare({ titre, media, date, time, room, status, mention }) {
+    /* Le cinéma ouvre la ligne : dans une liste qui en mêle plusieurs,
+       c'est la première chose qu'on cherche. */
+    prepare({ titre, media, cinema, date, time, room, status, mention }) {
       const etat =
         status === "complet" ? "COMPLET" : status === "annule" ? "ANNULÉE" : null;
+      const lieu = [cinema, room].filter(Boolean).join(" · ");
       return {
         title: `${time || "??:??"} — ${titre || "Film à choisir"}`,
-        subtitle: [dateEnFrancais(date), room, etat, mention]
+        subtitle: [dateEnFrancais(date), lieu, etat, mention]
           .filter(Boolean)
           .join(" · "),
         media,

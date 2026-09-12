@@ -1,7 +1,5 @@
 import { defineField, defineType } from "sanity";
 
-import { SALLES } from "../salles";
-
 /* ============================================================
    La page « Location » : louer une salle, ou tout le lieu.
 
@@ -14,10 +12,6 @@ import { SALLES } from "../salles";
    laissée vide ne s'affiche simplement pas sur le site, plutôt que
    d'afficher une case vide.
    ============================================================ */
-
-/* Les salles du cinéma, plus le lieu entier : on ne loue pas
-   seulement une salle, on peut privatiser l'endroit. */
-const ESPACES = [...SALLES, "Tout le lieu"] as const;
 
 export const location = defineType({
   name: "location",
@@ -65,9 +59,9 @@ export const location = defineType({
               name: "nom",
               title: "Espace",
               type: "string",
-              options: { list: ESPACES.map((nom) => ({ title: nom, value: nom })) },
-              initialValue: ESPACES[0],
-              validation: (Rule) => Rule.required().error("Choisissez l'espace concerné."),
+              description:
+                "Le nom tel qu'il s'affiche sur la page. Ex. Salle 1, Hall-Bar, ou « Tout le lieu » pour une privatisation.",
+              validation: (Rule) => Rule.required().error("Nommez l'espace concerné."),
             }),
             defineField({
               name: "places",
