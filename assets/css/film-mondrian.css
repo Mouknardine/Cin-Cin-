@@ -352,37 +352,33 @@ button.m-seances__chip:focus-visible {
   font-weight: 800;
   text-wrap: balance;
 }
-/* Le chemin vers l'agenda ferme la case des séances. C'est une
-   case encadrée, comme les horaires au-dessus : le tableau encadre,
-   il ne souligne pas. Elle reste calée en bas, quel que soit le
-   nombre de séances affichées au-dessus d'elle. */
-.m-seances__agenda {
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start;
-  margin-top: auto;
-  padding: 0.3rem 0.75rem;
-  border: var(--ligne) solid currentColor;
-  font-weight: 800;
+/* ---------- Le chemin vers l'agenda ----------
+   Une case du tableau, posée juste sous les séances : son trait
+   noir autour, sa couleur tirée au hasard, sa couleur au survol —
+   exactement comme les autres cases de la fiche. Elle était avant
+   une pastille encadrée à l'intérieur de la case des séances, où,
+   au milieu des pastilles d'horaires, elle avait l'air d'une séance
+   de plus. */
+.m-agenda {
+  justify-content: center;
+}
+
+/* ---------- La presse : le lien vers l'article, à la fin de la
+   fiche. Un seul mot, écrit à la taille des titres — c'est la case
+   qu'on doit repérer d'un coup d'œil en bas de la fiche, pas une
+   ligne d'information de plus. Même traitement que « Notre
+   histoire » sur la page Infos. */
+
+.m-presse {
+  justify-content: center;
+}
+.m-presse__titre {
+  font-family: var(--font-display);
+  font-weight: 900;
   text-transform: uppercase;
-  transition: background 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out;
-}
-/* Au survol elle s'inverse, en noir. Pas en vert : le vert du site
-   ne dit qu'une chose, « ceci achète un billet ». */
-.m-seances__agenda:hover,
-.m-seances__agenda:focus-visible {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--paper);
-}
-
-/* ---------- Bande presse : le lien vers l'article, à la fin de la
-   fiche. Une seule case sur sa bande : elle reste basse, elle ne
-   prend que la hauteur de son texte. */
-
-.m-presse__lien {
-  font-weight: 400;
-  line-height: 1.35;
+  letter-spacing: -0.01em;
+  font-size: var(--taille-titre);
+  line-height: 1;
 }
 
 /* ---------- Bande actions : retour & achat ---------- */
@@ -424,33 +420,21 @@ button.m-seances__chip:focus-visible {
   .m-bande--bas > .m-synopsis         { order: 5; }
   .mondrian--film > .m-ba             { order: 6; }
   .mondrian--film > .m-seances        { order: 7; }
-  .m-bande--bas > .m-presse           { order: 8; }
-  .m-bande--bas > .m-lien-retour      { order: 9; }
+  .mondrian--film > .m-agenda         { order: 8; }
+  .m-bande--bas > .m-presse           { order: 9; }
+  .m-bande--bas > .m-lien-retour      { order: 10; }
 }
 
 @media (min-width: 900px) {
-  /* Sur ordinateur, les trois cases tiennent sur une seule ligne et
-     se partagent la largeur au prorata de leur texte : le synopsis
-     prend l'essentiel, le lien de retour juste ce qu'il lui faut. */
-  .m-bande--bas {
-    flex-wrap: nowrap;
-  }
   .m-bande--bas > * {
     flex: 1 1 auto;
     min-width: 0;
   }
-  /* La case de presse se dimensionne sur son texte, comme ses
-     voisines. Mais quand il n'y a pas de citation, elle ne porte que
-     « Article de presse » : à côté d'un synopsis de dix lignes, sa
-     part devenait une colonne de deux lettres écrasée contre le bord
-     droit, avec le mot « PRESSE » coupé.
-
-     Un plancher la garde lisible. Elle peut toujours s'élargir
-     au-delà quand une citation lui donne de quoi la remplir ; c'est
-     le synopsis qui absorbe la différence, il en a les moyens. */
-  .m-bande--bas > .m-presse {
-    flex: 0 1 auto;
-    min-width: 15rem;
+  /* Le synopsis part de zéro et prend tout ce qui reste. Parti de
+     son texte, il réclamait à lui seul plus que la rangée entière
+     et poussait ses voisines à la ligne. */
+  .m-bande--bas > .m-synopsis {
+    flex: 1 1 0;
   }
   /* Le retour ouvre la rangée, tout à gauche : c'est le chemin
      d'où l'on vient, il ne part pas du bord droit. */
@@ -458,6 +442,27 @@ button.m-seances__chip:focus-visible {
     order: -1;
     flex: 0 0 auto;
     white-space: nowrap;
+  }
+  /* La case de presse ne porte qu'un mot, écrit à la taille des
+     titres. Jusqu'à 1200px, ce mot prenait un bon tiers de la
+     rangée et le synopsis finissait en colonne de quatre mots de
+     large : il passe donc sur sa propre ligne, pleine largeur, et
+     rend au synopsis toute la rangée du dessus. */
+  .m-bande--bas > .m-presse {
+    flex: 1 1 100%;
+    min-width: min-content;
+  }
+}
+
+@media (min-width: 1200px) {
+  /* À partir d'ici, la rangée est assez large pour les trois cases :
+     le synopsis prend l'essentiel, le mot « PRESSE » sa largeur, le
+     lien de retour juste ce qu'il lui faut. */
+  .m-bande--bas {
+    flex-wrap: nowrap;
+  }
+  .m-bande--bas > .m-presse {
+    flex: 0 1 auto;
   }
 }
 
@@ -627,6 +632,7 @@ button.m-acheter:focus-visible { background: var(--vert-fonce); }
       "affiche  reperes  reperes"
       "affiche  ba       ba"
       "seances  seances  seances"
+      "agenda   agenda   agenda"
       "bas      bas      bas";
   }
   /* Sans bande-annonce, sa case laisserait un trou noir : les
@@ -637,10 +643,17 @@ button.m-acheter:focus-visible { background: var(--vert-fonce); }
       "titre    titre    achat"
       "affiche  reperes  reperes"
       "affiche  seances  seances"
+      "agenda   agenda   agenda"
       "bas      bas      bas";
   }
 
   .mondrian--film > .m-bande--bas     { grid-area: bas; }
+  /* Le chemin vers l'agenda tient une rangée à lui, pleine largeur,
+     juste sous les séances. Glissé dans la colonne des séances, il
+     ajoutait une rangée à la hauteur de l'affiche voisine, qui garde
+     un format d'affiche : celle-ci ne remplissait plus sa case et
+     laissait un trait noir sous elle. */
+  .mondrian--film > .m-agenda         { grid-area: agenda; }
   .mondrian--film > .m-titre          { grid-area: titre; }
   .mondrian--film > .m-acheter        { grid-area: achat; }
   .mondrian--film > .m-affiche        { grid-area: affiche; }
@@ -719,6 +732,7 @@ button.m-acheter:focus-visible { background: var(--vert-fonce); }
       "titre    titre    achat"
       "reperes  reperes  reperes"
       "affiche  ba       seances"
+      "agenda   agenda   agenda"
       "bas      bas      bas";
   }
   /* La case de l'affiche garde le format d'affiche du site : c'est
@@ -734,6 +748,7 @@ button.m-acheter:focus-visible { background: var(--vert-fonce); }
       "titre    titre    achat"
       "reperes  reperes  reperes"
       "affiche  seances  seances"
+      "agenda   agenda   agenda"
       "bas      bas      bas";
   }
 }

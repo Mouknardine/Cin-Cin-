@@ -162,7 +162,7 @@ répéter. Pour les modifier, il faut passer par l'agence.
 - **Un événement** peut pointer vers des films : leurs affiches apparaissent
   alors sur l'événement sans rien recopier.
 - **Un article de presse** est un simple lien collé dans la fiche du film :
-  la page du film affiche « Article de presse », cliquable.
+  la page du film affiche alors une grande case « PRESSE », cliquable.
 
 ## Ce qui se décide tout seul (rien à régler)
 

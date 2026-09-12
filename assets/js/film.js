@@ -5,8 +5,8 @@
 
    Les cases sont écrites À PLAT, dans l'ordre de lecture du
    mobile : titre, acheter, affiche, informations, bande-annonce,
-   séances, puis la rangée du bas (synopsis, presse, retour aux
-   films). Aucune case n'est imbriquée dans une autre — c'est ce
+   séances, agenda, puis la rangée du bas (synopsis, presse, retour
+   aux films). Aucune case n'est imbriquée dans une autre — c'est ce
    qui permet à la grille ordinateur de les replacer librement
    (voir .mondrian--film dans film-mondrian.css) :
 
@@ -16,8 +16,10 @@
      │ année · pays · durée · genre · version · âge │
      ├──────────┼───────────────────────┬───────────┤
      │ AFFICHE  │ BANDE-ANNONCE         │ SÉANCES   │
+     │          │                       ├───────────┤
+     │          │                       │ L'AGENDA  │
      ├────────────┬────────────────────┬───────────┤
-     │ LES FILMS  │ SYNOPSIS           │ LA PRESSE │
+     │ LES FILMS  │ SYNOPSIS           │ PRESSE    │
      └────────────┴────────────────────┴───────────┘
 
    L'affiche tient le tiers gauche, sur la seule rangée de la
@@ -146,7 +148,19 @@
       '<div class="m-cell m-seances ' + C.classeSansSurvol() + '">' +
       '<p class="m-cell__label">' + (annonce ? "Sortie" : "Séances") + "</p>" +
       (annonce ? sortieHTML(film) : seancesHTML(film)) +
-      '<a href="' + root + 'agenda/" class="m-seances__agenda">Voir les séances</a></div>'
+      "</div>"
+    );
+  }
+
+  /* Le chemin vers l'agenda, juste sous les séances. C'est une case
+     du tableau comme les autres — son trait noir autour, sa couleur
+     au survol — et non plus une pastille encadrée posée dans la
+     case des séances : à côté des horaires, qui sont des pastilles
+     eux aussi, elle avait l'air d'une séance de plus. */
+  function caseAgendaHTML() {
+    return (
+      '<a href="' + root + 'agenda/" class="m-cell m-action m-agenda ' + C.classe() + '">' +
+      "<span>Voir les séances</span></a>"
     );
   }
 
@@ -226,15 +240,21 @@
      l'article. Il n'y a qu'un lien à coller dans le Studio, rien
      d'autre — une citation demandait de relire l'article et de
      choisir une phrase, ce que personne ne faisait. Sans lien, la
-     case disparaît et la rangée du bas se repartage sa largeur. */
+     case disparaît et la rangée du bas se repartage sa largeur.
+
+     Un seul mot dans la case, écrit en grand, comme « Notre
+     histoire » sur la page Infos : un intitulé au-dessus d'un
+     « Article de presse » disait deux fois la même chose en petit.
+     Ce que le mot seul ne dit pas — qu'il ouvre l'article, dans un
+     nouvel onglet — reste porté par aria-label, pour les lecteurs
+     d'écran. */
   function presseHTML(film) {
     var lien = String(film.presseUrl || "").trim();
     if (!lien) return "";
     return (
       '<a class="m-cell m-presse ' + C.classe() + '" href="' + R.escapeHtml(lien) +
       '" target="_blank" rel="noopener noreferrer" aria-label="Lire l\'article de presse">' +
-      '<p class="m-cell__label">La presse</p>' +
-      '<p class="m-presse__lien">Article de presse</p>' +
+      '<p class="m-presse__titre">Presse</p>' +
       "</a>"
     );
   }
@@ -343,6 +363,7 @@
       (infosHTML ? bande("m-bande--reperes", infosHTML) : "") +
       baCellHTML +
       seancesCellHTML +
+      caseAgendaHTML() +
       basHTML +
       (photosHTML ? bande("m-bande--photos", photosHTML) : "") +
       "</article>";

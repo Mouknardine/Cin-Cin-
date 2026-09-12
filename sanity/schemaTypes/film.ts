@@ -232,7 +232,7 @@ export const film = defineType({
       title: "Article de presse",
       type: "url",
       description:
-        "Facultatif. Collez l'adresse de l'article : la fiche du film affiche « Article de presse », cliquable. Rien d'autre à remplir.",
+        "Facultatif. Collez l'adresse de l'article : la fiche du film affiche alors une grande case « PRESSE », cliquable. Rien d'autre à remplir.",
     }),
 
     /* ---------------- Encadrés repliables ---------------- */
