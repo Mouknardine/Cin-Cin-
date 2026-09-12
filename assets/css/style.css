@@ -279,9 +279,9 @@ button {
 /* Le nom du cinéma ramène à l'accueil. Il est écrit, pas dessiné :
    mêmes capitales et même graisse que les rubriques voisines, mais
    plus grand — c'est le nom de la maison, il passe devant ses
-   rubriques. Au survol, sa case se remplit de rose fluo — comme la
-   signature de l'agence tout en bas : les deux bornes de la page
-   réagissent de la même façon. */
+   rubriques. Au survol — à la souris seulement —, sa case se remplit
+   de rose fluo, comme la signature de l'agence tout en bas : les
+   deux bornes de la page réagissent de la même façon. */
 .site-header__nom {
   display: flex;
   position: relative;
@@ -301,7 +301,19 @@ button {
   color: var(--ink);
   transition: background 0.2s ease-out;
 }
-.site-header__nom:hover,
+/* Le rose n'existe que là où l'on survole vraiment. Sur un écran
+   tactile il n'y a pas de survol : le doigt « survole » en touchant,
+   et le carré rose restait allumé sous le nom du cinéma bien après
+   qu'on ait relâché. Il est donc réservé aux appareils qui pointent.
+
+   Le rose du clavier, lui, reste sur tous les appareils : c'est le
+   seul repère qui dit où l'on se trouve en tabulant, et il ne
+   s'allume jamais au doigt ni à la souris. */
+@media (hover: hover) and (pointer: fine) {
+  .site-header__nom:hover {
+    background: var(--rose-fluo);
+  }
+}
 .site-header__nom:focus-visible {
   background: var(--rose-fluo);
 }
