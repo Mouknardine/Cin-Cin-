@@ -54,6 +54,10 @@ const BLEU = '#2f49c2'
 const JAUNE = '#f7c600'
 /** L'encre éclaircie : les mentions secondaires, sur papier. */
 const GRIS = '#57534a'
+/* Le vert du billet. C'est la seule couleur du site qui ait un sens fixe :
+   elle ne sert qu'à acheter une place, nulle part ailleurs (voir --vert dans
+   assets/css/style.css). La newsletter respecte la même règle. */
+const VERT = '#275a1b'
 /** Le papier assombri : les mentions secondaires, sur encre. */
 const GRIS_CLAIR = '#a9a69e'
 
@@ -65,6 +69,19 @@ const LARGEUR = 600
 const LARGEUR_AFFICHE = 300
 
 const POLICE = `'Helvetica Neue',Helvetica,Arial,sans-serif`
+
+/* L'adresse du site. Elle est fixe, comme le projet Sanity l'est dans
+   sanity.cli.ts : un e-mail parti avec une mauvaise adresse ne se rattrape
+   pas, et une variable d'environnement oubliée ne doit pas pouvoir renvoyer
+   les abonnés ailleurs. */
+const SITE = 'https://www.zinema.ch'
+
+/** L'adresse de la page d'un film sur le site. */
+function lienDuFilm(slug: string | null | undefined): string | null {
+  const propre = String(slug ?? '').trim()
+  if (!propre) return null
+  return echapper(`${SITE}/film/?s=${encodeURIComponent(propre)}`)
+}
 
 /** Les couleurs qui se relaient d'un jour à l'autre, jamais deux fois de suite. */
 const COULEURS_DES_JOURS: {fond: string; encre: string}[] = [
@@ -113,6 +130,24 @@ function bandeau(titre: string): string {
     echapper(titre),
     `background-color:${ENCRE};color:${PAPIER};padding:7px 12px;font-size:11px;` +
       `line-height:1.3;font-weight:900;letter-spacing:0.18em;text-transform:uppercase;`,
+  )}</tr>`
+}
+
+/**
+ * L'appel au site, juste après le programme.
+ *
+ * Toute la case est cliquable — dans un e-mail, c'est la seule façon d'être
+ * sûr que le doigt tombe juste. Le vert est celui du bouton d'achat du site :
+ * la seule couleur qui ait un sens fixe, et elle ne sert qu'à ça.
+ */
+function appelAuSite(): string {
+  return `<tr>${cellule(
+    `<a href="${SITE}/agenda/" style="display:block;color:#ffffff;text-decoration:none;">` +
+      `<span style="font-size:15px;line-height:1.3;font-weight:900;letter-spacing:-0.01em;">` +
+      `Prenez votre place sur zinema.ch</span><br>` +
+      `<span style="font-size:11.5px;line-height:1.5;color:#cfe0c9;">` +
+      `Horaires, bandes-annonces et billets — tout l'agenda y est tenu à jour.</span></a>`,
+    `background-color:${VERT};color:#ffffff;padding:12px 14px;`,
   )}</tr>`
 }
 
@@ -192,7 +227,12 @@ function lignesDuProgramme(programme: SeanceProgramme[]): string {
             'width="56"',
           ) +
           cellule(
-            echapper(seance.titre),
+            /* Le titre mène à la fiche du film, sans se déguiser en lien : la
+               couleur et le soulignement d'une messagerie feraient de cette
+               grille dense une bouillie bleue. */
+            lienDuFilm(seance.slug)
+              ? `<a href="${lienDuFilm(seance.slug)}" style="color:${ENCRE};text-decoration:none;">${echapper(seance.titre)}</a>`
+              : echapper(seance.titre),
             `padding:5px 8px;font-size:13px;line-height:1.2;font-weight:900;` +
               `text-transform:uppercase;letter-spacing:-0.01em;`,
           ) +
@@ -239,15 +279,25 @@ function blocFilm(
     ? lignesDeSeances(film.seances, donnees.debutSemaine)
     : ''
 
-  const caseAffiche = affiche
+  const versLeFilm = lienDuFilm(film.slug)
+
+  const image = affiche
     ? `<img src="${affiche}" width="150" alt="${echapper(film.titre)}" ` +
       `style="display:block;width:150px;max-width:150px;height:auto;border:0;">`
     : /* Sans affiche, une case d'encre plutôt qu'une image cassée. */
       `<div style="height:${options.hauteurAffiche}px;line-height:${options.hauteurAffiche}px;` +
       `text-align:center;color:#6d6a62;font-size:9px;letter-spacing:0.14em;` +
       `text-transform:uppercase;">Affiche</div>`
+  /* L'affiche est le plus gros objet du bloc : c'est elle qu'on clique
+     d'instinct. Elle mène à la fiche du film sur le site. */
+  const caseAffiche = versLeFilm
+    ? `<a href="${versLeFilm}" style="display:block;text-decoration:none;">${image}</a>`
+    : image
 
   const liens = [
+    versLeFilm
+      ? `<a href="${versLeFilm}" style="color:${BLEU};font-weight:700;">Voir la fiche et prendre sa place</a>`
+      : null,
     bandeAnnonce
       ? `<a href="${bandeAnnonce}" style="color:${BLEU};font-weight:700;">Bande-annonce</a>`
       : null,
@@ -267,7 +317,11 @@ function blocFilm(
         cellule(
           (etiquette ? pastille(etiquette.texte, etiquette.ton) : '') +
             `<div style="font-size:19px;line-height:1.05;font-weight:900;letter-spacing:-0.02em;` +
-            `text-transform:uppercase;padding-top:${etiquette ? '7px' : '0'};">${echapper(film.titre)}</div>` +
+            `text-transform:uppercase;padding-top:${etiquette ? '7px' : '0'};">` +
+            (versLeFilm
+              ? `<a href="${versLeFilm}" style="color:${ENCRE};text-decoration:none;">${echapper(film.titre)}</a>`
+              : echapper(film.titre)) +
+            `</div>` +
             `<div style="font-size:11px;line-height:1.45;font-weight:700;color:${GRIS};padding-top:4px;">${ligneTechnique(film)}</div>` +
             `<div style="padding-top:7px;">${paragraphes(film.synopsis, 'font-size:12.5px;line-height:1.5;')}</div>` +
             (seances
@@ -325,8 +379,13 @@ function blocPratique(donnees: DonneesNewsletter): string {
         tarif(reglages.tarifPlein, 'Tarif ordinaire') +
         tarif(reglages.tarifReduit, conditions || 'Tarif réduit') +
         `<tr>${cellule(
-          `<b>Pas de cartes bancaires</b> : espèces ou TWINT. ` +
-            `<b>Pas de réservations</b> : billets en vente à la buvette 15 minutes avant la séance.`,
+          /* Ce qui était écrit ici — « pas de cartes bancaires, pas de
+             réservations » — datait d'avant l'ouverture de la billetterie en
+             ligne, le 8 septembre 2026. C'était devenu faux, et surtout
+             dissuasif : on annonçait aux abonnés qu'ils ne pouvaient pas
+             réserver, sur le message même qui aurait dû les y conduire. */
+          `<b>Billets en ligne sur <a href="${SITE}" style="color:${ENCRE};">zinema.ch</a></b>, ` +
+            `ou à la buvette 15 minutes avant la séance.`,
           'padding:7px 10px;font-size:12px;line-height:1.5;',
           'colspan="2"',
         )}</tr>` +
@@ -425,6 +484,7 @@ export function construireNewsletter(
         `</table>`,
       'padding:0;',
     )}</tr>` +
+    appelAuSite() +
     /* Les films */
     (filmsDeLaSemaine ? bandeau('Les films de la semaine') + filmsDeLaSemaine : '') +
     (filmsAVenir ? bandeau('À venir') + filmsAVenir : '') +

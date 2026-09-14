@@ -50,7 +50,7 @@ const film = (o) => ({
   genres: [], realisation: null, pays: null, annee: null, duree: null,
   version: null, sousTitres: null, age: null, synopsis: null, dateDeSortie: null,
   statut: 'a-laffiche', bandeAnnonce: null, presse: null, afficheRef: null,
-  seances: [], ...o,
+  seances: [], slug: o._id, ...o,
 })
 
 /* Sept films à l'affiche. Six ont ouvert le mercredi 9 — ils en sont donc à
@@ -102,7 +102,7 @@ function donneesPour(affiche, aVenir = A_VENIR, debut = DEBUT, fin = FIN) {
     affiche.flatMap((f) =>
       f.seances
         .filter((s) => s.date >= debut && s.date <= fin && s.statut !== 'annule')
-        .map((s) => ({...s, filmId: f._id, titre: f.titre})),
+        .map((s) => ({...s, filmId: f._id, titre: f.titre, slug: f.slug})),
     ),
   )
   const rang = new Map()
@@ -141,10 +141,14 @@ function verifier(intitule, condition, detail = '') {
   }
 }
 
-/** Les titres de films du programme, dans l'ordre où le gabarit les écrit. */
+/** Les titres de films du programme, dans l'ordre où le gabarit les écrit.
+    On s'arrête à l'appel au site, qui suit le tableau et porte le même
+    interlettrage ; et chaque titre est enveloppé dans son lien. */
 function titresDuProgramme(html) {
-  const bloc = html.split('>Le programme<')[1].split('>Les films de la semaine<')[0]
-  return [...bloc.matchAll(/letter-spacing:-0\.01em;">([^<]*)</g)].map((m) => m[1])
+  const bloc = html
+    .split('>Le programme<')[1]
+    .split('https://www.zinema.ch/agenda/')[0]
+  return [...bloc.matchAll(/letter-spacing:-0\.01em;">(?:<a[^>]*>)?([^<]*)</g)].map((m) => m[1])
 }
 
 /** Les étiquettes, dans l'ordre. La signature complète d'une pastille : le
@@ -216,6 +220,51 @@ console.log('\nLes étiquettes, calculées et non saisies')
     "une sortie lointaine est annoncée elle aussi",
     lues.includes('Sortie le mercredi 16 décembre'),
     lues.join(' | '),
+  )
+}
+
+console.log('\nCe qui ramène les abonnés sur le site')
+{
+  const html = construire()
+  verifier(
+    "la mention « pas de cartes bancaires » a disparu — la billetterie en ligne est ouverte",
+    !/cartes bancaires/i.test(html) && !/[Pp]as de réservations/.test(html),
+  )
+  verifier(
+    'les billets en ligne sont annoncés',
+    html.includes('Billets en ligne') && html.includes('zinema.ch'),
+  )
+  verifier(
+    "l'agenda du site est mis en avant après le programme",
+    html.includes('https://www.zinema.ch/agenda/'),
+  )
+  /* Dix blocs de film : sept à l'affiche, trois à venir. La case de l'affiche
+     est le plus gros objet cliquable du bloc — avec ou sans image dedans. */
+  verifier(
+    "la case de l'affiche mène à la fiche du film, dans les dix blocs",
+    (html.match(/href="https:\/\/www\.zinema\.ch\/film\/\?s=[^"]*" style="display:block;/g) ?? [])
+      .length === 10,
+  )
+  {
+    const avecAffiche = construire(
+      [film({_id: 'avec-affiche', titre: 'Avec affiche', slug: 'avec-affiche',
+        afficheRef: 'image-abc123def456-800x1200-jpg',
+        seances: [S(DEBUT, '19:00', 'Salle 1')]})],
+      [],
+    )
+    verifier(
+      "quand l'affiche existe, l'image du serveur Sanity est enveloppée dans le lien",
+      /href="https:\/\/www\.zinema\.ch\/film\/\?s=avec-affiche"[^>]*><img src="https:\/\/cdn\.sanity\.io\/images\/vle63mzm\/production\/abc123def456-800x1200\.jpg\?w=300&fit=max"/.test(avecAffiche),
+    )
+  }
+  verifier(
+    'les titres du programme sont cliquables sans se déguiser en liens',
+    html.includes(`text-decoration:none;">Mélodie</a>`),
+  )
+  verifier(
+    "un film sans adresse de page ne fabrique pas de lien vide",
+    !construire([film({_id: 'sans', titre: 'Sans adresse', slug: null,
+      seances: [S(DEBUT, '19:00', 'Salle 1')]})], []).includes('film/?s="'),
   )
 }
 

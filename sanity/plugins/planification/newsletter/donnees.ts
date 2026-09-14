@@ -27,12 +27,16 @@ export interface SeanceNewsletter {
 export interface SeanceProgramme extends SeanceNewsletter {
   filmId: string | null
   titre: string
+  /** L'adresse de la fiche du film sur le site, pour rendre le titre cliquable. */
+  slug: string | null
 }
 
 /** Un film, avec ses séances sur la fenêtre observée. */
 export interface FilmNewsletter {
   _id: string
   titre: string
+  /** L'adresse de sa page sur le site : zinema.ch/film/?s=… */
+  slug: string | null
   realisation: string | null
   pays: string | null
   annee: number | null
@@ -78,6 +82,7 @@ export interface DonneesNewsletter {
 const CHAMPS_FILM = `
   _id,
   "titre": title,
+  "slug": coalesce(slug.current, _id),
   "realisation": director,
   "pays": country,
   "annee": year,
@@ -166,7 +171,12 @@ export async function chargerNewsletter(
           (seance) =>
             seance.date >= debut && seance.date <= fin && seance.statut !== 'annule',
         )
-        .map((seance) => ({...seance, filmId: film._id, titre: film.titre})),
+        .map((seance) => ({
+          ...seance,
+          filmId: film._id,
+          titre: film.titre,
+          slug: film.slug,
+        })),
     ),
   )
 
