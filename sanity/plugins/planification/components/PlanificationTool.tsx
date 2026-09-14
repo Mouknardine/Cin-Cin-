@@ -2,7 +2,7 @@
  * Onglet « Planification » du Studio : vue de la semaine, navigation,
  * assistants de programmation et de duplication, suppression de séances.
  */
-import {AddIcon, ChevronLeftIcon, ChevronRightIcon, CopyIcon, SyncIcon} from '@sanity/icons'
+import {AddIcon, ChevronLeftIcon, ChevronRightIcon, CopyIcon, EnvelopeIcon, SyncIcon} from '@sanity/icons'
 import {Box, Button, Card, Container, Dialog, Flex, Stack, Text, useToast} from '@sanity/ui'
 import {useCallback, useMemo, useState} from 'react'
 import {useClient} from 'sanity'
@@ -17,12 +17,13 @@ import {
   formatJourCourt,
   formatPeriodeSemaine,
 } from '../utils/dates'
+import {DialogNewsletter} from '../newsletter/DialogNewsletter'
 import {supprimerSeance} from '../utils/mutations'
 import {DialogDupliquerSemaine} from './DialogDupliquerSemaine'
 import {DialogProgrammerFilm} from './DialogProgrammerFilm'
 import {GrilleSemaine} from './GrilleSemaine'
 
-type DialogOuvert = 'programmer' | 'dupliquer' | null
+type DialogOuvert = 'programmer' | 'dupliquer' | 'newsletter' | null
 
 export function PlanificationTool(): React.JSX.Element {
   const client = useClient({apiVersion: API_VERSION})
@@ -87,6 +88,12 @@ export function PlanificationTool(): React.JSX.Element {
               onClick={() => setDialogOuvert('dupliquer')}
             />
             <Button
+              icon={EnvelopeIcon}
+              text="Newsletter"
+              mode="ghost"
+              onClick={() => setDialogOuvert('newsletter')}
+            />
+            <Button
               icon={AddIcon}
               text="Programmer un film"
               tone="primary"
@@ -131,6 +138,9 @@ export function PlanificationTool(): React.JSX.Element {
           onFermer={fermerDialog}
           onCree={recharger}
         />
+      )}
+      {dialogOuvert === 'newsletter' && (
+        <DialogNewsletter debutSemaine={debutSemaine} onFermer={fermerDialog} />
       )}
       {seanceASupprimer && (
         <Dialog

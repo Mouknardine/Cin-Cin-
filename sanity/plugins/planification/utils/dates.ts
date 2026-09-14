@@ -97,3 +97,73 @@ export function formatPeriodeSemaine(debutISO: string): string {
   }).format(enDateUTC(finISO))
   return `Semaine du ${debut} au ${fin}`
 }
+
+/* ---------------------------------------------------------------------------
+   Les formats longs, pour la newsletter hebdomadaire.
+   --------------------------------------------------------------------------- */
+
+/** Ex. « mercredi 16 septembre » */
+export function formatJourLong(dateISO: string): string {
+  return new Intl.DateTimeFormat('fr-CH', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    timeZone: 'UTC',
+  }).format(enDateUTC(dateISO))
+}
+
+/** Ex. « mardi 22 septembre 2026 » — avec l'année, pour clore une période. */
+export function formatJourLongAvecAnnee(dateISO: string): string {
+  return (
+    new Intl.DateTimeFormat('fr-CH', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+      timeZone: 'UTC',
+    })
+      .format(enDateUTC(dateISO))
+      /* Le suisse romand écrit « mardi 22 septembre », sans virgule après le
+         jour — Intl en pose une dès qu'on lui demande l'année. */
+      .replace(/^(\S+),/, '$1')
+  )
+}
+
+/** Ex. « mer. » — le jour seul, abrégé. */
+export function formatJourAbrege(dateISO: string): string {
+  return new Intl.DateTimeFormat('fr-CH', {weekday: 'short', timeZone: 'UTC'})
+    .format(enDateUTC(dateISO))
+    .replace(/\.$/, '')
+}
+
+/** Le quantième du mois : « 16 ». */
+export function numeroDuJour(dateISO: string): string {
+  return String(Number(dateISO.slice(8, 10)))
+}
+
+/**
+ * Le numéro de semaine ISO 8601 — le « (38) » que le cinéma écrit dans
+ * l'objet de sa newsletter.
+ *
+ * La règle ISO : la semaine 1 est celle qui contient le premier jeudi de
+ * l'année. On se déplace donc sur le jeudi de la semaine civile (lundi →
+ * dimanche) de la date donnée, et on compte les semaines depuis le 1er
+ * janvier de CETTE année-là — celle du jeudi, qui n'est pas toujours celle
+ * de la date (un 31 décembre peut appartenir à la semaine 1 de l'an suivant).
+ */
+export function numeroDeSemaine(dateISO: string): number {
+  const date = enDateUTC(dateISO)
+  /* getUTCDay() : dimanche = 0. On veut lundi = 0 pour viser le jeudi. */
+  const depuisLundi = (date.getUTCDay() + 6) % 7
+  date.setUTCDate(date.getUTCDate() - depuisLundi + 3)
+  const premierJanvier = new Date(Date.UTC(date.getUTCFullYear(), 0, 1))
+  const jours = Math.round((date.getTime() - premierJanvier.getTime()) / 86400000)
+  return Math.floor(jours / 7) + 1
+}
+
+/** Le nombre de semaines de cinéma entre deux dates (négatif si la seconde précède). */
+export function semainesEntre(depuisISO: string, jusquISO: string): number {
+  const debutA = enDateUTC(debutDeSemaine(depuisISO)).getTime()
+  const debutB = enDateUTC(debutDeSemaine(jusquISO)).getTime()
+  return Math.round((debutB - debutA) / (86400000 * 7))
+}

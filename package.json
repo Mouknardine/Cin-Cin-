@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "npx serve@latest .",
-    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON verifications/ordre-des-seances.mjs",
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON verifications/ordre-des-seances.mjs && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON verifications/newsletter.mjs",
     "studio:dev": "sanity dev",
     "studio:deploy": "sanity deploy",
     "typecheck": "tsc --noEmit -p tsconfig.json"
@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.16.11",
+    "esbuild": "^0.25.6",
     "typescript": "^5.6.3"
   }
 }
