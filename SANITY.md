@@ -188,7 +188,11 @@ Le Studio refuse de publier une fiche incomplète et explique pourquoi :
 - une salle sans nombre de places.
 
 Et il **avertit** (sans bloquer) si une séance chevauche une autre dans la
-même salle — durée du film plus 15 minutes de pause comprises.
+même salle. Une salle est prise de l'heure de début jusqu'à la minute exacte
+de fin du film, et pas une minute de plus : **aucun battement n'est imposé**,
+deux séances peuvent s'enchaîner directement. Le temps de nettoyage, de
+publicité ou d'accueil relève du métier, pas de l'outil — c'est à vous de le
+prévoir dans les horaires.
 
 ## L'onglet « Planification »
 
@@ -232,6 +236,30 @@ npm test                # Vérifie l'ordre du programme (Studio ET site)
 existe forcément en deux exemplaires — `sanity/salles.ts` pour le Studio,
 `assets/js/data.js` pour le site, qui ne peut pas importer de TypeScript. Le
 fichier passe chaque cas dans les deux copies et refuse qu'elles diffèrent.
+Le workflow **Vérifier** lance `npm run typecheck` et `npm test` à chaque
+envoi, sur toutes les branches.
+
+### Le Studio se publie tout seul
+
+**`npm run studio:deploy` n'est plus à lancer à la main.** Dès qu'un fichier
+du Studio (`sanity/`, `sanity.config.ts`, `sanity.cli.ts`, `package.json`)
+arrive sur la branche de publication, le workflow **Déploiement du Studio
+Sanity** vérifie puis republie <https://cincin-zinema.sanity.studio>.
+
+Il lui faut un secret, à créer une seule fois dans **Settings → Secrets and
+variables → Actions** :
+
+| Nom du secret       | Où le prendre                                         |
+| ------------------- | ----------------------------------------------------- |
+| `SANITY_AUTH_TOKEN` | [sanity.io/manage](https://www.sanity.io/manage) → projet `vle63mzm` → API → Tokens → **Deploy Studio** |
+
+Prendre les droits **Deploy Studio**, pas « Editor » : ce jeton publie l'outil,
+il n'a aucune raison de pouvoir modifier le contenu du cinéma. Tant que le
+secret n'existe pas, le workflow ne casse rien — il passe son tour avec un
+avertissement, et `npm run studio:deploy` reste disponible à la main.
+
+Le CONTENU, lui, n'a jamais eu besoin d'être déployé : un film ajouté dans le
+Studio apparaît tout seul sur le site.
 
 Le Studio lit `.env.local` (copier `.env.local.example`). Le site, lui, n'a
 besoin de rien : son Project ID est écrit dans

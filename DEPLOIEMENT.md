@@ -73,6 +73,12 @@ une fois ; ensuite tout se saisit normalement dans le Studio.
 Le dossier `api/` (la billetterie) part avec le reste : contrairement à
 GitHub Pages, Infomaniak sait exécuter PHP.
 
+**Et le Studio Sanity ?** Il se publie tout seul lui aussi, par un workflow
+séparé — **Déploiement du Studio Sanity** —, dès qu'un fichier du Studio
+change. Il lui faut un quatrième secret, `SANITY_AUTH_TOKEN` : marche à suivre
+dans [SANITY.md](SANITY.md#le-studio-se-publie-tout-seul). Le *contenu* (films,
+séances, tarifs), lui, n'a jamais besoin d'être déployé : il apparaît seul.
+
 ### L'alternative : à la main, par FTP
 
 Ouvrir le dépôt dans un logiciel FTP (FileZilla, Cyberduck) et déposer

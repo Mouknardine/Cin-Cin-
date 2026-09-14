@@ -1,0 +1,105 @@
+name: Déploiement du Studio Sanity
+
+# Met en ligne https://cincin-zinema.sanity.studio — l'outil que le cinéma
+# utilise tous les jours pour sa programmation.
+#
+# POURQUOI CE WORKFLOW EXISTE
+#
+# Le CONTENU (films, séances, tarifs) n'a jamais besoin d'être déployé : il
+# vit dans Sanity et apparaît tout seul. Mais le Studio LUI-MÊME — ses
+# formulaires, ses garde-fous, l'onglet Planification et l'ordre dans lequel
+# la grille se lit — est du code de ce dépôt. Tant qu'il fallait lancer
+# « npm run studio:deploy » à la main, une correction pouvait être fusionnée,
+# publiée sur le site, et rester invisible dans le Studio pendant des
+# semaines : le cinéma continuait de voir l'ancien outil.
+#
+# À régler UNE SEULE FOIS, dans Settings → Secrets and variables →
+# Actions → New repository secret :
+#
+#   SANITY_AUTH_TOKEN
+#
+# Le jeton se crée sur https://www.sanity.io/manage → projet vle63mzm
+# → API → Tokens → Add API token, avec les droits « Deploy Studio »
+# (PAS « Editor » : ce jeton ne doit pas pouvoir modifier le contenu).
+# Il se révoque au même endroit, à tout moment.
+#
+# C'est un secret différent de SANITY_WRITE_TOKEN, qui sert au workflow
+# « Mettre Sanity à jour » et n'a, lui, pas le droit de publier le Studio.
+
+on:
+  push:
+    branches:
+      - claude/zinema-cinema-redesign-ttcpaf
+    # Le Studio n'est reconstruit que si le Studio a changé. Une retouche
+    # de CSS sur le site public n'a aucune raison de le republier.
+    paths:
+      - "sanity/**"
+      - "sanity.config.ts"
+      - "sanity.cli.ts"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/deploy-studio.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: studio
+  # Une publication en cours n'est jamais interrompue : la couper au
+  # milieu laisserait le Studio à moitié mis à jour.
+  cancel-in-progress: false
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node 22 : « npm test » lit directement sanity/salles.ts, le fichier
+      # du Studio, et Node ne sait retirer les annotations TypeScript tout
+      # seul que depuis cette version.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Tant que le secret n'est pas créé, on ne tente rien : une
+      # publication qui échoue à chaque envoi n'apprend rien à personne.
+      # Le récapitulatif de l'action dit quoi faire.
+      - name: Le jeton Sanity est-il renseigné ?
+        id: jeton
+        env:
+          JETON: ${{ secrets.SANITY_AUTH_TOKEN }}
+        run: |
+          if [ -z "$JETON" ]; then
+            echo "pret=non" >> "$GITHUB_OUTPUT"
+            echo "::warning::Publication du Studio ignorée : le secret SANITY_AUTH_TOKEN n'existe pas encore. Le créer dans Settings → Secrets and variables → Actions, à partir d'un jeton « Deploy Studio » de https://www.sanity.io/manage (projet vle63mzm → API → Tokens). En attendant, le Studio se publie à la main : npm run studio:deploy."
+          else
+            echo "pret=oui" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Installer les dépendances
+        if: steps.jeton.outputs.pret == 'oui'
+        run: npm ci
+
+      # Le même garde-fou que le workflow « Vérifier », mais ici il barre
+      # la route : on ne publie pas dans le Studio du cinéma un outil qui
+      # ne tient pas debout.
+      - name: Les schémas du Studio se tiennent
+        if: steps.jeton.outputs.pret == 'oui'
+        run: npm run typecheck
+
+      - name: L'ordre du programme est le bon
+        if: steps.jeton.outputs.pret == 'oui'
+        run: npm test
+
+      # Le projet et l'adresse du Studio (cincin-zinema) sont fixés dans
+      # sanity.cli.ts, pas ici : aucune variable d'environnement ne peut
+      # faire publier ailleurs par mégarde.
+      - name: Publier le Studio
+        if: steps.jeton.outputs.pret == 'oui'
+        env:
+          SANITY_AUTH_TOKEN: ${{ secrets.SANITY_AUTH_TOKEN }}
+        run: npm run studio:deploy
+
+      - name: Où c'est en ligne
+        if: steps.jeton.outputs.pret == 'oui'
+        run: echo "Studio publié — https://cincin-zinema.sanity.studio" >> "$GITHUB_STEP_SUMMARY"

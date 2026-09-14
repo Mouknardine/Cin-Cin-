@@ -1,6 +1,6 @@
 import { defineField, defineType, type SanityDocument } from "sanity";
 
-import { intervallesSeChevauchent } from "../plugins/planification/utils/conflits";
+import { heureDeFin, intervallesSeChevauchent } from "../plugins/planification/utils/conflits";
 import { listeDesSalles, SALLES } from "../salles";
 
 /* ============================================================
@@ -38,7 +38,10 @@ export const screening = defineType({
   title: "Séance",
   type: "document",
   // Avertit (sans bloquer) si une autre séance occupe déjà la même salle
-  // au même moment (durée du film + pause de nettoyage comprises).
+  // au même moment. Une salle est prise de l'heure de début jusqu'à la
+  // minute exacte de fin du film, et pas une minute de plus : aucun
+  // battement n'est imposé, deux séances peuvent s'enchaîner
+  // directement (voir plugins/planification/utils/conflits.ts).
   validation: (Rule) =>
     Rule.custom(async (document, contexte) => {
       const seance = document as ScreeningEnCours | undefined;
@@ -66,7 +69,19 @@ export const screening = defineType({
         intervallesSeChevauchent(time, duree, autre.heure, autre.duree)
       );
       if (genante) {
-        return `Attention : « ${genante.titre ?? "un autre film"} » occupe déjà cette salle vers ${genante.heure} (durée du film + 15 min de pause). Choisissez une autre heure ou l'autre salle.`;
+        const titreGenant = genante.titre ?? "un autre film";
+        /* Dire jusqu'à quand la salle est prise, pas seulement qu'elle
+           l'est : c'est ce qui permet de corriger l'heure du premier
+           coup. La salle se libère à la minute exacte de fin du film.
+
+           Sans durée connue, l'outil suppose deux heures pour repérer
+           le chevauchement — mais il ne l'ANNONCE pas comme une heure
+           de fin : une heure inventée serait pire que pas d'heure. */
+        const fin =
+          typeof genante.duree === "number" ? heureDeFin(genante.heure, genante.duree) : null;
+        return fin
+          ? `Attention : « ${titreGenant} » occupe déjà cette salle de ${genante.heure} à ${fin.heure}${fin.lendemain ? " (le lendemain)" : ""}, et elle se libère à ${fin.heure} pile. Choisissez une autre heure ou l'autre salle.`
+          : `Attention : « ${titreGenant} » occupe déjà cette salle à ${genante.heure}. Choisissez une autre heure ou l'autre salle.`;
       }
       return true;
     }).warning(),
