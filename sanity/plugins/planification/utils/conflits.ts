@@ -15,8 +15,14 @@
  * et l'outil ne doit pas lui refuser un enchaînement qu'elle a choisi.
  * ---------------------------------------------------------------------------
  */
+import {heureEnMinutes} from '../../../salles'
 import type {SeanceCandidate, SeancePlanning} from '../types'
 import {formatJourCourt} from './dates'
+
+/* La lecture d'une heure vient de sanity/salles.ts : l'ordre du
+   programme et la détection des conflits doivent comprendre « 21:15 »
+   exactement de la même façon. Réexportée ici, où on la cherche. */
+export {heureEnMinutes}
 
 /**
  * Durée retenue quand un film n'a pas de durée renseignée (en minutes).
@@ -24,13 +30,6 @@ import {formatJourCourt} from './dates'
  * fiche du film — sans elle, aucun chevauchement ne pourrait être détecté.
  */
 export const DUREE_PAR_DEFAUT_MIN = 120
-
-/** Convertit « 19:30 » en minutes depuis minuit. Renvoie null si le format est invalide. */
-export function heureEnMinutes(heure: string): number | null {
-  const correspondance = /^([01]?\d|2[0-3]):([0-5]\d)$/.exec(heure)
-  if (!correspondance) return null
-  return Number(correspondance[1]) * 60 + Number(correspondance[2])
-}
 
 const MINUTES_PAR_JOUR = 24 * 60
 

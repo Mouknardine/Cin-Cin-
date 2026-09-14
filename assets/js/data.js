@@ -101,30 +101,65 @@
     );
   }
 
-  /* ---------------- Ordre des séances ----------------
-     À heure égale, les séances se lisent salle par salle, dans
-     l'ordre du programme papier : Salle 1, Salle 2, puis le
-     Hall-Bar. Sanity ne sait pas trier ainsi (« Hall-Bar » passerait
-     devant « Salle 1 » par ordre alphabétique), c'est donc fait ici,
-     une seule fois, pour toutes les pages du site.
+  /* ---------------- L'ordre du programme ----------------
+     Une journée se lit VAGUE PAR VAGUE. Une vague, c'est le tour de
+     séances qui part à peu près en même temps — au plus une par
+     salle. On lit toute la vague de 19 h, salle par salle, puis la
+     vague suivante.
 
-     Cette liste est le reflet de SALLES dans sanity/salles.ts, qui
-     reste la source unique des noms de salles. Une salle inconnue —
-     un nom saisi à la main, une salle ajoutée là-bas mais pas ici —
-     n'est jamais perdue : elle se range simplement après les autres,
-     par ordre alphabétique. */
+     À l'intérieur d'une vague, les séances suivent l'ordre du
+     programme papier : Salle 1, Salle 2, puis le Hall-Bar.
+
+     Pourquoi une vague, et pas l'heure exacte ? Parce qu'un tour de
+     séances ne part pas toujours à la même minute dans les deux
+     salles : le vendredi, la Salle 1 enchaîne à 21:15, le temps que
+     finisse le long film de 19 h, quand la Salle 2 part à 21:00.
+     Trié à la minute près, le vendredi se lisait Salle 1, Salle 2,
+     puis Salle 2, Salle 1 — l'inverse de tous les autres jours.
+
+     Sanity ne sait pas ranger ainsi : c'est donc fait ici, une seule
+     fois, pour toutes les pages du site. La règle est celle de
+     sanity/salles.ts, qui reste la source unique des noms de salles
+     et de leur ordre ; verifications/ordre-des-seances.mjs compare
+     les deux copies pour qu'elles ne puissent plus diverger.
+
+     Une salle inconnue — un nom saisi à la main, une salle ajoutée
+     là-bas mais pas ici — n'est jamais perdue : elle se range
+     simplement après les autres, par ordre alphabétique. */
   var ORDRE_SALLES = ["Salle 1", "Salle 2", "Hall-Bar"];
+
+  /* Écart maximal entre la première séance d'une vague et les
+     suivantes : une demi-heure, le décalage que l'on se permet entre
+     deux salles. Au-delà, ce n'est plus le même tour de séances — une
+     matinée et une soirée ne se lisent pas ensemble. */
+  var ECART_MEME_VAGUE_MIN = 30;
 
   function rangSalle(nom) {
     var rang = ORDRE_SALLES.indexOf(String(nom || ""));
     return rang === -1 ? ORDRE_SALLES.length : rang;
   }
 
-  function comparerSeances(a, b) {
+  /* « 21:15 » → 1275, le nombre de minutes depuis minuit.
+     Null si l'heure est illisible ou absente. */
+  function heureEnMinutes(heure) {
+    var lu = /^([01]?\d|2[0-3]):([0-5]\d)$/.exec(String(heure == null ? "" : heure));
+    if (!lu) return null;
+    return Number(lu[1]) * 60 + Number(lu[2]);
+  }
+
+  /* L'ordre à la minute près : la date, puis l'heure, puis la salle. */
+  function comparerParHeure(a, b) {
     var parDate = String(a.date || "").localeCompare(String(b.date || ""));
     if (parDate !== 0) return parDate;
-    var parHeure = String(a.time || "").localeCompare(String(b.time || ""));
-    if (parHeure !== 0) return parHeure;
+    /* Les heures se comparent en minutes, pas en texte : « 9:30 »
+       écrit sans son zéro passerait sinon après « 21:00 ». Une heure
+       illisible se range en fin de journée plutôt que de jeter la
+       liste entière par terre. */
+    var minutesA = heureEnMinutes(a.time);
+    var minutesB = heureEnMinutes(b.time);
+    if (minutesA === null) minutesA = Number.MAX_SAFE_INTEGER;
+    if (minutesB === null) minutesB = Number.MAX_SAFE_INTEGER;
+    if (minutesA !== minutesB) return minutesA - minutesB;
     var rangA = rangSalle(a.room);
     var rangB = rangSalle(b.room);
     if (rangA !== rangB) return rangA - rangB;
@@ -133,12 +168,62 @@
     return String(a.room || "").localeCompare(String(b.room || ""));
   }
 
-  /* Trie une liste de séances sans jamais faire tomber la page : une
+  /* Range des séances dans l'ordre du programme : les vagues l'une
+     après l'autre, et dans chaque vague Salle 1, Salle 2, Hall-Bar.
+     La liste reçue n'est jamais modifiée. Les séances peuvent couvrir
+     plusieurs jours : une vague ne franchit jamais un changement de
+     date. */
+  function ordonnerSeances(seances) {
+    var parHeure = seances.slice().sort(comparerParHeure);
+    var vagues = [];
+    var vague = null;
+    var dateDeLaVague = "";
+    var debutDeLaVague = null;
+    var sallesDeLaVague = [];
+
+    parHeure.forEach(function (seance) {
+      var minutes = heureEnMinutes(seance.time);
+      var salle = String(seance.room || "");
+      /* La séance rejoint la vague en cours si c'est le même jour, si
+         sa salle n'y joue pas déjà, et si elle part dans la demi-heure
+         qui suit l'ouverture de la vague. Une heure illisible ne
+         rejoint jamais rien : on ne sait pas où elle tombe. */
+      var memeVague =
+        vague !== null &&
+        minutes !== null &&
+        debutDeLaVague !== null &&
+        String(seance.date || "") === dateDeLaVague &&
+        minutes - debutDeLaVague <= ECART_MEME_VAGUE_MIN &&
+        sallesDeLaVague.indexOf(salle) === -1;
+
+      if (memeVague) {
+        vague.push(seance);
+        sallesDeLaVague.push(salle);
+      } else {
+        vague = [seance];
+        vagues.push(vague);
+        dateDeLaVague = String(seance.date || "");
+        debutDeLaVague = minutes;
+        sallesDeLaVague = [salle];
+      }
+    });
+
+    var rangees = [];
+    vagues.forEach(function (groupe) {
+      groupe.sort(function (a, b) {
+        return rangSalle(a.room) - rangSalle(b.room) || comparerParHeure(a, b);
+      });
+      rangees = rangees.concat(groupe);
+    });
+    return rangees;
+  }
+
+  /* Range une liste de séances sans jamais faire tomber la page : une
      réponse d'erreur ou une valeur inattendue est renvoyée telle
      quelle, aux pages de l'interpréter. */
   function trierSeances(seances) {
     if (!Array.isArray(seances)) return seances;
-    return seances.slice().sort(comparerSeances);
+    return ordonnerSeances(seances);
   }
 
   /* ---------------- Morceaux de requête réutilisés ---------------- */
@@ -170,10 +255,11 @@
     projectId: SANITY_PROJECT_ID,
     dataset: SANITY_DATASET,
     aujourdhui: aujourdhui,
-    /* L'ordre du programme : par date, puis par heure, puis par
-       salle. Exposé pour les pages qui regroupent les séances
-       elles-mêmes, afin qu'elles trient exactement comme ici. */
-    comparerSeances: comparerSeances,
+    /* L'ordre du programme : les vagues de séances l'une après
+       l'autre, et dans chaque vague Salle 1, Salle 2, Hall-Bar.
+       C'est la SEULE porte d'entrée : les pages qui regroupent les
+       séances elles-mêmes (l'agenda, jour par jour) la rappellent sur
+       chaque groupe, et rangent donc exactement comme ici. */
     trierSeances: trierSeances,
 
     /** Tous les films encore d'actualité, les « terminés » exclus. */

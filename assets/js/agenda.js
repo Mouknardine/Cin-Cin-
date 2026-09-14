@@ -61,11 +61,11 @@
     });
     order.sort();
     return order.map(function (date) {
-      /* Le même ordre que partout ailleurs sur le site : l'heure,
-         puis la salle — Salle 1, Salle 2, Hall-Bar. Les chaînes sont
-         comparées comme des chaînes : une seule séance sans heure ne
-         doit pas emporter tout l'agenda. */
-      var list = map[date].slice().sort(window.ZinemaData.comparerSeances);
+      /* Le même ordre que partout ailleurs sur le site : les vagues de
+         séances l'une après l'autre, et dans chaque vague Salle 1,
+         Salle 2, Hall-Bar. Une seule séance sans heure ne doit pas
+         emporter tout l'agenda : elle se range en fin de journée. */
+      var list = window.ZinemaData.trierSeances(map[date]);
       return { date: date, screenings: list };
     });
   }

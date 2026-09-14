@@ -9,7 +9,7 @@ export const API_VERSION = '2025-02-19'
    les redéclarer ici les avait déjà fait diverger — l'outil ne
    proposait que deux salles quand le schéma en acceptait trois, et
    le Hall-Bar était donc impossible à programmer d'ici. */
-export {SALLES, comparerSeances, rangDeSalle} from '../../salles'
+export {SALLES, ordonnerSeances, rangDeSalle} from '../../salles'
 
 /** Un film tel que chargé pour la planification. */
 export interface FilmPlanning {

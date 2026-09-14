@@ -1,0 +1,48 @@
+name: Vérifier
+
+# Deux vérifications, à chaque envoi, avant toute publication :
+#
+#   npm run typecheck  — les schémas et l'outil Planification du Studio
+#                        se tiennent (TypeScript).
+#   npm test           — l'ordre du programme est le bon, et ses DEUX
+#                        copies (Studio et site) disent la même chose.
+#
+# L'ordre du programme existe forcément en deux exemplaires :
+# sanity/salles.ts pour le Studio, assets/js/data.js pour le site, qui
+# n'est fait que de HTML, de CSS et de JavaScript sans compilation et ne
+# peut donc pas importer de TypeScript. C'est précisément parce qu'on ne
+# peut pas les fusionner qu'on les compare ici à chaque fois : le
+# cinéma a signalé un vendredi mal rangé, on ne veut pas qu'il ait à le
+# signaler deux fois.
+#
+# Rien à régler : ce workflow n'a besoin d'aucun secret.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node 22 : verifications/ordre-des-seances.mjs lit directement
+      # sanity/salles.ts, le fichier du Studio. Node sait retirer les
+      # annotations TypeScript tout seul depuis cette version — c'est
+      # ce qui permet de vérifier la vraie règle du Studio, et pas une
+      # troisième copie écrite pour l'occasion.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Les schémas du Studio se tiennent
+        run: npm run typecheck
+
+      - name: L'ordre du programme est le bon
+        run: npm test

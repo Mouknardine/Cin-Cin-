@@ -203,6 +203,21 @@ En haut du Studio, à côté de « Contenu ». Il sert à programmer vite :
 - **Conflits de salle** : les chevauchements existants apparaissent en rouge,
   l'outil refuse d'en créer de nouveaux, et les doublons sont ignorés.
 
+### Dans quel ordre la grille se lit
+
+Une journée se lit **vague par vague** : le tour de séances de 19 h, salle par
+salle — Salle 1, Salle 2, puis le Hall-Bar —, puis le tour suivant.
+
+Un tour ne part pas toujours à la même minute dans les deux salles : la Salle 1
+peut enchaîner à 21:15, le temps que finisse un long film de 19 h, quand la
+Salle 2 part à 21:00. Les deux séances appartiennent au même tour et se lisent
+donc dans l'ordre des salles, pas à la minute près. Au-delà d'une demi-heure
+d'écart, ce n'est plus le même tour — une matinée ne se lit pas avec la
+soirée — et l'heure reprend la main.
+
+C'est l'ordre du **programme papier**, et c'est le même partout : la grille de
+la semaine, la liste des séances sur la fiche d'un film, et l'agenda du site.
+
 ## Travailler sur le Studio (côté technique)
 
 ```
@@ -210,7 +225,13 @@ npm install
 npm run studio:dev      # Studio local sur http://localhost:3333
 npm run studio:deploy   # Met en ligne https://cincin-zinema.sanity.studio
 npm run typecheck       # Vérifie les schémas
+npm test                # Vérifie l'ordre du programme (Studio ET site)
 ```
+
+`npm test` lit `verifications/ordre-des-seances.mjs`. L'ordre du programme
+existe forcément en deux exemplaires — `sanity/salles.ts` pour le Studio,
+`assets/js/data.js` pour le site, qui ne peut pas importer de TypeScript. Le
+fichier passe chaque cas dans les deux copies et refuse qu'elles diffèrent.
 
 Le Studio lit `.env.local` (copier `.env.local.example`). Le site, lui, n'a
 besoin de rien : son Project ID est écrit dans

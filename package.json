@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "npx serve@latest .",
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON verifications/ordre-des-seances.mjs",
     "studio:dev": "sanity dev",
     "studio:deploy": "sanity deploy",
     "typecheck": "tsc --noEmit -p tsconfig.json"

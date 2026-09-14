@@ -6,7 +6,7 @@
  */
 import type {SanityClient} from 'sanity'
 
-import {comparerSeances} from '../../../salles'
+import {ordonnerSeances} from '../../../salles'
 import type {FilmPlanning, NouvelleSeance, SeancePlanning} from '../types'
 
 const CHAMPS_SEANCE = `{
@@ -20,9 +20,11 @@ const CHAMPS_SEANCE = `{
 
 /**
  * Les séances publiées entre deux dates (incluses), dans l'ordre du
- * programme : la date, puis l'heure, puis la salle. Le dernier tri se
- * fait ici et pas dans la requête : trié par Sanity, « Hall-Bar »
- * passerait devant « Salle 1 » par ordre alphabétique.
+ * programme : les vagues de séances l'une après l'autre, et dans
+ * chaque vague Salle 1, Salle 2, puis le Hall-Bar (voir
+ * sanity/salles.ts). Ce rangement se fait ici et pas dans la requête :
+ * Sanity ne sait trier qu'à la minute près, et « Hall-Bar » passerait
+ * devant « Salle 1 » par ordre alphabétique.
  */
 export async function chargerSeancesPeriode(
   client: SanityClient,
@@ -34,7 +36,7 @@ export async function chargerSeancesPeriode(
       | order(date asc, heure asc)`,
     {debut, fin},
   )
-  return [...(seances ?? [])].sort(comparerSeances)
+  return ordonnerSeances(seances ?? [])
 }
 
 /** Tous les films, triés par titre (pour les listes déroulantes). */
