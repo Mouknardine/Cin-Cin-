@@ -13,9 +13,9 @@
 
 /* Les trois espaces du cinéma, tels qu'ils apparaissent sur le
    programme :
-     Salle 1  — parrainée Thierry Jobin (ex-Le Temps, fiff.ch)
-     Salle 2  — parrainée Norbert Creutz (Le Temps)
-     Hall-Bar — le bar, où se tiennent les séances particulières
+     Salle 1 et Salle 2, toutes deux parrainées (voir
+     PARRAIN_DE_SALLE plus bas), et le Hall-Bar, où se tiennent les
+     séances particulières.
    Seul le nom court sert de clé : c'est lui qu'on retrouve dans les
    séances et dans le comptage des places. */
 export const SALLES = ["Salle 1", "Salle 2", "Hall-Bar"] as const;
@@ -27,6 +27,30 @@ export const PLACES_PAR_DEFAUT: Record<NomDeSalle, number> = {
   "Salle 1": 18,
   "Salle 2": 14,
   "Hall-Bar": 50,
+};
+
+/* ------------------------------------------------------------
+   Les parrains des salles.
+
+   Le cinéma les annonce dans sa newsletter hebdomadaire, sous la
+   légende des salles :
+
+     (SAL1) = SALLE 1 - THIERRY JOBIN (EX-LE TEMPS, FIFF.CH) - 18 PLACES
+
+   Ils vivent ICI, et nulle part ailleurs. Ce fichier n'est lu que par
+   le Studio : le site public, fait de HTML et de JavaScript sans
+   compilation, ne peut pas l'importer — il ne connaît des salles que
+   leur nom, recopié dans assets/js/data.js. Le parrain ne peut donc
+   PAS se retrouver sur zinema.ch par mégarde ; il n'y a rien à
+   masquer, il n'y arrive pas.
+
+   Une salle sans parrain — le Hall-Bar — porte une chaîne vide : la
+   newsletter n'écrit alors que le nom et le nombre de places.
+   ------------------------------------------------------------ */
+export const PARRAIN_DE_SALLE: Record<NomDeSalle, string> = {
+  "Salle 1": "Thierry Jobin (ex-Le Temps, fiff.ch)",
+  "Salle 2": "Norbert Creutz (Le Temps)",
+  "Hall-Bar": "",
 };
 
 /** Liste prête à l'emploi pour un champ `options.list` du Studio. */
