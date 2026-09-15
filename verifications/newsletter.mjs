@@ -145,9 +145,14 @@ function verifier(intitule, condition, detail = '') {
     On s'arrête à l'appel au site, qui suit le tableau et porte le même
     interlettrage ; et chaque titre est enveloppé dans son lien. */
 function titresDuProgramme(html) {
-  const bloc = html
-    .split('>Le programme<')[1]
-    .split('https://www.zinema.ch/agenda/')[0]
+  /* Tout ce qui précède la case verte : l'en-tête, la case bleue, et le
+     tableau. Les titres de films sont les seuls à porter cet interlettrage,
+     et les blocs de film viennent après la case verte.
+
+     On ne s'accroche ni au titre noir — le cinéma l'a fait retirer — ni à la
+     couleur de la case bleue : les barres des jours tournent rouge, jaune,
+     bleu, et le vendredi porte le même bleu qu'elle. */
+  const bloc = html.split('https://www.zinema.ch/agenda/')[0]
   return [...bloc.matchAll(/letter-spacing:-0\.01em;">(?:<a[^>]*>)?([^<]*)</g)].map((m) => m[1])
 }
 
@@ -271,7 +276,7 @@ console.log('\nCe qui ramène les abonnés sur le site')
 console.log('\nCe que le cinéma a demandé le 15 septembre 2026')
 {
   const html = construire()
-  const programme = html.split('>Le programme<')[1].split('https://www.zinema.ch/agenda/')[0]
+  const programme = html.split('https://www.zinema.ch/agenda/')[0]
   verifier(
     'le tableau du programme commence le mercredi, pas le lundi de l\'envoi',
     programme.includes('mercredi 16 septembre') && !programme.includes('lundi 14 septembre'),
@@ -346,6 +351,39 @@ console.log("\nL'en-tête")
     /alt="ZIN\u00c9MA"[^>]*color:#ffffff/.test(html),
   )
   verifier('le logo mène au site', /href="https:\/\/www\.zinema\.ch"[^>]*>\s*<img/.test(html))
+}
+
+console.log('\nCe que le cinéma a demandé le 15 septembre au soir')
+{
+  const html = construire()
+  verifier(
+    "le titre noir « Le programme » a disparu",
+    !html.includes('>Le programme<'),
+  )
+  verifier(
+    "la case bleue dit tout, sur une case : « Programme du … au … (38) »",
+    html.includes('>Programme du mercredi 16 septembre au mardi 22 septembre 2026 (38)</td>'),
+  )
+  verifier(
+    "elle est en majuscules",
+    /background-color:#2f49c2;[^"]*text-transform:uppercase;">Programme du/.test(html),
+  )
+  verifier(
+    "le numéro de semaine ne fait plus une ligne à lui seul",
+    !/>Semaine \d+</.test(html),
+  )
+  verifier(
+    'la case verte est en majuscules',
+    /background-color:#275a1b;[^"]*text-transform:uppercase;/.test(html),
+  )
+  verifier(
+    "l'adresse et la flèche ne se séparent jamais",
+    html.includes('<span style="white-space:nowrap;">zinema.ch &rarr;</span>'),
+  )
+  verifier(
+    'le Hall-Bar a son parrain, comme les deux salles',
+    html.includes('Fulguro'),
+  )
 }
 
 console.log('\nCe qui ne doit jamais partir aux abonnés')

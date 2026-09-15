@@ -44,13 +44,14 @@ export const PLACES_PAR_DEFAUT: Record<NomDeSalle, number> = {
    PAS se retrouver sur zinema.ch par mégarde ; il n'y a rien à
    masquer, il n'y arrive pas.
 
-   Une salle sans parrain — le Hall-Bar — porte une chaîne vide : la
-   newsletter n'écrit alors que le nom et le nombre de places.
+   Les trois salles ont le leur. Une salle qui n'en aurait pas porterait une
+   chaîne vide : la newsletter n'écrirait alors que le nom et le nombre de
+   places.
    ------------------------------------------------------------ */
 export const PARRAIN_DE_SALLE: Record<NomDeSalle, string> = {
   "Salle 1": "Thierry Jobin (ex-Le Temps, fiff.ch)",
   "Salle 2": "Norbert Creutz (Le Temps)",
-  "Hall-Bar": "",
+  "Hall-Bar": "Fulguro",
 };
 
 /** Liste prête à l'emploi pour un champ `options.list` du Studio. */

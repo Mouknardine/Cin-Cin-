@@ -69,23 +69,35 @@ function entete(): string {
   )}</tr>`
 }
 
+/**
+ * La case bleue, qui ouvre le message : « PROGRAMME DU MERCREDI 16 SEPTEMBRE
+ * AU MARDI 22 SEPTEMBRE 2026 (38) ».
+ *
+ * Tout tient dans une seule case et une seule phrase, en majuscules — c'est
+ * la formule que le cinéma écrit depuis toujours dans l'objet de son mail.
+ * Le numéro de semaine la referme entre parenthèses, il ne fait plus une
+ * ligne à lui seul. Le titre noir « LE PROGRAMME » qui suivait disait la
+ * même chose une deuxième fois : il a disparu.
+ */
 function bandeDeLaSemaine(donnees: DonneesNewsletter): string {
   return `<tr>${cellule(
-    `<div style="font-size:${TAILLE.titre};line-height:1.25;font-weight:bold;text-transform:uppercase;">` +
-      `Du ${echapper(formatJourLong(donnees.debutSemaine))} au ${echapper(formatJourLongAvecAnnee(donnees.finSemaine))}</div>` +
-      `<div style="font-size:${TAILLE.petit};line-height:1.6;font-weight:bold;text-transform:uppercase;">` +
-      `Semaine ${numeroDeSemaine(donnees.debutSemaine)}</div>`,
-    `background-color:${BLEU};color:${BLANC};padding:10px 14px;`,
+    `Programme du ${echapper(formatJourLong(donnees.debutSemaine))} au ` +
+      `${echapper(formatJourLongAvecAnnee(donnees.finSemaine))} ` +
+      `(${numeroDeSemaine(donnees.debutSemaine)})`,
+    `background-color:${BLEU};color:${BLANC};padding:10px 14px;` +
+      `font-size:${TAILLE.titre};line-height:1.25;font-weight:bold;text-transform:uppercase;`,
   )}</tr>`
 }
 
 /** L'appel au site, juste après le programme : toute la case est cliquable. */
 function appelAuSite(): string {
   return `<tr>${cellule(
+    /* « ZINEMA.CH &rarr; » ne se coupe pas : l'adresse et la flèche restent
+       ensemble, sur la même ligne, quelle que soit la largeur. */
     `<a href="${SITE}/agenda/" style="display:block;color:${BLANC};text-decoration:none;">` +
-      `Acheter un billet sur zinema.ch &rarr;</a>`,
+      `Acheter un billet sur <span style="white-space:nowrap;">zinema.ch &rarr;</span></a>`,
     `background-color:${VERT};color:${BLANC};padding:13px 14px;font-size:${TAILLE.titre};` +
-      `line-height:1.25;font-weight:bold;`,
+      `line-height:1.25;font-weight:bold;text-transform:uppercase;`,
   )}</tr>`
 }
 
@@ -126,7 +138,7 @@ export function construireNewsletter(donnees: DonneesNewsletter, options: Option
   const corps =
     entete() +
     bandeDeLaSemaine(donnees) +
-    bandeau('Le programme') +
+    /* Pas de titre au-dessus du programme : la case bleue vient de le dire. */
     `<tr>${cellule(tableau(lignesDuProgramme(donnees.programme)), 'padding:0;')}</tr>` +
     appelAuSite() +
     (filmsDeLaSemaine ? bandeau('Les films de la semaine') + filmsDeLaSemaine : '') +
