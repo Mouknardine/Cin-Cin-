@@ -155,7 +155,7 @@ function titresDuProgramme(html) {
     bandeau de semaine et la case « Affiche » portent le même interlettrage. */
 function etiquettes(html) {
   return [
-    ...html.matchAll(/padding:2px 7px;font-size:9px;[^"]*">([^<]*)</g),
+    ...html.matchAll(/letter-spacing:0\.08em;text-transform:uppercase;[^"]*">([^<]*)</g),
   ].map((m) => m[1])
 }
 
@@ -242,7 +242,7 @@ console.log('\nCe qui ramène les abonnés sur le site')
      est le plus gros objet cliquable du bloc — avec ou sans image dedans. */
   verifier(
     "la case de l'affiche mène à la fiche du film, dans les dix blocs",
-    (html.match(/href="https:\/\/www\.zinema\.ch\/film\/\?s=[^"]*" style="display:block;/g) ?? [])
+    (html.match(/href="https:\/\/www\.zinema\.ch\/film\/\?s=[^"]*" style="display:block;line-height:0;/g) ?? [])
       .length === 10,
   )
   {
@@ -254,7 +254,7 @@ console.log('\nCe qui ramène les abonnés sur le site')
     )
     verifier(
       "quand l'affiche existe, l'image du serveur Sanity est enveloppée dans le lien",
-      /href="https:\/\/www\.zinema\.ch\/film\/\?s=avec-affiche"[^>]*><img src="https:\/\/cdn\.sanity\.io\/images\/vle63mzm\/production\/abc123def456-800x1200\.jpg\?w=300&fit=max"/.test(avecAffiche),
+      /href="https:\/\/www\.zinema\.ch\/film\/\?s=avec-affiche"[^>]*><img src="https:\/\/cdn\.sanity\.io\/images\/vle63mzm\/production\/abc123def456-800x1200\.jpg\?w=360&fit=max"/.test(avecAffiche),
     )
   }
   verifier(
@@ -266,6 +266,68 @@ console.log('\nCe qui ramène les abonnés sur le site')
     !construire([film({_id: 'sans', titre: 'Sans adresse', slug: null,
       seances: [S(DEBUT, '19:00', 'Salle 1')]})], []).includes('film/?s="'),
   )
+}
+
+console.log('\nCe que le cinéma a demandé le 15 septembre 2026')
+{
+  const html = construire()
+  const programme = html.split('>Le programme<')[1].split('https://www.zinema.ch/agenda/')[0]
+  verifier(
+    'le tableau du programme commence le mercredi, pas le lundi de l\'envoi',
+    programme.includes('mercredi 16 septembre') && !programme.includes('lundi 14 septembre'),
+  )
+  verifier(
+    "les pastilles d'un film reprennent le lundi de l'envoi",
+    html.includes('lun 14&nbsp;'),
+  )
+  const avecPassee = construire(
+    [film({_id: 'passe', titre: 'Déjà passé', synopsis: 'Un synopsis témoin.',
+      seances: [S('2026-09-12', '19:00', 'Salle 1'), S('2026-09-15', '21:00', 'Salle 1'),
+        S(DEBUT, '19:00', 'Salle 1')]})],
+    [],
+  )
+  verifier(
+    "une séance déjà passée le lundi de l'envoi n'est plus annoncée",
+    !avecPassee.includes('sam 12&nbsp;') && avecPassee.includes('mar 15&nbsp;') &&
+      !/Semaine dernière/.test(avecPassee),
+  )
+  verifier(
+    "le synopsis passe sous l'affiche et les séances, en pleine largeur",
+    /mar 15&nbsp;[\s\S]*?<\/tr><tr><td colspan="2"[^>]*><p [^>]*>Un synopsis témoin/.test(avecPassee),
+  )
+  verifier(
+    "aucun fond d'encre derrière l'affiche : si le texte la dépasse, c'est du papier qui continue",
+    !/width:30%;background-color:#100f0c/.test(html),
+  )
+  const avecLiens = construire(
+    [film({_id: 'liens', titre: 'Avec liens', bandeAnnonce: 'https://video.example/ba',
+      presse: 'https://presse.example/dossier', seances: [S(DEBUT, '19:00', 'Salle 1')]})],
+    [film({_id: 'bientot', titre: 'Bientôt', statut: 'prochainement', dateDeSortie: '2026-10-07',
+      bandeAnnonce: 'https://video.example/bientot'})],
+  )
+  verifier(
+    'aucun lien ni bouton sous les films, à l\'affiche comme prochainement',
+    !avecLiens.includes('video.example') && !avecLiens.includes('presse.example') &&
+      !/Bande-annonce|Voir le film|Prendre sa place/.test(avecLiens),
+  )
+  verifier(
+    "la date de sortie d'un film prochainement n'est plus encadrée",
+    /letter-spacing:0\.08em;text-transform:uppercase;color:#100f0c;padding-bottom:4px;">Sortie le mercredi 7 octobre</.test(avecLiens),
+  )
+  verifier("l'appel au site dit « acheter un billet »", html.includes('Acheter un billet') && !/[Pp]renez votre place/.test(html))
+  verifier('les rubriques s\'appellent « Prochainement » et « Infos »',
+    html.includes('>Prochainement<') && html.includes('>Infos<') &&
+      !html.includes('>À venir<') && !html.includes('>Pratique<'))
+  verifier(
+    'les parrains des salles sont nommés sans parenthèses',
+    html.includes('Salle 1</b> — Thierry Jobin — 18 places') &&
+      html.includes('Salle 2</b> — Norbert Creutz — 14 places') &&
+      !html.includes('(ex-Le Temps') && !html.includes('(Le Temps)') && !html.includes('fiff'),
+  )
+  verifier('on vient « avant les séances »', html.includes('avant les séances'))
+  verifier('tout le message est en Arial', !/Helvetica Neue/.test(html) && html.includes('font-family:Arial,Helvetica,sans-serif'))
+  const tailles = new Set([...html.matchAll(/font-size:([^;"]+)/g)].map((m) => m[1]).filter((t) => t !== '0'))
+  verifier('trois tailles de texte, pas une de plus', tailles.size <= 3, [...tailles].join(' | '))
 }
 
 console.log('\nCe qui ne doit jamais partir aux abonnés')

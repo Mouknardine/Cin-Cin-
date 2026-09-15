@@ -12,11 +12,12 @@
  * Alors on écrit comme on écrivait :
  *   - des tableaux imbriqués, jamais de flex ni de grid ;
  *   - des styles en ligne sur chaque case, jamais de feuille de style ;
- *   - Helvetica et Arial, les deux polices que toute machine possède.
+ *   - Arial, écrite sur chaque case, et trois tailles de texte en tout ;
+ *   - des largeurs en proportions, pour que le message rétrécisse avec
+ *     l'écran d'un téléphone sans avoir besoin d'une feuille de style.
  *
  * C'est aussi ce qui permet le copier-coller : la personne clique
- * « Copier », colle dans son logiciel de messagerie, et la mise en page
- * arrive intacte.
+ * « Copier », colle dans son outil d'envoi, et la mise en page arrive intacte.
  * ---------------------------------------------------------------------------
  *
  * LA DIRECTION ARTISTIQUE VIENT DU SITE.
@@ -26,389 +27,77 @@
  * par un trait unique. Le site pose sa règle ainsi : « deux traits qui se
  * touchent n'en font qu'un » — c'est exactement ce que fait un tableau en
  * border-collapse. La contrainte de l'e-mail et la DA tombent juste.
+ *
+ * Les blocs vivent chacun dans leur fichier : programme.ts, film.ts,
+ * pratique.ts. Ce fichier ne fait que les poser dans l'ordre.
  */
-import {PARRAIN_DE_SALLE, SALLES, rangDeSalle, type NomDeSalle} from '../../../salles'
+import {formatJourLong, formatJourLongAvecAnnee, numeroDeSemaine} from '../utils/dates'
+import type {DonneesNewsletter, ReglagesNewsletter} from './donnees'
+import {blocFilm, type ProjetSanity} from './film'
 import {
-  formatJourAbrege,
-  formatJourLong,
-  formatJourLongAvecAnnee,
-  numeroDeSemaine,
-  numeroDuJour,
-} from '../utils/dates'
-import type {
-  DonneesNewsletter,
-  FilmNewsletter,
-  SeanceNewsletter,
-  SeanceProgramme,
-} from './donnees'
-import {etiquetteDuFilm, type TonEtiquette} from './etiquette'
-import {urlImage} from './image'
+  BLANC, BLEU, ENCRE, LARGEUR, PAPIER, POLICE, SITE, TAILLE, VERT,
+  bandeau, cellule, echapper, tableau,
+} from './html'
+import {blocPratique} from './pratique'
+import {lignesDuProgramme} from './programme'
 
-/* ---- Les couleurs du site, recopiées depuis assets/css/style.css ----
-   Un e-mail ne sait pas lire une variable CSS : elles sont écrites en
-   clair, une seule fois, ici. */
-const ENCRE = '#100f0c'
-const PAPIER = '#ededed'
-const ROUGE = '#c22a1d'
-const BLEU = '#2f49c2'
-const JAUNE = '#f7c600'
-/** L'encre éclaircie : les mentions secondaires, sur papier. */
-const GRIS = '#57534a'
-/* Le vert du billet. C'est la seule couleur du site qui ait un sens fixe :
-   elle ne sert qu'à acheter une place, nulle part ailleurs (voir --vert dans
-   assets/css/style.css). La newsletter respecte la même règle. */
-const VERT = '#275a1b'
-/** Le papier assombri : les mentions secondaires, sur encre. */
-const GRIS_CLAIR = '#a9a69e'
+export type OptionsGabarit = ProjetSanity
 
-/** Le trait du site. Un seul, partout. */
-const TRAIT = `border:3px solid ${ENCRE};`
-/** La largeur d'un e-mail : au-delà, les messageries recadrent. */
-const LARGEUR = 600
-/** L'affiche est rendue à 150 px ; on la demande au double, pour les écrans fins. */
-const LARGEUR_AFFICHE = 300
-
-const POLICE = `'Helvetica Neue',Helvetica,Arial,sans-serif`
-
-/* L'adresse du site. Elle est fixe, comme le projet Sanity l'est dans
-   sanity.cli.ts : un e-mail parti avec une mauvaise adresse ne se rattrape
-   pas, et une variable d'environnement oubliée ne doit pas pouvoir renvoyer
-   les abonnés ailleurs. */
-const SITE = 'https://www.zinema.ch'
-
-/** L'adresse de la page d'un film sur le site. */
-function lienDuFilm(slug: string | null | undefined): string | null {
-  const propre = String(slug ?? '').trim()
-  if (!propre) return null
-  return echapper(`${SITE}/film/?s=${encodeURIComponent(propre)}`)
-}
-
-/** Les couleurs qui se relaient d'un jour à l'autre, jamais deux fois de suite. */
-const COULEURS_DES_JOURS: {fond: string; encre: string}[] = [
-  {fond: ROUGE, encre: '#ffffff'},
-  {fond: JAUNE, encre: ENCRE},
-  {fond: BLEU, encre: '#ffffff'},
-]
-
-const COULEURS_ETIQUETTE: Record<TonEtiquette, {fond: string; encre: string}> = {
-  affiche: {fond: JAUNE, encre: ENCRE},
-  reprise: {fond: ROUGE, encre: '#ffffff'},
-  avenir: {fond: BLEU, encre: '#ffffff'},
-}
-
-/** Tout texte venu de Sanity passe par là avant d'entrer dans le HTML. */
-function echapper(valeur: unknown): string {
-  return String(valeur ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-}
-
-/** Une adresse ne rentre dans un href que si elle est http(s) ou mailto. */
-function lienSur(url: string | null | undefined): string | null {
-  const propre = String(url ?? '').trim()
-  return /^(https?:\/\/|mailto:)/i.test(propre) ? echapper(propre) : null
-}
-
-/** Les sauts de ligne d'un champ « texte » deviennent des paragraphes. */
-function paragraphes(texte: string | null | undefined, style: string): string {
-  return String(texte ?? '')
-    .split(/\n{2,}/)
-    .map((bloc) => bloc.trim())
-    .filter(Boolean)
-    .map((bloc) => `<p style="margin:0 0 7px;${style}">${echapper(bloc).replace(/\n/g, '<br>')}</p>`)
-    .join('')
-}
-
-function cellule(contenu: string, style: string, attributs = ''): string {
-  return `<td ${attributs} style="${TRAIT}${style}">${contenu}</td>`
-}
-
-function bandeau(titre: string): string {
-  return `<tr>${cellule(
-    echapper(titre),
-    `background-color:${ENCRE};color:${PAPIER};padding:7px 12px;font-size:11px;` +
-      `line-height:1.3;font-weight:900;letter-spacing:0.18em;text-transform:uppercase;`,
-  )}</tr>`
-}
+/** Le logo du site, servi par le site lui-même : une adresse que toute messagerie peut aller chercher. */
+const LOGO = `${SITE}/assets/img/zinema-logo.png`
+const LARGEUR_LOGO = 400
 
 /**
- * L'appel au site, juste après le programme.
- *
- * Toute la case est cliquable — dans un e-mail, c'est la seule façon d'être
- * sûr que le doigt tombe juste. Le vert est celui du bouton d'achat du site :
- * la seule couleur qui ait un sens fixe, et elle ne sert qu'à ça.
+ * L'en-tête : le logo seul, en grand, sur le papier. Si la messagerie bloque
+ * les images, le texte de remplacement s'écrit à sa place.
  */
-function appelAuSite(): string {
+function entete(): string {
   return `<tr>${cellule(
-    `<a href="${SITE}/agenda/" style="display:block;color:#ffffff;text-decoration:none;">` +
-      `<span style="font-size:15px;line-height:1.3;font-weight:900;letter-spacing:-0.01em;">` +
-      `Prenez votre place sur zinema.ch</span><br>` +
-      `<span style="font-size:11.5px;line-height:1.5;color:#cfe0c9;">` +
-      `Horaires, bandes-annonces et billets — tout l'agenda y est tenu à jour.</span></a>`,
-    `background-color:${VERT};color:#ffffff;padding:12px 14px;`,
+    `<a href="${SITE}" style="display:block;color:${ENCRE};text-decoration:none;">` +
+      `<img src="${LOGO}" width="${LARGEUR_LOGO}" alt="ZINÉMA" style="display:block;width:100%;` +
+      `max-width:${LARGEUR_LOGO}px;height:auto;border:0;margin:0 auto;color:${ENCRE};font-family:${POLICE};` +
+      `font-size:${TAILLE.titre};font-weight:bold;text-align:center;"></a>`,
+    `background-color:${PAPIER};padding:22px 16px;text-align:center;`,
+    'align="center"',
   )}</tr>`
 }
 
-/** Une pastille d'étiquette : « 2ᵉ semaine », « Reprise », « Sortie le… ». */
-function pastille(texte: string, ton: TonEtiquette): string {
-  const {fond, encre} = COULEURS_ETIQUETTE[ton]
-  return (
-    `<span style="display:inline-block;background-color:${fond};color:${encre};` +
-    `padding:2px 7px;font-size:9px;line-height:1.5;font-weight:900;` +
-    `letter-spacing:0.14em;text-transform:uppercase;">${echapper(texte)}</span>`
-  )
+function bandeDeLaSemaine(donnees: DonneesNewsletter): string {
+  return `<tr>${cellule(
+    `<div style="font-size:${TAILLE.titre};line-height:1.25;font-weight:bold;text-transform:uppercase;">` +
+      `Du ${echapper(formatJourLong(donnees.debutSemaine))} au ${echapper(formatJourLongAvecAnnee(donnees.finSemaine))}</div>` +
+      `<div style="font-size:${TAILLE.petit};line-height:1.6;font-weight:bold;text-transform:uppercase;">` +
+      `Semaine ${numeroDeSemaine(donnees.debutSemaine)}</div>`,
+    `background-color:${BLEU};color:${BLANC};padding:10px 14px;`,
+  )}</tr>`
 }
 
-/** « Documentaire · Hercli Bundi · Suisse · 2025 · 96′ · VO st fr · 6/12 ans » */
-function ligneTechnique(film: FilmNewsletter): string {
-  const version = [film.version, film.sousTitres].map((v) => String(v ?? '').trim()).filter(Boolean)
-  return [
-    (film.genres ?? []).join(', '),
-    film.realisation,
-    film.pays,
-    film.annee,
-    film.duree ? `${film.duree}′` : null,
-    version.join(' '),
-    film.age,
-  ]
-    .map((morceau) => String(morceau ?? '').trim())
-    .filter(Boolean)
-    .map(echapper)
-    .join(' · ')
+/** L'appel au site, juste après le programme : toute la case est cliquable. */
+function appelAuSite(): string {
+  return `<tr>${cellule(
+    `<a href="${SITE}/agenda/" style="display:block;color:${BLANC};text-decoration:none;">` +
+      `Acheter un billet sur zinema.ch &rarr;</a>`,
+    `background-color:${VERT};color:${BLANC};padding:13px 14px;font-size:${TAILLE.titre};` +
+      `line-height:1.25;font-weight:bold;`,
+  )}</tr>`
 }
 
-/* ------------------------------------------------------------------
-   Le programme de la semaine.
-   ------------------------------------------------------------------ */
-
-function lignesDuProgramme(programme: SeanceProgramme[]): string {
-  /* Les séances arrivent déjà dans l'ordre du programme : il suffit de les
-     regrouper par date sans les rebattre. */
-  const parJour = new Map<string, SeanceProgramme[]>()
-  for (const seance of programme) {
-    const jour = parJour.get(seance.date)
-    if (jour) jour.push(seance)
-    else parJour.set(seance.date, [seance])
-  }
-
-  const lignes: string[] = []
-  let rangDuJour = 0
-  for (const [date, seances] of parJour) {
-    const couleur = COULEURS_DES_JOURS[rangDuJour % COULEURS_DES_JOURS.length]
-    rangDuJour += 1
-
-    seances.forEach((seance, index) => {
-      /* Le rail de couleur porte le jour, et s'étire sur toutes ses séances :
-         la semaine se lit d'un coup d'œil, bloc par bloc. */
-      const rail =
-        index === 0
-          ? cellule(
-              `<div style="font-size:10px;line-height:1.2;font-weight:700;letter-spacing:0.1em;` +
-                `text-transform:uppercase;">${echapper(formatJourAbrege(date))}</div>` +
-                `<div style="font-size:20px;line-height:1.1;font-weight:900;">${echapper(numeroDuJour(date))}</div>`,
-              `background-color:${couleur.fond};color:${couleur.encre};padding:4px 6px;width:56px;`,
-              `rowspan="${seances.length}" width="56" valign="middle" align="center"`,
-            )
-          : ''
-
-      lignes.push(
-        `<tr>${rail}` +
-          cellule(
-            echapper(seance.heure),
-            `padding:5px 8px;width:58px;font-size:14px;line-height:1.2;font-weight:900;white-space:nowrap;`,
-            'width="58"',
-          ) +
-          cellule(
-            echapper(seance.salle),
-            `padding:5px 6px;width:56px;font-size:11px;line-height:1.2;font-weight:700;` +
-              `color:${GRIS};white-space:nowrap;`,
-            'width="56"',
-          ) +
-          cellule(
-            /* Le titre mène à la fiche du film, sans se déguiser en lien : la
-               couleur et le soulignement d'une messagerie feraient de cette
-               grille dense une bouillie bleue. */
-            lienDuFilm(seance.slug)
-              ? `<a href="${lienDuFilm(seance.slug)}" style="color:${ENCRE};text-decoration:none;">${echapper(seance.titre)}</a>`
-              : echapper(seance.titre),
-            `padding:5px 8px;font-size:13px;line-height:1.2;font-weight:900;` +
-              `text-transform:uppercase;letter-spacing:-0.01em;`,
-          ) +
-          '</tr>',
-      )
-    })
-  }
-
-  return lignes.join('')
-}
-
-/* ------------------------------------------------------------------
-   Un film.
-   ------------------------------------------------------------------ */
-
-/** « Mer 16, 21h00 » — et en rouge si la séance est déjà passée. */
-function lignesDeSeances(
-  seances: SeanceNewsletter[],
-  debutSemaine: string,
-): string {
-  return seances
-    .filter((seance) => seance.statut !== 'annule')
-    .map((seance) => {
-      const passee = seance.date < debutSemaine
-      const texte = echapper(
-        `${formatJourAbrege(seance.date)} ${numeroDuJour(seance.date)}, ${seance.heure}`,
-      )
-      return passee ? `<span style="color:${ROUGE};">${texte}</span>` : texte
-    })
-    .join(' · ')
-}
-
-function blocFilm(
-  film: FilmNewsletter,
-  donnees: DonneesNewsletter,
-  projet: {projectId: string; dataset: string},
-  options: {hauteurAffiche: number; avecSeances: boolean},
-): string {
-  const etiquette = etiquetteDuFilm(film, donnees.debutSemaine)
-  const affiche = urlImage(film.afficheRef, {...projet, largeur: LARGEUR_AFFICHE})
-  const bandeAnnonce = lienSur(film.bandeAnnonce)
-  const presse = lienSur(film.presse)
-  const seances = options.avecSeances
-    ? lignesDeSeances(film.seances, donnees.debutSemaine)
-    : ''
-
-  const versLeFilm = lienDuFilm(film.slug)
-
-  const image = affiche
-    ? `<img src="${affiche}" width="150" alt="${echapper(film.titre)}" ` +
-      `style="display:block;width:150px;max-width:150px;height:auto;border:0;">`
-    : /* Sans affiche, une case d'encre plutôt qu'une image cassée. */
-      `<div style="height:${options.hauteurAffiche}px;line-height:${options.hauteurAffiche}px;` +
-      `text-align:center;color:#6d6a62;font-size:9px;letter-spacing:0.14em;` +
-      `text-transform:uppercase;">Affiche</div>`
-  /* L'affiche est le plus gros objet du bloc : c'est elle qu'on clique
-     d'instinct. Elle mène à la fiche du film sur le site. */
-  const caseAffiche = versLeFilm
-    ? `<a href="${versLeFilm}" style="display:block;text-decoration:none;">${image}</a>`
-    : image
-
-  const liens = [
-    versLeFilm
-      ? `<a href="${versLeFilm}" style="color:${BLEU};font-weight:700;">Voir la fiche et prendre sa place</a>`
+function pied(reglages: ReglagesNewsletter): string {
+  const contacts = [
+    reglages.telephone ? `${echapper(reglages.telephone)} (cinéma)` : null,
+    reglages.telephoneBis ? `${echapper(reglages.telephoneBis)} (bureau)` : null,
+    reglages.email
+      ? `<a href="mailto:${echapper(reglages.email)}" style="color:${BLANC};font-weight:bold;">${echapper(reglages.email)}</a>`
       : null,
-    bandeAnnonce
-      ? `<a href="${bandeAnnonce}" style="color:${BLEU};font-weight:700;">Bande-annonce</a>`
-      : null,
-    presse ? `<a href="${presse}" style="color:${BLEU};font-weight:700;">Presse</a>` : null,
   ]
     .filter(Boolean)
     .join(' · ')
-
-  return (
-    `<tr>${cellule(
-      `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;"><tr>` +
-        cellule(
-          caseAffiche,
-          `width:150px;background-color:${ENCRE};padding:0;font-size:0;line-height:0;`,
-          'width="150" valign="top"',
-        ) +
-        cellule(
-          (etiquette ? pastille(etiquette.texte, etiquette.ton) : '') +
-            `<div style="font-size:19px;line-height:1.05;font-weight:900;letter-spacing:-0.02em;` +
-            `text-transform:uppercase;padding-top:${etiquette ? '7px' : '0'};">` +
-            (versLeFilm
-              ? `<a href="${versLeFilm}" style="color:${ENCRE};text-decoration:none;">${echapper(film.titre)}</a>`
-              : echapper(film.titre)) +
-            `</div>` +
-            `<div style="font-size:11px;line-height:1.45;font-weight:700;color:${GRIS};padding-top:4px;">${ligneTechnique(film)}</div>` +
-            `<div style="padding-top:7px;">${paragraphes(film.synopsis, 'font-size:12.5px;line-height:1.5;')}</div>` +
-            (seances
-              ? `<div style="font-size:11px;line-height:1.6;padding-top:2px;">${seances}</div>`
-              : '') +
-            (liens ? `<div style="font-size:11px;line-height:1.5;padding-top:6px;">${liens}</div>` : ''),
-          `padding:10px 12px 11px;`,
-          'valign="top"',
-        ) +
-        `</tr></table>`,
-      'padding:0;',
-    )}</tr>`
-  )
-}
-
-/* ------------------------------------------------------------------
-   Le bloc « Pratique » : tarifs, salles.
-   ------------------------------------------------------------------ */
-
-function blocPratique(donnees: DonneesNewsletter): string {
-  const {reglages} = donnees
-  const conditions = (reglages.conditionsReduit ?? []).join(', ')
-
-  const tarif = (montant: number | null, libelle: string): string =>
-    montant === null
-      ? ''
-      : `<tr>${cellule(
-          `${echapper(montant)}.–`,
-          `background-color:${JAUNE};color:${ENCRE};padding:6px 8px;width:52px;` +
-            `font-size:15px;line-height:1.2;font-weight:900;text-align:center;`,
-          'width="52"',
-        )}${cellule(libelle, 'padding:6px 10px;font-size:12px;line-height:1.4;')}</tr>`
-
-  /* Les salles viennent des réglages pour leur nombre de places, et de
-     sanity/salles.ts pour leur parrain — deux sources, une seule ligne. */
-  const salles = [...(reglages.salles ?? [])]
-    .sort((a, b) => rangDeSalle(a?.nom) - rangDeSalle(b?.nom))
-    .map((salle) => {
-      const nom = String(salle?.nom ?? '')
-      const parrain = (SALLES as readonly string[]).includes(nom)
-        ? PARRAIN_DE_SALLE[nom as NomDeSalle]
-        : ''
-      const details = [parrain, salle?.places ? `${salle.places} places` : '']
-        .filter(Boolean)
-        .map(echapper)
-        .join(' — ')
-      return `<b style="color:${ENCRE};">${echapper(nom)}</b>${details ? ` — ${details}` : ''}`
-    })
-    .join('<br>')
-
-  return (
-    bandeau('Pratique') +
-    `<tr>${cellule(
-      `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">` +
-        tarif(reglages.tarifPlein, 'Tarif ordinaire') +
-        tarif(reglages.tarifReduit, conditions || 'Tarif réduit') +
-        `<tr>${cellule(
-          /* Ce qui était écrit ici — « pas de cartes bancaires, pas de
-             réservations » — datait d'avant l'ouverture de la billetterie en
-             ligne, le 8 septembre 2026. C'était devenu faux, et surtout
-             dissuasif : on annonçait aux abonnés qu'ils ne pouvaient pas
-             réserver, sur le message même qui aurait dû les y conduire. */
-          `<b>Billets en ligne sur <a href="${SITE}" style="color:${ENCRE};">zinema.ch</a></b>, ` +
-            `ou à la buvette 15 minutes avant la séance.`,
-          'padding:7px 10px;font-size:12px;line-height:1.5;',
-          'colspan="2"',
-        )}</tr>` +
-        (salles
-          ? `<tr>${cellule(
-              salles,
-              `padding:7px 10px;font-size:11.5px;line-height:1.6;color:${GRIS};`,
-              'colspan="2"',
-            )}</tr>`
-          : '') +
-        `</table>`,
-      'padding:0;',
-    )}</tr>`
-  )
-}
-
-/* ------------------------------------------------------------------
-   La newsletter entière.
-   ------------------------------------------------------------------ */
-
-export interface OptionsGabarit {
-  projectId: string
-  dataset: string
+  return `<tr>${cellule(
+    contacts +
+      (reglages.iban ? `<br>IBAN ${echapper(reglages.iban)}` : '') +
+      `<br>Salle de cinéma fondée en juin 2001 par Laurent Serge Toplitsch.`,
+    `background-color:${ENCRE};color:${BLANC};padding:14px;font-size:${TAILLE.petit};line-height:1.7;`,
+  )}</tr>`
 }
 
 /** L'objet du message, prêt à coller dans la ligne « Objet ». */
@@ -421,82 +110,31 @@ export function objetDeLaNewsletter(donnees: DonneesNewsletter): string {
 }
 
 /** Le corps du message, en HTML d'e-mail. */
-export function construireNewsletter(
-  donnees: DonneesNewsletter,
-  options: OptionsGabarit,
-): string {
-  const {reglages} = donnees
-  const semaine = numeroDeSemaine(donnees.debutSemaine)
-  const adresse = String(reglages.adresse ?? '')
-    .split('\n')
-    .map((ligne) => echapper(ligne.trim()))
-    .filter(Boolean)
-    .join('<br>')
+export function construireNewsletter(donnees: DonneesNewsletter, options: OptionsGabarit): string {
+  const films = (liste: DonneesNewsletter['filmsDeLaSemaine'], alAffiche: boolean): string =>
+    liste.map((film) => blocFilm(film, donnees, options, alAffiche)).join('')
+  const filmsDeLaSemaine = films(donnees.filmsDeLaSemaine, true)
+  const filmsProchainement = films(donnees.filmsAVenir, false)
 
-  const contacts = [
-    reglages.telephone ? `${echapper(reglages.telephone)} <span style="color:#6d6a62;">(cinéma)</span>` : null,
-    reglages.telephoneBis
-      ? `${echapper(reglages.telephoneBis)} <span style="color:#6d6a62;">(bureau)</span>`
-      : null,
-    reglages.email
-      ? `<a href="mailto:${echapper(reglages.email)}" style="color:${PAPIER};font-weight:700;">${echapper(reglages.email)}</a>`
-      : null,
-  ]
-    .filter(Boolean)
-    .join(' · ')
-
-  const filmsDeLaSemaine = donnees.filmsDeLaSemaine
-    .map((film) =>
-      blocFilm(film, donnees, options, {hauteurAffiche: 176, avecSeances: true}),
-    )
-    .join('')
-
-  const filmsAVenir = donnees.filmsAVenir
-    .map((film) =>
-      blocFilm(film, donnees, options, {hauteurAffiche: 132, avecSeances: false}),
-    )
-    .join('')
-
-  return (
-    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="${LARGEUR}" ` +
-    `style="width:${LARGEUR}px;max-width:100%;border-collapse:collapse;background-color:${PAPIER};` +
-    `color:${ENCRE};font-family:${POLICE};">` +
-    /* En-tête */
-    `<tr>${cellule(
-      `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr>` +
-        `<td valign="middle" style="font-size:27px;line-height:1;font-weight:900;letter-spacing:-0.02em;text-transform:uppercase;">Zinéma</td>` +
-        `<td valign="middle" align="right" style="font-size:10px;line-height:1.5;letter-spacing:0.12em;text-transform:uppercase;color:${GRIS_CLAIR};">${adresse}</td>` +
-        `</tr></table>`,
-      `background-color:${ENCRE};color:${PAPIER};padding:14px 14px 12px;`,
-    )}</tr>` +
-    /* La semaine */
-    `<tr>${cellule(
-      `<span style="font-size:15px;line-height:1.2;font-weight:900;letter-spacing:-0.01em;text-transform:uppercase;">` +
-        `Du ${echapper(formatJourLong(donnees.debutSemaine))} au ${echapper(formatJourLongAvecAnnee(donnees.finSemaine))}</span>` +
-        `<span style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;"> &nbsp;·&nbsp; Semaine ${semaine}</span>`,
-      `background-color:${BLEU};color:#ffffff;padding:9px 14px;`,
-    )}</tr>` +
-    /* Le programme */
+  const corps =
+    entete() +
+    bandeDeLaSemaine(donnees) +
     bandeau('Le programme') +
-    `<tr>${cellule(
-      `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">` +
-        lignesDuProgramme(donnees.programme) +
-        `</table>`,
-      'padding:0;',
-    )}</tr>` +
+    `<tr>${cellule(tableau(lignesDuProgramme(donnees.programme)), 'padding:0;')}</tr>` +
     appelAuSite() +
-    /* Les films */
     (filmsDeLaSemaine ? bandeau('Les films de la semaine') + filmsDeLaSemaine : '') +
-    (filmsAVenir ? bandeau('À venir') + filmsAVenir : '') +
-    /* Pratique */
-    blocPratique(donnees) +
-    /* Pied */
-    `<tr>${cellule(
-      contacts +
-        (reglages.iban ? `<br>IBAN ${echapper(reglages.iban)}` : '') +
-        `<br><span style="color:#6d6a62;">Salle de cinéma fondée en juin 2001 par Laurent Serge Toplitsch.</span>`,
-      `background-color:${ENCRE};color:${GRIS_CLAIR};padding:12px 14px;font-size:11.5px;line-height:1.7;`,
-    )}</tr>` +
-    `</table>`
+    (filmsProchainement ? bandeau('Prochainement') + filmsProchainement : '') +
+    blocPratique(donnees.reglages) +
+    pied(donnees.reglages)
+
+  /* Le message prend toute la largeur d'un téléphone, et s'arrête à 600 px
+     ailleurs. Outlook, qui ignore max-width, reçoit sa largeur fixe par un
+     tableau qu'il est seul à lire. */
+  return (
+    `<!--[if mso]><table role="presentation" width="${LARGEUR}" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->` +
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" align="center" ` +
+    `style="width:100%;max-width:${LARGEUR}px;margin:0 auto;border-collapse:collapse;` +
+    `background-color:${PAPIER};color:${ENCRE};font-family:${POLICE};">${corps}</table>` +
+    `<!--[if mso]></td></tr></table><![endif]-->`
   )
 }
