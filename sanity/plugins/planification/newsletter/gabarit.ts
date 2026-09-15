@@ -43,21 +43,28 @@ import {lignesDuProgramme} from './programme'
 
 export type OptionsGabarit = ProjetSanity
 
-/** Le logo du site, servi par le site lui-même : une adresse que toute messagerie peut aller chercher. */
-const LOGO = `${SITE}/assets/img/zinema-logo.png`
+/**
+ * Le logo du cinéma, en blanc, servi par le site lui-même : une adresse que
+ * toute messagerie peut aller chercher.
+ *
+ * Le logo d'origine est noir sur transparence — il disparaîtrait sur l'encre.
+ * zinema-logo-blanc.png en est la version inversée, faite pour ce fond-là.
+ */
+const LOGO = `${SITE}/assets/img/zinema-logo-blanc.png`
 const LARGEUR_LOGO = 400
 
 /**
- * L'en-tête : le logo seul, en grand, sur le papier. Si la messagerie bloque
- * les images, le texte de remplacement s'écrit à sa place.
+ * L'en-tête : le logo seul, en grand, sur l'encre. Si la messagerie bloque les
+ * images, le texte de remplacement s'écrit à sa place — en blanc, pour rester
+ * lisible sur ce fond.
  */
 function entete(): string {
   return `<tr>${cellule(
-    `<a href="${SITE}" style="display:block;color:${ENCRE};text-decoration:none;">` +
+    `<a href="${SITE}" style="display:block;color:${BLANC};text-decoration:none;">` +
       `<img src="${LOGO}" width="${LARGEUR_LOGO}" alt="ZINÉMA" style="display:block;width:100%;` +
-      `max-width:${LARGEUR_LOGO}px;height:auto;border:0;margin:0 auto;color:${ENCRE};font-family:${POLICE};` +
+      `max-width:${LARGEUR_LOGO}px;height:auto;border:0;margin:0 auto;color:${BLANC};font-family:${POLICE};` +
       `font-size:${TAILLE.titre};font-weight:bold;text-align:center;"></a>`,
-    `background-color:${PAPIER};padding:22px 16px;text-align:center;`,
+    `background-color:${ENCRE};padding:22px 16px;text-align:center;`,
     'align="center"',
   )}</tr>`
 }

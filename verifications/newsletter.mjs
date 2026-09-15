@@ -330,6 +330,24 @@ console.log('\nCe que le cinéma a demandé le 15 septembre 2026')
   verifier('trois tailles de texte, pas une de plus', tailles.size <= 3, [...tailles].join(' | '))
 }
 
+console.log("\nL'en-tête")
+{
+  const html = construire()
+  verifier(
+    "le logo ouvre le message, et c'est la version blanche",
+    html.includes('/assets/img/zinema-logo-blanc.png'),
+  )
+  verifier(
+    "il est posé sur l'encre — le logo noir y disparaîtrait",
+    /background-color:#100f0c;padding:22px 16px;text-align:center;/.test(html),
+  )
+  verifier(
+    "le texte de remplacement reste lisible si l'image est bloquée",
+    /alt="ZIN\u00c9MA"[^>]*color:#ffffff/.test(html),
+  )
+  verifier('le logo mène au site', /href="https:\/\/www\.zinema\.ch"[^>]*>\s*<img/.test(html))
+}
+
 console.log('\nCe qui ne doit jamais partir aux abonnés')
 {
   const annulee = AFFICHE.map((f) =>
