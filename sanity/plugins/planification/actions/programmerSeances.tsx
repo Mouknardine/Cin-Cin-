@@ -34,7 +34,7 @@ export const programmerSeances: DocumentActionComponent = (props) => {
   /* Une séance renvoie vers la version PUBLIÉE du film : tant que le film
      n'est qu'un brouillon, le programmer n'aurait aucun sens — le site ne
      verrait qu'une référence vide. */
-  const publie = props.published as {title?: string; duration?: number} | null
+  const publie = props.published as {title?: string; duration?: number; status?: string} | null
   const titre = publie?.title ?? ''
 
   if (!publie) {
@@ -60,6 +60,7 @@ export const programmerSeances: DocumentActionComponent = (props) => {
             _id: props.id,
             titre: titre || 'Ce film',
             duree: typeof publie.duration === 'number' ? publie.duration : null,
+            statut: publie.status ?? null,
           }}
           debutSemaine={debutDeSemaine(aujourdhui())}
           onFermer={fermer}

@@ -1,29 +1,41 @@
 /**
- * Onglet « Planification » du Studio : vue de la semaine, navigation,
- * assistants de programmation et de duplication, suppression de séances.
+ * Onglet « Planification » du Studio.
+ *
+ * La semaine de cinéma, du mercredi au mardi, affichée comme une
+ * grille de créneaux : 19 h et 21 h, Salle 1 et Salle 2. On y déplace
+ * une séance à la souris, on clique une case libre pour y poser un
+ * film, et trois assistants font le gros du travail — programmer un
+ * film sur plusieurs semaines, dupliquer une semaine (au besoin en
+ * rebattant les cartes), ou remplir la semaine au hasard.
  */
-import {AddIcon, ChevronLeftIcon, ChevronRightIcon, CopyIcon, EnvelopeIcon, SyncIcon} from '@sanity/icons'
-import {Box, Button, Card, Container, Dialog, Flex, Stack, Text, useToast} from '@sanity/ui'
+import {WarningOutlineIcon} from '@sanity/icons'
+import {Box, Card, Container, Flex, Stack, Text, useToast} from '@sanity/ui'
 import {useCallback, useMemo, useState} from 'react'
 import {useClient} from 'sanity'
 
+import {useDeplacementSeances} from '../hooks/useDeplacementSeances'
 import {useDonneesPlanning} from '../hooks/useDonneesPlanning'
-import {API_VERSION, type SeancePlanning} from '../types'
+import {useSoireesAJour} from '../hooks/useSoireesAJour'
 import {
-  ajouterJours,
-  aujourdHui,
-  debutDeSemaine,
-  finDeSemaine,
-  formatJourCourt,
-  formatPeriodeSemaine,
-} from '../utils/dates'
+  API_VERSION,
+  type ActionsPlanning,
+  type CreneauDate,
+  type SeancePlanning,
+} from '../types'
+import {idsEnConflit} from '../utils/conflits'
+import {ajouterJours, aujourdHui, debutDeSemaine, finDeSemaine} from '../utils/dates'
 import {DialogNewsletter} from '../newsletter/DialogNewsletter'
 import {supprimerSeance} from '../utils/mutations'
+import {BarreSemaine, type DialogOuvert} from './BarreSemaine'
 import {DialogDupliquerSemaine} from './DialogDupliquerSemaine'
+import {DialogFilmDuCreneau} from './DialogFilmDuCreneau'
+import {DialogGenererSemaine} from './DialogGenererSemaine'
 import {DialogProgrammerFilm} from './DialogProgrammerFilm'
+import {DialogSupprimerSeance} from './DialogSupprimerSeance'
 import {GrilleSemaine} from './GrilleSemaine'
 
-type DialogOuvert = 'programmer' | 'dupliquer' | 'newsletter' | null
+/** La case ou la séance dont on est en train de choisir le film. */
+type ChoixDeFilm = {creneau: CreneauDate} | {seance: SeancePlanning} | null
 
 export function PlanificationTool(): React.JSX.Element {
   const client = useClient({apiVersion: API_VERSION})
@@ -32,11 +44,16 @@ export function PlanificationTool(): React.JSX.Element {
   /* La semaine de cinéma va du mercredi au mardi : c'est ce mercredi-là. */
   const [debutSemaine, setDebutSemaine] = useState(() => debutDeSemaine(aujourdHui()))
   const [dialogOuvert, setDialogOuvert] = useState<DialogOuvert>(null)
+  const [choixDeFilm, setChoixDeFilm] = useState<ChoixDeFilm>(null)
   const [seanceASupprimer, setSeanceASupprimer] = useState<SeancePlanning | null>(null)
   const [suppressionEnCours, setSuppressionEnCours] = useState(false)
 
   const finSemaine = useMemo(() => finDeSemaine(debutSemaine), [debutSemaine])
   const {films, seances, chargement, erreur, recharger} = useDonneesPlanning(debutSemaine, finSemaine)
+  const conflits = useMemo(() => idsEnConflit(seances), [seances])
+
+  const rafraichir = useSoireesAJour(debutSemaine, finSemaine, recharger)
+  const glisser = useDeplacementSeances(rafraichir)
 
   const semainePrecedente = useCallback(
     () => setDebutSemaine((jour: string) => ajouterJours(jour, -7)),
@@ -48,6 +65,16 @@ export function PlanificationTool(): React.JSX.Element {
   )
   const semaineActuelle = useCallback(() => setDebutSemaine(debutDeSemaine(aujourdHui())), [])
   const fermerDialog = useCallback(() => setDialogOuvert(null), [])
+  const fermerChoixDeFilm = useCallback(() => setChoixDeFilm(null), [])
+
+  const actions: ActionsPlanning = useMemo(
+    () => ({
+      onSupprimer: setSeanceASupprimer,
+      onChangerFilm: (seance) => setChoixDeFilm({seance}),
+      onAjouter: (creneau) => setChoixDeFilm({creneau}),
+    }),
+    [],
+  )
 
   const confirmerSuppression = useCallback(async () => {
     if (!seanceASupprimer) return
@@ -56,51 +83,26 @@ export function PlanificationTool(): React.JSX.Element {
       await supprimerSeance(client, seanceASupprimer._id)
       toast.push({status: 'success', title: 'Séance supprimée.'})
       setSeanceASupprimer(null)
-      recharger()
+      rafraichir()
     } catch {
       toast.push({status: 'error', title: 'La suppression a échoué. Réessayez.'})
     } finally {
       setSuppressionEnCours(false)
     }
-  }, [client, recharger, seanceASupprimer, toast])
+  }, [client, rafraichir, seanceASupprimer, toast])
 
   return (
     <Container width={5} padding={4}>
       <Stack space={4}>
-        <Flex align="center" justify="space-between" gap={3} wrap="wrap">
-          <Stack space={2}>
-            <Text size={3} weight="bold">
-              Planification des séances
-            </Text>
-            <Text size={1} muted>
-              {formatPeriodeSemaine(debutSemaine)} · {seances.length} séance{seances.length > 1 ? 's' : ''}
-            </Text>
-          </Stack>
-          <Flex gap={2} wrap="wrap">
-            <Button icon={ChevronLeftIcon} mode="ghost" onClick={semainePrecedente} aria-label="Semaine précédente" />
-            <Button text="Aujourd'hui" mode="ghost" onClick={semaineActuelle} />
-            <Button icon={ChevronRightIcon} mode="ghost" onClick={semaineSuivante} aria-label="Semaine suivante" />
-            <Button icon={SyncIcon} mode="ghost" onClick={recharger} aria-label="Actualiser" />
-            <Button
-              icon={CopyIcon}
-              text="Dupliquer la semaine"
-              mode="ghost"
-              onClick={() => setDialogOuvert('dupliquer')}
-            />
-            <Button
-              icon={EnvelopeIcon}
-              text="Newsletter"
-              mode="ghost"
-              onClick={() => setDialogOuvert('newsletter')}
-            />
-            <Button
-              icon={AddIcon}
-              text="Programmer un film"
-              tone="primary"
-              onClick={() => setDialogOuvert('programmer')}
-            />
-          </Flex>
-        </Flex>
+        <BarreSemaine
+          debutSemaine={debutSemaine}
+          nbSeances={seances.length}
+          onSemainePrecedente={semainePrecedente}
+          onSemaineActuelle={semaineActuelle}
+          onSemaineSuivante={semaineSuivante}
+          onActualiser={recharger}
+          onOuvrir={setDialogOuvert}
+        />
 
         {erreur && (
           <Card padding={3} radius={2} tone="critical">
@@ -108,19 +110,40 @@ export function PlanificationTool(): React.JSX.Element {
           </Card>
         )}
 
+        {conflits.size > 0 && (
+          <Card padding={3} radius={2} tone="caution">
+            <Flex gap={2} align="center">
+              <Text size={1}>
+                <WarningOutlineIcon />
+              </Text>
+              <Text size={1}>
+                {conflits.size} séance{conflits.size > 1 ? 's' : ''} se chevauche
+                {conflits.size > 1 ? 'nt' : ''} dans une même salle — elles apparaissent en rouge
+                ci-dessous. Déplacez-en une, ou corrigez son heure.
+              </Text>
+            </Flex>
+          </Card>
+        )}
+
         <GrilleSemaine
           debutSemaine={debutSemaine}
           seances={seances}
+          conflits={conflits}
           chargement={chargement}
-          onSupprimer={setSeanceASupprimer}
+          actions={actions}
+          glisser={glisser}
         />
 
-        <Text size={1} muted>
-          La semaine de cinéma va du mercredi au mardi. Une salle est occupée de l'heure de début
-          jusqu'à la minute exacte de fin du film : deux séances peuvent donc s'enchaîner sans
-          battement, et seul un vrai chevauchement s'affiche en rouge. Tout ce qui est créé ici est
-          publié immédiatement sur le site.
-        </Text>
+        <Box>
+          <Text size={1} muted>
+            Attrapez une séance et déposez-la ailleurs : sur une case libre elle déménage, sur une
+            case occupée les deux films échangent leurs places. Une case vide se remplit d'un clic.
+            La séance de 21 h part à 21 h au plus tôt et attend la fin du film de 19 h : derrière
+            un film de 2 h 20, elle commence à 21:20 pile, et l'outil la décale tout seul quand il
+            le faut. La semaine de cinéma va du mercredi au mardi. Tout ce qui se fait ici est
+            publié immédiatement sur le site.
+          </Text>
+        </Box>
       </Stack>
 
       {dialogOuvert === 'programmer' && (
@@ -128,7 +151,7 @@ export function PlanificationTool(): React.JSX.Element {
           films={films}
           debutSemaine={debutSemaine}
           onFermer={fermerDialog}
-          onCree={recharger}
+          onCree={rafraichir}
         />
       )}
       {dialogOuvert === 'dupliquer' && (
@@ -136,37 +159,36 @@ export function PlanificationTool(): React.JSX.Element {
           debutSemaine={debutSemaine}
           seancesSemaine={seances}
           onFermer={fermerDialog}
-          onCree={recharger}
+          onCree={rafraichir}
+        />
+      )}
+      {dialogOuvert === 'generer' && (
+        <DialogGenererSemaine
+          films={films}
+          debutSemaine={debutSemaine}
+          seancesSemaine={seances}
+          onFermer={fermerDialog}
+          onCree={rafraichir}
         />
       )}
       {dialogOuvert === 'newsletter' && (
         <DialogNewsletter debutSemaine={debutSemaine} onFermer={fermerDialog} />
       )}
+      {choixDeFilm && (
+        <DialogFilmDuCreneau
+          films={films}
+          cible={choixDeFilm}
+          onFermer={fermerChoixDeFilm}
+          onFait={rafraichir}
+        />
+      )}
       {seanceASupprimer && (
-        <Dialog
-          id="confirmer-suppression"
-          header="Supprimer la séance ?"
-          onClose={() => setSeanceASupprimer(null)}
-          width={0}
-        >
-          <Box padding={4}>
-            <Stack space={4}>
-              <Text size={1}>
-                « {seanceASupprimer.filmTitre} » le {formatJourCourt(seanceASupprimer.date)} à{' '}
-                {seanceASupprimer.heure} ({seanceASupprimer.salle}) sera retirée du site.
-              </Text>
-              <Flex gap={2} justify="flex-end">
-                <Button text="Annuler" mode="ghost" onClick={() => setSeanceASupprimer(null)} />
-                <Button
-                  text={suppressionEnCours ? 'Suppression…' : 'Supprimer'}
-                  tone="critical"
-                  disabled={suppressionEnCours}
-                  onClick={confirmerSuppression}
-                />
-              </Flex>
-            </Stack>
-          </Box>
-        </Dialog>
+        <DialogSupprimerSeance
+          seance={seanceASupprimer}
+          enCours={suppressionEnCours}
+          onConfirmer={confirmerSuppression}
+          onAnnuler={() => setSeanceASupprimer(null)}
+        />
       )}
     </Container>
   )

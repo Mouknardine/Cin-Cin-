@@ -11,11 +11,17 @@ export const API_VERSION = '2025-02-19'
    le Hall-Bar était donc impossible à programmer d'ici. */
 export {SALLES, ordonnerSeances, rangDeSalle} from '../../salles'
 
+export type {CreneauDate} from './utils/creneaux-standards'
+
 /** Un film tel que chargé pour la planification. */
 export interface FilmPlanning {
   _id: string
   titre: string
   duree: number | null
+  /* « a-laffiche », « cycle », « passe »… — voir schemaTypes/film.ts.
+     Sert à proposer d'emblée les bons films quand on demande à
+     l'outil de remplir une semaine tout seul. */
+  statut: string | null
 }
 
 /** Une séance existante, enrichie des infos de son film. */
@@ -60,4 +66,35 @@ export interface RapportCreation {
   creees: number
   doublons: number
   conflits: string[]
+}
+
+/* ------------------------------------------------------------------
+   Ce que la grille sait faire, et comment on y glisse une séance.
+
+   Ces deux objets voyagent de l'outil jusqu'aux cases de la grille.
+   Les regrouper évite de faire descendre une dizaine de fonctions une
+   par une à travers trois composants.
+   ------------------------------------------------------------------ */
+
+/** Les actions proposées sur une séance ou sur une case vide. */
+import type {CreneauDate} from './utils/creneaux-standards'
+
+export interface ActionsPlanning {
+  onSupprimer: (seance: SeancePlanning) => void
+  onChangerFilm: (seance: SeancePlanning) => void
+  onAjouter: (creneau: CreneauDate) => void
+}
+
+/**
+ * L'état du glisser-déposer, partagé par toute la grille.
+ *
+ * `onDeposer` reçoit la case visée et, si elle est déjà occupée, la
+ * séance qui s'y trouve : c'est ce qui distingue un déplacement d'un
+ * échange.
+ */
+export interface GlisserDeposer {
+  seanceGlissee: SeancePlanning | null
+  onDebut: (seance: SeancePlanning) => void
+  onFin: () => void
+  onDeposer: (creneau: CreneauDate, occupant: SeancePlanning | null) => void
 }

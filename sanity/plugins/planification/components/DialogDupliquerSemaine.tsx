@@ -1,6 +1,14 @@
 /**
- * Assistant « Dupliquer la semaine » : recopie toutes les séances de la semaine affichée
- * vers une semaine suivante, en écartant doublons et conflits de salle.
+ * Assistant « Dupliquer la semaine » : recopie toutes les séances de la
+ * semaine affichée vers une semaine suivante, en écartant doublons et
+ * conflits de salle.
+ *
+ * Avec l'option « rebattre les cartes », les mêmes films reviennent en
+ * même nombre, mais changent de jour, d'heure et de salle. C'est la
+ * façon la plus rapide de programmer une semaine de plus avec les films
+ * déjà à l'affiche : on garde le volume, on renouvelle la grille.
+ * Les séances particulières — Hall-Bar, horaires inhabituels — ne sont
+ * jamais déplacées par le hasard : elles se recopient telles quelles.
  */
 import {Box, Button, Dialog, Select, Stack, Text, useToast} from '@sanity/ui'
 import {useCallback, useMemo, useState} from 'react'
@@ -8,8 +16,12 @@ import {useClient} from 'sanity'
 
 import {API_VERSION, type RapportCreation, type SeanceCandidate, type SeancePlanning} from '../types'
 import {verifierNouvellesSeances} from '../utils/conflits'
+import {HORS_GRILLE, creneauDeLaSeance, vagueDeLaSeance} from '../utils/creneaux-standards'
 import {ajouterJours, finDeSemaine, formatPeriodeSemaine} from '../utils/dates'
 import {chargerSeancesPeriode, creerSeances} from '../utils/mutations'
+import {poserLesHeures} from '../utils/heures-de-la-grille'
+import {affecterFilms} from '../utils/repartition'
+import {OptionACocher} from './OptionACocher'
 import {RapportResultat} from './RapportResultat'
 
 interface Props {
@@ -18,6 +30,64 @@ interface Props {
   seancesSemaine: SeancePlanning[]
   onFermer: () => void
   onCree: () => void
+}
+
+/** Recopie une séance telle quelle, une ou plusieurs semaines plus loin. */
+function recopier(seance: SeancePlanning, decalage: number): SeanceCandidate {
+  return {
+    filmId: seance.filmId,
+    titre: seance.filmTitre,
+    duree: seance.filmDuree,
+    date: ajouterJours(seance.date, decalage * 7),
+    heure: seance.heure,
+    salle: seance.salle,
+  }
+}
+
+/** Une séance tombe-t-elle sur une case ordinaire de la grille ? */
+function estOrdinaire(seance: SeancePlanning): boolean {
+  return vagueDeLaSeance(seance) !== HORS_GRILLE
+}
+
+/**
+ * Les séances de la semaine d'arrivée, films redistribués au hasard sur les
+ * mêmes cases. Les séances particulières sont recopiées à l'identique.
+ *
+ * Les heures sont RECALCULÉES, pas recopiées : un film de 2 h 20 qui atterrit
+ * à 19 h repousse d'autant la séance de 21 h de sa salle, à la minute près.
+ */
+function rebattreLesCartes(
+  seancesSemaine: SeancePlanning[],
+  decalage: number,
+  dejaPosees: readonly SeancePlanning[],
+): SeanceCandidate[] {
+  const ordinaires = seancesSemaine.filter(estOrdinaire)
+  const particulieres = seancesSemaine.filter((seance) => !estOrdinaire(seance))
+  const parFilm = new Map(ordinaires.map((seance) => [seance.filmId, seance]))
+
+  const creneaux = ordinaires.map((seance) => ({
+    ...creneauDeLaSeance(seance),
+    date: ajouterJours(seance.date, decalage * 7),
+  }))
+  const pool = ordinaires.map((seance) => seance.filmId)
+  const occupees = dejaPosees
+    .map((seance) => ({...creneauDeLaSeance(seance), filmId: seance.filmId}))
+    .filter((place) => place.vague !== HORS_GRILLE)
+
+  const melangees = poserLesHeures(
+    affecterFilms(creneaux, pool, {dejaPosees: occupees}),
+    (filmId) => parFilm.get(filmId)?.filmDuree ?? null,
+    dejaPosees,
+  ).map((place) => ({
+    filmId: place.filmId,
+    titre: parFilm.get(place.filmId)?.filmTitre ?? 'Film',
+    duree: parFilm.get(place.filmId)?.filmDuree ?? null,
+    date: place.date,
+    heure: place.heure,
+    salle: place.salle,
+  }))
+
+  return [...melangees, ...particulieres.map((seance) => recopier(seance, decalage))]
 }
 
 export function DialogDupliquerSemaine({
@@ -30,6 +100,7 @@ export function DialogDupliquerSemaine({
   const toast = useToast()
 
   const [decalage, setDecalage] = useState(1)
+  const [rebattre, setRebattre] = useState(false)
   const [enCours, setEnCours] = useState(false)
   const [rapport, setRapport] = useState<RapportCreation | null>(null)
 
@@ -37,19 +108,17 @@ export function DialogDupliquerSemaine({
     () => ajouterJours(debutSemaine, decalage * 7),
     [decalage, debutSemaine],
   )
+  const nbOrdinaires = useMemo(() => seancesSemaine.filter(estOrdinaire).length, [seancesSemaine])
 
   const dupliquer = useCallback(async () => {
     setEnCours(true)
     try {
-      const candidates: SeanceCandidate[] = seancesSemaine.map((seance) => ({
-        filmId: seance.filmId,
-        titre: seance.filmTitre,
-        duree: seance.filmDuree,
-        date: ajouterJours(seance.date, decalage * 7),
-        heure: seance.heure,
-        salle: seance.salle,
-      }))
+      /* La semaine d'arrivée est lue AVANT le tirage : ce qui s'y trouve
+         déjà pèse sur le hasard, plutôt que d'être découvert après coup. */
       const existantes = await chargerSeancesPeriode(client, debutCible, finDeSemaine(debutCible))
+      const candidates = rebattre
+        ? rebattreLesCartes(seancesSemaine, decalage, existantes)
+        : seancesSemaine.map((seance) => recopier(seance, decalage))
       const {aCreer, doublons, conflits} = verifierNouvellesSeances(candidates, existantes)
       await creerSeances(client, aCreer)
       setRapport({creees: aCreer.length, doublons, conflits})
@@ -59,7 +128,7 @@ export function DialogDupliquerSemaine({
     } finally {
       setEnCours(false)
     }
-  }, [client, debutCible, decalage, onCree, seancesSemaine, toast])
+  }, [client, debutCible, decalage, onCree, rebattre, seancesSemaine, toast])
 
   return (
     <Dialog id="dupliquer-semaine" header="Dupliquer la semaine" onClose={onFermer} width={1}>
@@ -83,6 +152,20 @@ export function DialogDupliquerSemaine({
                 </option>
               ))}
             </Select>
+
+            <OptionACocher
+              id="rebattre-les-cartes"
+              titre="Rebattre les cartes"
+              cochee={rebattre}
+              onChanger={setRebattre}
+            >
+              Les mêmes films, en même nombre, mais à d'autres jours, salles et moments de la
+              soirée. Un film ne se retrouve jamais deux fois dans la même vague, ni deux fois le
+              même jour tant qu'on peut l'éviter. Les horaires sont recalculés : un long film posé
+              à 19 h repousse la séance de 21 h de sa salle. Les {nbOrdinaires} séances de 19 h et
+              21 h sont concernées ; les séances particulières sont recopiées telles quelles.
+            </OptionACocher>
+
             <Button
               text={enCours ? 'Duplication en cours…' : 'Dupliquer'}
               tone="primary"

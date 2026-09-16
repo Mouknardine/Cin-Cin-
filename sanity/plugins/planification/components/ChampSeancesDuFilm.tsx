@@ -52,6 +52,7 @@ export function ChampSeancesDuFilm(): React.JSX.Element {
   const idBrut = useFormValue(['_id']) as string | undefined
   const titre = (useFormValue(['title']) as string | undefined) ?? ''
   const duree = useFormValue(['duration']) as number | undefined
+  const statutDuFilm = useFormValue(['status']) as string | undefined
   const id = (idBrut ?? '').replace(/^drafts\./, '')
 
   const [seances, setSeances] = useState<SeanceResumee[] | null>(null)
@@ -214,6 +215,7 @@ export function ChampSeancesDuFilm(): React.JSX.Element {
             _id: id,
             titre: titre || 'Ce film',
             duree: typeof duree === 'number' ? duree : null,
+            statut: statutDuFilm ?? null,
           }}
           debutSemaine={debutDeSemaine(aujourdhui())}
           onFermer={() => {

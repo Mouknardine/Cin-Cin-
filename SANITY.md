@@ -196,16 +196,92 @@ prévoir dans les horaires.
 
 ## L'onglet « Planification »
 
-En haut du Studio, à côté de « Contenu ». Il sert à programmer vite :
+En haut du Studio, à côté de « Contenu ». C'est le tableau de bord de la
+semaine : sept colonnes, du mercredi au mardi, et dans chaque colonne les deux
+vagues du soir — **19 h et 21 h, Salle 1 et Salle 2**. Une case grise en
+pointillés est un créneau libre.
+
+### « 21 h » veut dire « après le film de 19 h »
+
+**19 h et 21 h sont des noms de vagues, pas des heures fixes.** La première part
+bien à 19 h. La seconde part à 21 h **au plus tôt**, et plus tard si le film de
+19 h n'est pas fini — **à la minute près** :
+
+| Film de 19 h | Fin | Séance suivante |
+|---|---|---|
+| 1 h 30 | 20:30 | **21:00** |
+| 2 h 00 | 21:00 | **21:00** |
+| 2 h 20 | 21:20 | **21:20** |
+| 2 h 43 | 21:43 | **21:43** |
+
+Aucun battement n'est ajouté : la salle se libère à la minute exacte de fin du
+film. Chaque carte de séance affiche son heure de fin (`19:00 · Titre → 21:20`),
+et chaque case libre affiche l'heure à laquelle elle partira.
+
+Concrètement :
+
+- **Tout ce qui est créé ici part à la bonne heure** — clic sur une case libre,
+  duplication, remplissage au hasard.
+- **Quand un changement rallonge la soirée**, l'outil **décale tout seul** la
+  séance de 21 h de cette salle et vous le dit (« *Le Grand Bleu* passe de 21:00
+  à 21:20, le temps que finisse *Ceci est mon corps* »).
+- **Une séance n'est jamais avancée.** Si vous avez volontairement laissé un
+  battement — 21:30 derrière un film qui finit à 21:15 — il vous appartient et
+  l'outil n'y touche pas.
+- **Un long film n'écrase pas une séance déjà fixée** : si une séance est déjà
+  calée à 21 h, le tirage au sort ne mettra pas un film de 2 h 20 à 19 h dans
+  cette salle — il en choisira un qui rentre.
+
+### Déplacer une séance à la souris
+
+- **Attraper une séance et la déposer ailleurs.** Sur une **case libre**, elle
+  déménage. Sur une **case occupée**, les deux films **échangent leurs
+  places** — d'un seul geste, sans rien supprimer ni ressaisir.
+- **Cliquer une case libre** pour y programmer un film tout de suite.
+- **Remplacer le film d'une séance** sans toucher à son horaire : menu ⋮ →
+  *Changer le film…*
+- Un déplacement fait à la main n'est jamais refusé. Si le film déplacé est plus
+  long, la séance suivante de la salle est **décalée automatiquement**. Si un
+  chevauchement subsiste malgré tout, un bandeau orange l'annonce et les séances
+  concernées passent en rouge — c'est vous qui décidez comment le régler.
+
+### Programmer une semaine en quelques clics
 
 - **Programmer un film** : choisir un film, ses créneaux habituels (ex. mercredi
   19 h Salle 1 + samedi 21 h Salle 2) et un nombre de semaines → toutes les
   séances sont créées et publiées d'un coup.
 - **Dupliquer la semaine** : recopie toutes les séances de la semaine affichée
-  vers la suivante, en un clic.
+  vers la suivante, en un clic. Avec l'option **« Rebattre les cartes »**, les
+  **mêmes films reviennent en même nombre mais changent de jour, de salle et de
+  moment de la soirée** : c'est la façon la plus rapide de faire une semaine de
+  plus avec les films déjà à l'affiche. Les horaires sont **recalculés**, pas
+  recopiés.
+- **Remplir au hasard** : cocher les films, l'outil compose la semaine en
+  donnant **à peu près le même nombre de séances à chacun**. Il propose d'abord
+  une grille — le nombre de séances de chaque film s'affiche en face de son
+  titre — on peut **relancer le tirage** autant de fois qu'on veut, et on ne
+  valide que lorsqu'elle convient.
 - **Supprimer une séance** : menu ⋮ sur la séance.
+
+### Ce que le hasard ne fait jamais
+
+- Un film ne passe **jamais deux fois en même temps** dans les deux salles.
+- Il évite de passer **deux fois le même jour**, tant qu'il y a assez de films
+  pour l'éviter.
+- Il change de vague et de salle d'une séance à l'autre plutôt que de toujours
+  tomber à 19 h en Salle 1.
+- Il ne propose **jamais un horaire impossible** : chaque séance de 21 h part
+  après la fin du film de 19 h de sa salle.
+- **Rien de ce qui est déjà programmé n'est touché** : ni déplacé, ni recouvert.
+  Le tirage se contente des cases libres. Les séances particulières — le
+  **Hall-Bar** d'un soir d'événement, une avant-première à 18 h — s'affichent
+  sous la grille de leur journée et ne sont jamais déplacées par le hasard.
+- L'option **« Tenir compte des semaines voisines »** regarde les 4 semaines
+  avant et après : un film déjà beaucoup projeté en reçoit moins, pour que les
+  totaux s'égalisent **sur la durée** plutôt que semaine par semaine.
+
 - **Conflits de salle** : les chevauchements existants apparaissent en rouge,
-  l'outil refuse d'en créer de nouveaux, et les doublons sont ignorés.
+  les assistants refusent d'en créer de nouveaux, et les doublons sont ignorés.
 
 ### Dans quel ordre la grille se lit
 
@@ -229,7 +305,8 @@ npm install
 npm run studio:dev      # Studio local sur http://localhost:3333
 npm run studio:deploy   # Met en ligne https://cincin-zinema.sanity.studio
 npm run typecheck       # Vérifie les schémas
-npm test                # Vérifie l'ordre du programme (Studio ET site)
+npm test                # Vérifie l'ordre du programme, la newsletter
+                        # et le tirage au sort d'une semaine
 ```
 
 `npm test` lit `verifications/ordre-des-seances.mjs`. L'ordre du programme
