@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Les huit pages du site. Les fiches de films ne figurent pas ici :
+<!-- Les neuf pages du site. Les fiches de films ne figurent pas ici :
      leur adresse dépend du film (/film/?s=…) et la liste change à
      chaque semaine de programmation. Elles restent accessibles depuis
      la page Films, que Google parcourt. -->
@@ -10,6 +10,7 @@
   <url><loc>https://www.zinema.ch/evenements/</loc><priority>0.7</priority></url>
   <url><loc>https://www.zinema.ch/location/</loc><priority>0.7</priority></url>
   <url><loc>https://www.zinema.ch/histoire/</loc><priority>0.5</priority></url>
+  <url><loc>https://www.zinema.ch/remerciements/</loc><priority>0.4</priority></url>
   <url><loc>https://www.zinema.ch/membership/</loc><priority>0.7</priority></url>
   <url><loc>https://www.zinema.ch/contact/</loc><priority>0.8</priority></url>
 </urlset>

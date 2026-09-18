@@ -121,7 +121,7 @@ export const siteSettings = defineType({
       type: "array",
       group: "pratique",
       description:
-        "Celles et ceux que le cinéma remercie : institutions, soutiens, personnes. Une case par nom, affichée sur la page Infos sous « Notre histoire ». Glissez un nom pour le déplacer ; la couleur et la taille de chaque case sont tirées au hasard à chaque visite. Sans aucun nom, la rubrique n'apparaît pas du tout sur le site.",
+        "Celles et ceux que le cinéma remercie : institutions, soutiens, personnes. Une brique par nom, toutes à la même taille, sur le mur de la page Remerciements — on y entre par une case de la page Infos, à côté de « Notre histoire ». Glissez un nom pour le déplacer ; la couleur de chaque brique est tirée au hasard à chaque visite. Sans aucun nom, la case et la page n'apparaissent pas du tout sur le site.",
       of: [
         {
           type: "object",

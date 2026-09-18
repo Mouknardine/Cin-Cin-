@@ -1,0 +1,95 @@
+/* ============================================================
+   Zinéma — page Remerciements en tableau « Mondrian ».
+   S'appuie sur film-mondrian.css (quadrillage, cases, repères) :
+   les deux feuilles sont chargées ensemble sur cette page.
+
+   Un mot en très grand ouvre la page, puis vient le mur : une
+   brique par nom, toutes les briques à la même taille de lettres.
+   Ce sont les noms, plus ou moins longs, qui font les briques
+   inégales — et les rangées décalées d'un vrai mur :
+
+     ┌─────────────────────────────────────────────────────────┐
+     │ REMERCIEMENTS                                           │
+     │ MERCI                                                   │
+     ├───────────────────┬──────────────┬──────────────────────┤
+     │ VILLE DE LAUSANNE │ ÉTAT DE VAUD │ LOTERIE ROMANDE      │
+     ├──────────┬────────┴──────────┬───┴──────────────────────┤
+     │ FONDS…   │ CINÉFORUM         │ LES AMIS DU ZINÉMA       │
+     ├──────────┴───────────────────┴──────────────────────────┤
+     │ INFOS                        │ VOIR LES SÉANCES         │
+     └──────────────────────────────┴──────────────────────────┘
+   ============================================================ */
+
+/* ---------- L'ouverture ----------
+   Un seul mot, à la taille de l'âge du cinéma sur la page
+   Histoire : c'est l'affiche de la page. */
+
+.m-merci__ouverture {
+  flex: 1 1 100%;
+}
+.m-merci__titre {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  font-size: clamp(4rem, 14vw, 11rem);
+  line-height: 0.9;
+}
+
+/* ---------- Le mur ----------
+   Chaque brique se cale sur son nom et grandit avec ses voisines
+   pour remplir la rangée : aucune rangée ne se termine par un trou
+   noir. Un nom qui ne tient plus sur la rangée passe à la rangée
+   suivante entier — « Loterie Romande » ne se coupe pas en deux
+   pour tenir à côté d'un voisin. */
+
+.m-merci {
+  flex: 1 1 auto;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+/* Le nom : la seule taille du mur, la même pour tous. */
+.m-merci__nom {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
+  /* Un nom se coupe aux espaces, jamais au trait d'union : on
+     n'écrit pas « Lo-terie ». */
+  hyphens: manual;
+  overflow-wrap: break-word;
+}
+
+/* Ce pour quoi on remercie : même taille, en maigre — sur ce site
+   la hiérarchie se fait par la graisse, jamais par la taille. */
+.m-merci__mention {
+  font-weight: 400;
+  opacity: 0.7;
+  line-height: 1.2;
+}
+
+/* ---------- La rangée du bas ----------
+   Le retour vers les Infos et le chemin des séances se partagent
+   la bande et la remplissent : calées sur leurs deux mots, elles
+   auraient laissé un trait noir courir à leur droite. */
+
+.m-bande--retour .m-action {
+  flex: 1 1 auto;
+}
+
+/* ---------- Mobile & tablette ----------
+   Le mur reste un mur : deux noms courts se serrent côte à côte
+   sur la même rangée. Tout empiler donnerait une colonne de cases
+   identiques — une liste, plus un mur. Seule l'ouverture prend
+   toute la largeur, et le mot se resserre pour tenir sur l'écran. */
+
+@media (max-width: 899px) {
+  .mondrian--remerciements .m-merci {
+    padding: 0.75rem;
+  }
+  .m-merci__titre {
+    font-size: clamp(3.5rem, 22vw, 8rem);
+  }
+}

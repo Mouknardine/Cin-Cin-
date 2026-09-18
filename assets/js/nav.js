@@ -105,10 +105,10 @@
     header.className = "site-header";
     header.innerHTML =
       /* Le nom du cinéma s'écrit, il ne se dessine plus. Il est
-         posé dans la même graisse et les mêmes capitales que les
-         rubriques voisines, simplement plus grand : la barre est
-         alors d'un seul tenant typographique, et rien n'attend
-         d'image pour s'afficher. */
+         posé dans la même graisse, la même taille et les mêmes
+         capitales que les rubriques voisines : la barre est alors
+         d'un seul tenant typographique, et rien n'attend d'image
+         pour s'afficher. */
       '<a href="' + root + '" class="site-header__nom" aria-label="Zinéma — accueil">Zinéma</a>' +
       navBarHTML(root, document.body.dataset.page) +
       /* Pas de mot « Menu » à côté du bouton : le carré et ses deux

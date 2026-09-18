@@ -6,9 +6,10 @@
    est tirée au hasard à chaque affichage.
 
    L'adresse ouvre la page, la carte à côté ; viennent ensuite les
-   horaires, les coordonnées, l'accès, puis « Notre histoire » et
-   les remerciements — une information par case. Tout vient de Sanity : une case qui n'a
-   rien à dire n'est pas affichée, jamais de case vide.
+   horaires, les coordonnées, l'accès, puis les portes vers « Notre
+   histoire » et les « Remerciements » — une information par case.
+   Tout vient de Sanity : une case qui n'a rien à dire n'est pas
+   affichée, jamais de case vide.
    ============================================================ */
 (function () {
   "use strict";
@@ -17,7 +18,6 @@
   var app = document.getElementById("contact-app");
   var R = window.ZinemaRender;
   var C = window.ZinemaCouleurs;
-  var Merci = window.ZinemaRemerciements;
 
   /* Une bande vide laisserait un trait noir en travers du tableau :
      on ne l'écrit que si elle a au moins une case. */
@@ -82,6 +82,14 @@
 
   function numeroVersLien(numero) {
     return "tel:" + String(numero).replace(/\s/g, "");
+  }
+
+  /* Au moins un nom à remercier dans le Studio ? C'est ce qui décide
+     si la porte vers le mur des remerciements est affichée. */
+  function aDesRemerciements(reglages) {
+    return (reglages.remerciements || []).some(function (merci) {
+      return Boolean(merci && merci.nom);
+    });
   }
 
   /* L'adresse est écrite comme sur une enveloppe : la rue, puis le
@@ -174,14 +182,17 @@
          ne doit pas être un cul-de-sac. « Notre histoire » suit —
          la frise a quitté le menu, cette case en est la seule porte.
 
-         Les remerciements ferment la page, juste sous elle : ils
-         appartiennent à la même histoire, et c'est la place qu'on
-         leur donne au générique d'un film. */
+         « Remerciements » ferme la rangée : la porte vers le mur de
+         celles et ceux qui font vivre le cinéma (remerciements.js).
+         Les noms ne sont plus étalés ici — ils se lisent bien mieux
+         sur leur propre page, tous à la même taille. La case
+         n'apparaît que s'il y a au moins un nom : jamais de porte
+         vers une page vide. */
       bande("m-bande--pages", [
         R.caseVoirLesSeances(),
         caseInterne("Notre histoire", root + "histoire/"),
+        aDesRemerciements(reglages) ? caseInterne("Remerciements", root + "remerciements/") : "",
       ]) +
-      Merci.bande(reglages.remerciements) +
       "</article>";
   });
 })();

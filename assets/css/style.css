@@ -277,11 +277,12 @@ button {
 }
 
 /* Le nom du cinéma ramène à l'accueil. Il est écrit, pas dessiné :
-   mêmes capitales et même graisse que les rubriques voisines, mais
-   plus grand — c'est le nom de la maison, il passe devant ses
-   rubriques. Au survol — à la souris seulement —, sa case se remplit
-   de rose fluo, comme la signature de l'agence tout en bas : les
-   deux bornes de la page réagissent de la même façon. */
+   mêmes capitales, même graisse et même taille que les rubriques
+   voisines — la barre est d'un seul tenant typographique, le nom
+   se distingue par sa place, tout à gauche, pas par sa taille.
+   Au survol — à la souris seulement —, sa case se remplit de rose
+   fluo, comme la signature de l'agence tout en bas : les deux
+   bornes de la page réagissent de la même façon. */
 .site-header__nom {
   display: flex;
   position: relative;
@@ -293,11 +294,11 @@ button {
   padding: 0.15em 0.4em;
   margin-left: -0.4em;
   font-family: var(--font-display);
-  font-size: clamp(1.5rem, 1rem + 2vw, 2.25rem);
+  font-size: var(--taille-nav);
   font-weight: 900;
   line-height: 1;
   text-transform: uppercase;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   color: var(--ink);
   transition: background 0.2s ease-out;
 }
@@ -423,8 +424,12 @@ button {
     padding: 0 0.75rem;
     white-space: nowrap;
     font-family: var(--font-display);
+    /* Exactement la typographie du nom du cinéma (.site-header__nom) :
+       même taille, même graisse, même espacement. Toute différence
+       entre les deux se voit au premier coup d'œil dans une barre
+       d'un seul tenant. */
     font-size: var(--taille-nav);
-    font-weight: 800;
+    font-weight: 900;
     text-transform: uppercase;
     letter-spacing: -0.01em;
     color: var(--ink);

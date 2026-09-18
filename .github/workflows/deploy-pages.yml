@@ -41,7 +41,7 @@ jobs:
       - name: Rassembler les fichiers du site (sans le Studio Sanity ni les scripts)
         run: |
           mkdir site
-          cp -r index.html films film agenda evenements histoire membership contact billet assets site/
+          cp -r index.html films film agenda evenements histoire remerciements membership contact billet assets site/
 
       - uses: actions/configure-pages@v5
 
