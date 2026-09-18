@@ -46,15 +46,23 @@
 .m-merci {
   flex: 1 1 auto;
   justify-content: center;
-  gap: 0.25rem;
+  gap: 0.35rem;
+  /* Une brique est plus haute qu'une case d'information : c'est
+     un mur, pas une liste de renseignements. */
+  padding: 1.5rem 1rem;
 }
 
-/* Le nom : la seule taille du mur, la même pour tous. */
+/* Le nom : la seule taille du mur, la même pour tous. Elle est
+   posée entre le texte courant et les titres du site — à la
+   taille du texte, une rangée de quatre noms faisait une ligne
+   d'étiquettes sous le grand « Merci » ; à la taille des titres,
+   un seul nom mangeait l'écran. */
 .m-merci__nom {
   font-family: var(--font-display);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -0.01em;
+  font-size: clamp(1.6rem, 1.1rem + 1.4vw, 2.75rem);
   line-height: 1.05;
   /* Un nom se coupe aux espaces, jamais au trait d'union : on
      n'écrit pas « Lo-terie ». */
@@ -62,9 +70,10 @@
   overflow-wrap: break-word;
 }
 
-/* Ce pour quoi on remercie : même taille, en maigre — sur ce site
-   la hiérarchie se fait par la graisse, jamais par la taille. */
+/* Ce pour quoi on remercie : à la taille du texte courant, en
+   maigre — le nom reste ce qu'on lit en premier. */
 .m-merci__mention {
+  font-size: var(--taille-texte);
   font-weight: 400;
   opacity: 0.7;
   line-height: 1.2;
@@ -87,9 +96,20 @@
 
 @media (max-width: 899px) {
   .mondrian--remerciements .m-merci {
-    padding: 0.75rem;
+    padding: 1rem 0.75rem;
   }
   .m-merci__titre {
     font-size: clamp(3.5rem, 22vw, 8rem);
+  }
+}
+
+/* ---------- Ordinateur ----------
+   Plus d'air encore autour des noms : les briques prennent de la
+   hauteur avec l'écran, comme la marge de toutes les cases du
+   site. */
+
+@media (min-width: 900px) {
+  .mondrian--remerciements .m-merci {
+    padding: 2.25rem 1.5rem;
   }
 }
