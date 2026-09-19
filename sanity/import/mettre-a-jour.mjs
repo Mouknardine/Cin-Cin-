@@ -47,6 +47,13 @@ import { FILMS, trierLesFilms } from "./programme.data.mjs";
 /* Sans « --appliquer », on ne fait que regarder. */
 const SIMULATION = !process.argv.includes("--appliquer");
 
+/* Avec « --remerciements », le script ne fait qu'une chose : remplir le
+   mur des remerciements. Les films, les séances, les tarifs, la page
+   Histoire et les informations ne sont même pas lus. C'est la porte à
+   prendre quand le programme du Studio est à jour et qu'on ne veut
+   surtout pas le ramener à celui de programme.data.mjs. */
+const REMERCIEMENTS_SEULEMENT = process.argv.includes("--remerciements");
+
 const jeton = process.env.SANITY_WRITE_TOKEN;
 if (!jeton) {
   console.error(
@@ -469,6 +476,15 @@ async function fusionnerLesRemerciements() {
   return [...liste, ...inattendues];
 }
 
+/* Le mur, et rien que le mur : un seul champ écrit, sur un seul
+   document. Rien d'autre du Studio n'est touché ni même regardé. */
+async function ecrireLesRemerciements() {
+  titre("Le mur des remerciements");
+  await client.createIfNotExists({ _id: "siteSettings", _type: "siteSettings" });
+  const remerciements = await fusionnerLesRemerciements();
+  await client.patch("siteSettings").set({ remerciements }).commit();
+}
+
 async function traiterLesReglages() {
   titre("Tarifs, coordonnées et formules");
 
@@ -639,6 +655,22 @@ async function principal() {
       ? "MODE SIMULATION — rien ne sera écrit. Relancer avec « --appliquer » pour le faire vraiment.\n"
       : "MODE RÉEL — les modifications partent dans le Studio.\n"
   );
+
+  if (REMERCIEMENTS_SEULEMENT) {
+    dire(
+      "PORTÉE RESTREINTE — seul le mur des remerciements est écrit.\n" +
+        "Les films, les séances, les tarifs, la page Histoire et les\n" +
+        "informations restent exactement comme ils sont.\n"
+    );
+    await ecrireLesRemerciements();
+    dire(
+      SIMULATION
+        ? "\nSimulation terminée : rien n'a été modifié.\n"
+        : "\nTerminé. Le mur est à jour, rien d'autre n'a bougé.\n"
+    );
+    return;
+  }
+
   const filmsDuProgramme = await traiterLesFilms();
   await traiterLesSeances(filmsDuProgramme);
   await traiterLeMenage(filmsDuProgramme);

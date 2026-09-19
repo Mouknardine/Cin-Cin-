@@ -25,16 +25,28 @@ on:
           - voir          # lire seulement : dit ce que le Studio contient
           - simulation    # dit ce qui changerait, sans rien écrire
           - appliquer     # écrit vraiment dans le Studio
+      portee:
+        description: "Sur quoi ?"
+        type: choice
+        required: true
+        default: tout
+        options:
+          - tout            # films, séances, textes, remerciements
+          - remerciements   # le mur des remerciements, et rien d'autre
 
   # Deuxième porte d'entrée, pour qui n'a pas le bouton « Run workflow »
   # (un assistant travaillant sur le dépôt, par exemple) : créer l'une
-  # de ces trois branches déclenche le mode correspondant. Elles ne
-  # servent qu'à ça et peuvent être supprimées juste après.
+  # de ces branches déclenche le mode correspondant. Celles qui finissent
+  # par « -remerciements » n'écrivent que le mur des remerciements et
+  # laissent le programme du Studio intact. Elles ne servent qu'à ça et
+  # peuvent être supprimées juste après.
   push:
     branches:
       - sanity/voir
       - sanity/simulation
       - sanity/appliquer
+      - sanity/simulation-remerciements
+      - sanity/appliquer-remerciements
 
 jobs:
   sanity:
@@ -42,21 +54,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Le mode vient soit du menu « Run workflow », soit du nom de la
-      # branche qui a déclenché l'exécution.
+      # Le mode et la portée viennent soit du menu « Run workflow »,
+      # soit du nom de la branche qui a déclenché l'exécution.
       - name: Quel mode ?
         id: mode
         run: |
           MODE="${{ inputs.mode }}"
+          PORTEE="${{ inputs.portee }}"
           if [ -z "$MODE" ]; then
             case "${{ github.ref_name }}" in
-              sanity/appliquer)  MODE=appliquer ;;
-              sanity/simulation) MODE=simulation ;;
-              *)                 MODE=voir ;;
+              sanity/appliquer)                MODE=appliquer ;;
+              sanity/simulation)               MODE=simulation ;;
+              sanity/appliquer-remerciements)  MODE=appliquer ; PORTEE=remerciements ;;
+              sanity/simulation-remerciements) MODE=simulation ; PORTEE=remerciements ;;
+              *)                               MODE=voir ;;
             esac
           fi
+          if [ "$PORTEE" = "remerciements" ]; then
+            LIMITE=--remerciements
+          else
+            PORTEE=tout
+            LIMITE=""
+          fi
           echo "valeur=$MODE" >> "$GITHUB_OUTPUT"
-          echo "Mode : $MODE"
+          echo "limite=$LIMITE" >> "$GITHUB_OUTPUT"
+          echo "Mode : $MODE — portée : $PORTEE"
 
       - uses: actions/setup-node@v4
         with:
@@ -84,13 +106,13 @@ jobs:
         if: steps.mode.outputs.valeur == 'simulation'
         env:
           SANITY_WRITE_TOKEN: ${{ secrets.SANITY_WRITE_TOKEN }}
-        run: node sanity/import/mettre-a-jour.mjs
+        run: node sanity/import/mettre-a-jour.mjs ${{ steps.mode.outputs.limite }}
 
       - name: Appliquer la mise à jour
         if: steps.mode.outputs.valeur == 'appliquer'
         env:
           SANITY_WRITE_TOKEN: ${{ secrets.SANITY_WRITE_TOKEN }}
-        run: node sanity/import/mettre-a-jour.mjs --appliquer
+        run: node sanity/import/mettre-a-jour.mjs --appliquer ${{ steps.mode.outputs.limite }}
 
       - name: Ce que le Studio contient APRÈS
         if: steps.mode.outputs.valeur == 'appliquer'
