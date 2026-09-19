@@ -52,6 +52,7 @@ async function etat() {
         "seances": count(*[_type == "screening" && references(^._id) && date >= $aujourdhui])
       },
       "reglages": *[_type == "siteSettings"][0]{address, phone, tarifPlein, tarifReduit, "salles": salles[].nom},
+      "remerciements": *[_type == "siteSettings"][0].remerciements[]{_key, nom, mention, url},
       "frise": *[_id == "histoire"][0].etapes[]{year, title},
       "informations": *[_type == "evenement" && !(_id in path("drafts.**"))]{title, dateDebut, dateFin},
       "seances": *[_type == "screening" && date >= $aujourdhui] | order(date asc, time asc)[0...8]{
@@ -89,6 +90,17 @@ async function etat() {
     dire(`  Tarifs    : ${r.tarifPlein ?? "—"}.- / ${r.tarifReduit ?? "—"}.- réduit`);
     dire(`  Salles    : ${(r.salles || []).join(", ") || "—"}`);
   }
+
+  /* Le mur de la page Remerciements. Chaque nom est listé avec sa clef,
+     sa mention et son lien : c'est ce qu'il faut savoir avant d'y toucher,
+     rien ne devant jamais disparaître de cette liste. */
+  const remerciements = tout.remerciements || [];
+  titre(`Remerciements (${remerciements.length})`);
+  for (const r of remerciements) {
+    const details = [r.mention && `« ${r.mention} »`, r.url].filter(Boolean).join("  ");
+    dire(`  · ${r.nom}${details ? "  " + details : ""}   [_key: ${r._key}]`);
+  }
+  if (!remerciements.length) dire("  aucun — la page et sa case n'apparaissent pas sur le site");
 
   const frise = tout.frise || [];
   titre(`Page Histoire (${frise.length} étape${frise.length > 1 ? "s" : ""})`);
