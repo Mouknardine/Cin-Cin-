@@ -20,6 +20,10 @@ name: Déploiement Infomaniak
 on:
   push:
     branches:
+      - main
+      # L'ancien nom de la branche principale. Les deux sont acceptés le
+      # temps du renommage, pour qu'aucun envoi ne tombe dans le vide.
+      # Une fois la branche renommée en main, cette ligne peut partir.
       - claude/zinema-cinema-redesign-ttcpaf
   workflow_dispatch:
 

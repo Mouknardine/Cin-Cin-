@@ -29,6 +29,9 @@ name: Déploiement du Studio Sanity
 on:
   push:
     branches:
+      - main
+      # L'ancien nom de la branche principale, accepté le temps du
+      # renommage. Une fois la branche renommée en main, il peut partir.
       - claude/zinema-cinema-redesign-ttcpaf
     # Le Studio n'est reconstruit que si le Studio a changé. Une retouche
     # de CSS sur le site public n'a aucune raison de le republier.
