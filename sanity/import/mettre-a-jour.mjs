@@ -25,7 +25,8 @@
         en « Terminé », quittent le site, et restent consultables
         dans le Studio. Rien n'est supprimé ;
      4. il remet les TARIFS et les COORDONNÉES, sans toucher à
-        l'image de partage déjà déposée ;
+        l'image de partage déjà déposée, et remplit le mur des
+        REMERCIEMENTS sans rien retirer de ce qui y est déjà ;
      5. il remplace la PAGE HISTOIRE et les INFORMATIONS par les
         vraies, et supprime celles qui avaient été inventées pendant
         la mise au point du site. Sanity garde un historique : une
@@ -282,10 +283,197 @@ async function traiterLeMenage(filmsDuProgramme) {
   }
 }
 
+/* ---------------- Les remerciements ----------------
+   Le mur de la page Remerciements : les 144 personnes et institutions
+   que le cinéma remercie, relevées une à une sur la page « Merci » de
+   l'ancien site du Zinéma. L'ordre est celui de cette page-là,
+   alphabétique par prénom.
+
+   Quatre soutiens étaient déjà saisis dans le Studio. Ce sont les
+   mêmes que « Canton de Vaud » et « OFC (Succès-Cinéma) » de
+   l'ancienne page, sous un autre libellé : c'est la version du Studio
+   qui reste, avec sa clef et son lien. */
+const REMERCIEMENTS = [
+  { _type: "remerciement", _key: "abel-davoine", nom: "Abel Davoine" },
+  { _type: "remerciement", _key: "adriana-bouchat", nom: "Adriana Bouchat" },
+  { _type: "remerciement", _key: "adrien-romedienne", nom: "Adrien Romedienne" },
+  { _type: "remerciement", _key: "agnes-boudry", nom: "Agnès Boudry" },
+  { _type: "remerciement", _key: "alain-weber", nom: "Alain Weber" },
+  { _type: "remerciement", _key: "alfio-di-guardio", nom: "Alfio di Guardio" },
+  { _type: "remerciement", _key: "anais-emery", nom: "Anaïs Emery" },
+  { _type: "remerciement", _key: "anais-goudal", nom: "Anaïs Goudal" },
+  { _type: "remerciement", _key: "annaik-pitteloud", nom: "Annaïk Pitteloud" },
+  { _type: "remerciement", _key: "anne-delseth", nom: "Anne Delseth" },
+  { _type: "remerciement", _key: "anthony-vouardoux", nom: "Anthony Vouardoux" },
+  { _type: "remerciement", _key: "antoine-cattin", nom: "Antoine Cattin" },
+  { _type: "remerciement", _key: "auriol-zima", nom: "Auriol Zima" },
+  { _type: "remerciement", _key: "bastien-moeckli", nom: "Bastien Moeckli" },
+  { _type: "remerciement", _key: "carine-maillard", nom: "Carine Maillard" },
+  { _type: "remerciement", _key: "caroline-suard", nom: "Caroline Suard" },
+  { _type: "remerciement", _key: "cedric-decroux", nom: "Cédric Decroux" },
+  { _type: "remerciement", _key: "celine-macherel", nom: "Céline Macherel" },
+  { _type: "remerciement", _key: "christiane-perrin-toplitsch", nom: "Christiane Perrin Toplitsch" },
+  { _type: "remerciement", _key: "christophe-billeter", nom: "Christophe Billeter" },
+  { _type: "remerciement", _key: "christophe-piguet", nom: "Christophe Piguet" },
+  { _type: "remerciement", _key: "claire-felix", nom: "Claire Felix" },
+  { _type: "remerciement", _key: "claude-joyet", nom: "Claude Joyet" },
+  { _type: "remerciement", _key: "cliff-mac-bee", nom: "Cliff Mac Bee" },
+  { _type: "remerciement", _key: "cynthia-kraus", nom: "Cynthia Kraus" },
+  { _type: "remerciement", _key: "damien-frei", nom: "Damien Frei" },
+  { _type: "remerciement", _key: "daniel-guttmann", nom: "Daniel Guttmann" },
+  { _type: "remerciement", _key: "delphine-jeanneret", nom: "Delphine Jeanneret" },
+  { _type: "remerciement", _key: "delphine-veillon", nom: "Delphine Veillon" },
+  { _type: "remerciement", _key: "denis-vallon", nom: "Denis Vallon" },
+  { _type: "remerciement", _key: "dominique-langevin", nom: "Dominique Langevin" },
+  { _type: "remerciement", _key: "edouard-waintrop", nom: "Edouard Waintrop" },
+  { _type: "remerciement", _key: "elise-gagnebin-de-bons", nom: "Elise Gagnebin-de-Bons" },
+  { _type: "remerciement", _key: "emmanuel-schmutz", nom: "Emmanuel Schmutz" },
+  { _type: "remerciement", _key: "eric-bouzigon", nom: "Eric Bouzigon" },
+  { _type: "remerciement", _key: "a0167799fdb5", nom: "Etat de Vaud" }, // déjà dans le Studio
+  { _type: "remerciement", _key: "fabien-ruf", nom: "Fabien Ruf" },
+  { _type: "remerciement", _key: "fernand-melgar", nom: "Fernand Melgar" },
+  { _type: "remerciement", _key: "florence-nicollier", nom: "Florence Nicollier" },
+  { _type: "remerciement", _key: "frederic-gonseth", nom: "Frédéric Gonseth" },
+  { _type: "remerciement", _key: "genet-mayor", nom: "Genêt Mayor" },
+  { _type: "remerciement", _key: "geraldine-savary", nom: "Géraldine Savary" },
+  { _type: "remerciement", _key: "gerard-ruey", nom: "Gérard Ruey" },
+  { _type: "remerciement", _key: "gilbert-gubler", nom: "Gilbert Gubler" },
+  { _type: "remerciement", _key: "gilles-meystre", nom: "Gilles Meystre" },
+  { _type: "remerciement", _key: "gisele-olmi", nom: "Gisèle Olmi" },
+  { _type: "remerciement", _key: "gregoire-junod", nom: "Grégoire Junod" },
+  { _type: "remerciement", _key: "guy-meldem", nom: "Guy Meldem" },
+  { _type: "remerciement", _key: "hotels-by-fassbind-lausanne-zurich", nom: "Hotels by Fassbind Lausanne Zürich" },
+  { _type: "remerciement", _key: "ingo-lambert-toplitsch", nom: "Ingo Lambert Toplitsch" },
+  { _type: "remerciement", _key: "jacques-muehlethaler", nom: "Jacques Muehlethaler" },
+  { _type: "remerciement", _key: "jacques-perrier", nom: "Jacques Perrier" },
+  { _type: "remerciement", _key: "janka-rahm", nom: "Janka Rahm" },
+  { _type: "remerciement", _key: "jean-perret", nom: "Jean Perret" },
+  { _type: "remerciement", _key: "jean-francois-sutterlet", nom: "Jean-François Sutterlet" },
+  { _type: "remerciement", _key: "jean-jacques-schilt", nom: "Jean-Jacques Schilt" },
+  { _type: "remerciement", _key: "jean-marc-lehmann", nom: "Jean-Marc Lehmann" },
+  { _type: "remerciement", _key: "jean-marc-rusconi", nom: "Jean-Marc Rusconi" },
+  { _type: "remerciement", _key: "jennifer-cerchia", nom: "Jennifer Cerchia" },
+  { _type: "remerciement", _key: "jeremie-kisling", nom: "Jérémie Kisling" },
+  { _type: "remerciement", _key: "jerome-roniger", nom: "Jérôme Roniger" },
+  { _type: "remerciement", _key: "joaquim-manzoni", nom: "Joaquim Manzoni" },
+  { _type: "remerciement", _key: "jonas-marguet", nom: "Jonas Marguet" },
+  { _type: "remerciement", _key: "julien-bodivit", nom: "Julien Bodivit" },
+  { _type: "remerciement", _key: "julien-moeschler", nom: "Julien Moeschler" },
+  { _type: "remerciement", _key: "karen-ichters", nom: "Karen Ichters" },
+  { _type: "remerciement", _key: "karine-odorici", nom: "Karine Odorici" },
+  { _type: "remerciement", _key: "keel-chan", nom: "Keel Chan" },
+  { _type: "remerciement", _key: "laura-grandjean", nom: "Laura Grandjean" },
+  { _type: "remerciement", _key: "laurent-gerard", nom: "Laurent Gérard" },
+  { _type: "remerciement", _key: "laurent-steiert", nom: "Laurent Steiert" },
+  { _type: "remerciement", _key: "leila-klouche", nom: "Leila Klouche" },
+  { _type: "remerciement", _key: "liora-zittoun", nom: "Liora Zittoun" },
+  { _type: "remerciement", _key: "lorraine-pidoux", nom: "Lorraine Pidoux" },
+  { _type: "remerciement", _key: "40ec6b59aced", nom: "Loterie Romande", url: "https://soutien-loro.ch/fr" }, // déjà dans le Studio
+  { _type: "remerciement", _key: "louise-roduit", nom: "Louise Roduit" },
+  { _type: "remerciement", _key: "luc-peter", nom: "Luc Peter" },
+  { _type: "remerciement", _key: "manuel-borruat", nom: "Manuel Borruat" },
+  { _type: "remerciement", _key: "marie-klay", nom: "Marie Klay" },
+  { _type: "remerciement", _key: "marie-vachette", nom: "Marie Vachette" },
+  { _type: "remerciement", _key: "marie-claude-jequier", nom: "Marie-Claude Jequier" },
+  { _type: "remerciement", _key: "marion-basle", nom: "Marion Baslé" },
+  { _type: "remerciement", _key: "marion-duval", nom: "Marion Duval" },
+  { _type: "remerciement", _key: "martine-guttmann", nom: "Martine Guttmann" },
+  { _type: "remerciement", _key: "matthieu-capcarrere", nom: "Matthieu Capcarrère" },
+  { _type: "remerciement", _key: "mattia-fiumani", nom: "Mattia Fiumani" },
+  { _type: "remerciement", _key: "melanie-mermod", nom: "Mélanie Mermod" },
+  { _type: "remerciement", _key: "melodie-mousset", nom: "Mélodie Mousset" },
+  { _type: "remerciement", _key: "michael-hedjem", nom: "Michaël Hedjem" },
+  { _type: "remerciement", _key: "michel-barraz", nom: "Michel Barraz" },
+  { _type: "remerciement", _key: "mike-pfenninger", nom: "Mike Pfenninger" },
+  { _type: "remerciement", _key: "mme-m-perrieres", nom: "Mme & M. Perrières" },
+  { _type: "remerciement", _key: "muriel-jost", nom: "Muriel Jost" },
+  { _type: "remerciement", _key: "nathalie-saugy", nom: "Nathalie Saugy" },
+  { _type: "remerciement", _key: "nathanael-ha-vinh", nom: "Nathanael Ha-Vinh" },
+  { _type: "remerciement", _key: "nicola-di-pinto", nom: "Nicola Di Pinto" },
+  { _type: "remerciement", _key: "nicolas-appelt", nom: "Nicolas Appelt" },
+  { _type: "remerciement", _key: "nicolas-bideau", nom: "Nicolas Bideau" },
+  { _type: "remerciement", _key: "norbert-creutz", nom: "Norbert Creutz" },
+  { _type: "remerciement", _key: "412a1f5f0067", nom: "office fédéral de la culture" }, // déjà dans le Studio
+  { _type: "remerciement", _key: "olaf-nitschmann", nom: "Olaf Nitschmann" },
+  { _type: "remerciement", _key: "olivier-aeby", nom: "Olivier Aeby" },
+  { _type: "remerciement", _key: "ondine-jung", nom: "Ondine Jung" },
+  { _type: "remerciement", _key: "pascal-knoerr", nom: "Pascal Knoerr" },
+  { _type: "remerciement", _key: "pascal-pelissier", nom: "Pascal Pelissier" },
+  { _type: "remerciement", _key: "patrick-suhner", nom: "Patrick Suhner" },
+  { _type: "remerciement", _key: "philippe-clivaz", nom: "Philippe Clivaz" },
+  { _type: "remerciement", _key: "philippe-modoux", nom: "Philippe Modoux" },
+  { _type: "remerciement", _key: "pierre-agthe", nom: "Pierre Agthe" },
+  { _type: "remerciement", _key: "pierre-antoine-grisoni", nom: "Pierre-Antoine Grisoni" },
+  { _type: "remerciement", _key: "pierre-yves-borgeaud", nom: "Pierre-Yves Borgeaud" },
+  { _type: "remerciement", _key: "pierre-yves-fiora", nom: "Pierre-Yves Fiora" },
+  { _type: "remerciement", _key: "raphael-sibilla", nom: "Raphaël Sibilla" },
+  { _type: "remerciement", _key: "raphael-wagnieres", nom: "Raphaël Wagnières" },
+  { _type: "remerciement", _key: "regina-boelsterli", nom: "Regina Boelsterli" },
+  { _type: "remerciement", _key: "renato-morandi", nom: "Renato Morandi" },
+  { _type: "remerciement", _key: "roland-dapples", nom: "Roland Dapples" },
+  { _type: "remerciement", _key: "romeo-andreani", nom: "Romeo Andreani" },
+  { _type: "remerciement", _key: "sandrine-kuster", nom: "Sandrine Kuster" },
+  { _type: "remerciement", _key: "sara-bochicchio", nom: "Sara Bochicchio" },
+  { _type: "remerciement", _key: "sebastiano-conforti", nom: "Sebastiano Conforti" },
+  { _type: "remerciement", _key: "sebastien-riond", nom: "Sébastien Riond" },
+  { _type: "remerciement", _key: "sibylle-koessler", nom: "Sibylle Koessler" },
+  { _type: "remerciement", _key: "sigismond-de-vajay", nom: "Sigismond de Vajay" },
+  { _type: "remerciement", _key: "silvia-zamora", nom: "Silvia Zamora" },
+  { _type: "remerciement", _key: "stephane-detruche", nom: "Stéphane Détruche" },
+  { _type: "remerciement", _key: "stephane-goel", nom: "Stéphane Goël" },
+  { _type: "remerciement", _key: "stephane-noel", nom: "Stéphane Noël" },
+  { _type: "remerciement", _key: "stevan-haener", nom: "Stevan Haener" },
+  { _type: "remerciement", _key: "tatiana-rihs", nom: "Tatiana Rihs" },
+  { _type: "remerciement", _key: "thierry-jobin", nom: "Thierry Jobin" },
+  { _type: "remerciement", _key: "thierry-spicher-elena-tatti", nom: "Thierry Spicher & Elena Tatti" },
+  { _type: "remerciement", _key: "tom-guex", nom: "Tom Guex" },
+  { _type: "remerciement", _key: "urs-seidel", nom: "Urs Seidel" },
+  { _type: "remerciement", _key: "valerie-debeaumont", nom: "Valérie Debeaumont" },
+  { _type: "remerciement", _key: "vera-gilardoni", nom: "Vera Gilardoni" },
+  { _type: "remerciement", _key: "05e916c49c9c", nom: "Ville de Lausanne" }, // déjà dans le Studio
+  { _type: "remerciement", _key: "vincent-pluss", nom: "Vincent Pluss" },
+  { _type: "remerciement", _key: "xavier-pattaroni", nom: "Xavier Pattaroni" },
+  { _type: "remerciement", _key: "xaviere-sennac", nom: "Xavière Sennac" },
+  { _type: "remerciement", _key: "yann-delmonico", nom: "Yann Delmonico" },
+  { _type: "remerciement", _key: "yann-mingard", nom: "Yann Mingard" },
+  { _type: "remerciement", _key: "yvan-ziade", nom: "Yvan Ziadé" },
+  { _type: "remerciement", _key: "yves-fidalgo", nom: "Yves Fidalgo" },
+];
+
+/* Une liste de noms ne se remplace pas à l'aveugle : le Studio se
+   modifie aussi à la main. On repart donc de ce qu'il contient —
+   chaque entrée déjà là est reprise telle quelle, avec son libellé, sa
+   mention, son lien et sa clef — et on n'ajoute que ce qui manque. Une
+   entrée que la liste ci-dessus ne prévoit pas est remise à la fin
+   plutôt que d'être effacée : rien ne doit disparaître du mur. */
+async function fusionnerLesRemerciements() {
+  const existants = (await client.fetch(`*[_id == "siteSettings"][0].remerciements[]`)) || [];
+  const parClef = new Map(existants.map((r) => [r._key, r]));
+  const prevues = new Set(REMERCIEMENTS.map((r) => r._key));
+
+  const liste = REMERCIEMENTS.map((r) => parClef.get(r._key) || r);
+  const gardees = existants.filter((r) => prevues.has(r._key));
+  const inattendues = existants.filter((r) => !prevues.has(r._key));
+
+  const total = liste.length + inattendues.length;
+  dire(
+    `   ✎ Remerciements : ${total} noms sur le mur ` +
+      `(${existants.length} déjà dans le Studio, ${total - existants.length} ajoutés)`
+  );
+  for (const r of gardees) dire(`       = gardé tel quel : ${r.nom}`);
+  for (const r of inattendues) {
+    dire(`       = gardé tel quel, remis à la fin (absent de la liste) : ${r.nom}`);
+  }
+  if (!existants.length) dire("       Le mur était vide.");
+
+  return [...liste, ...inattendues];
+}
+
 async function traiterLesReglages() {
   titre("Tarifs, coordonnées et formules");
 
   await client.createIfNotExists({ _id: "siteSettings", _type: "siteSettings" });
+  const remerciements = await fusionnerLesRemerciements();
   await client
     .patch("siteSettings")
     .set({
@@ -310,6 +498,7 @@ async function traiterLesReglages() {
         { _type: "salle", _key: "salle2", nom: "Salle 2", places: 14 },
         { _type: "salle", _key: "hall", nom: "Hall-Bar", places: 50 },
       ],
+      remerciements,
       seoDescription:
         "Cinéma d'art et essai rue du Maupas 4 à Lausanne : deux salles de 18 et 14 places, films en version originale et en français.",
     })
