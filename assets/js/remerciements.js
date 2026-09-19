@@ -18,7 +18,9 @@
 
    La page n'est pas dans le menu : on y entre par une case de la
    page Infos (voir contact.js), qui n'apparaît que s'il y a au
-   moins un nom à remercier.
+   moins un nom à remercier. Cette case s'appelle « Merci » : la
+   page n'a donc pas de titre à elle, elle s'ouvre directement sur
+   les noms. Le redire en arrivant ne dirait rien de plus.
    ============================================================ */
 (function () {
   "use strict";
@@ -58,18 +60,6 @@
       '<a class="' + classes + '" href="' + R.escapeHtml(merci.url) +
       '" target="_blank" rel="noopener noreferrer">' + contenu(merci) + "</a>"
     );
-  }
-
-  /* L'ouverture : un seul mot en très grand, d'un bord à l'autre,
-     comme l'âge du cinéma ouvre la page Histoire. Un seul mot
-     suffit : la case qui mène ici s'appelle déjà « Merci », et
-     nommer la rubrique au-dessus reviendrait à dire deux fois la
-     même chose avant les noms. */
-  function ouvertureHTML() {
-    return bande("m-bande--ouverture", [
-      '<div class="m-cell m-merci__ouverture ' + C.classe() + '">' +
-      '<p class="m-merci__titre">Merci</p></div>',
-    ]);
   }
 
   /* Cette page n'est pas dans le menu : on y entre par la page
@@ -117,6 +107,6 @@
       return;
     }
 
-    app.innerHTML = cadre(ouvertureHTML() + bande("m-bande--mur", noms.map(brique)));
+    app.innerHTML = cadre(bande("m-bande--mur", noms.map(brique)));
   });
 })();

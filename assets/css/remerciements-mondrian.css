@@ -3,15 +3,14 @@
    S'appuie sur film-mondrian.css (quadrillage, cases, repères) :
    les deux feuilles sont chargées ensemble sur cette page.
 
-   Un mot en très grand ouvre la page, puis vient le mur : une
-   brique par nom, toutes les briques à la même taille de lettres.
-   Ce sont les noms, plus ou moins longs, qui font les briques
-   inégales — et les rangées décalées d'un vrai mur :
+   La page s'ouvre directement sur le mur : une brique par nom,
+   toutes les briques à la même taille de lettres. La case qui mène
+   ici s'appelle déjà « Merci » — l'écrire une seconde fois en haut
+   de la page ne dirait rien de plus. Ce sont les noms, plus ou
+   moins longs, qui font les briques inégales — et les rangées
+   décalées d'un vrai mur :
 
-     ┌─────────────────────────────────────────────────────────┐
-     │ REMERCIEMENTS                                           │
-     │ MERCI                                                   │
-     ├───────────────────┬──────────────┬──────────────────────┤
+     ┌───────────────────┬──────────────┬──────────────────────┐
      │ VILLE DE LAUSANNE │ ÉTAT DE VAUD │ LOTERIE ROMANDE      │
      ├──────────┬────────┴──────────┬───┴──────────────────────┤
      │ FONDS…   │ CINÉFORUM         │ LES AMIS DU ZINÉMA       │
@@ -19,22 +18,6 @@
      │ INFOS                        │ VOIR LES SÉANCES         │
      └──────────────────────────────┴──────────────────────────┘
    ============================================================ */
-
-/* ---------- L'ouverture ----------
-   Un seul mot, à la taille de l'âge du cinéma sur la page
-   Histoire : c'est l'affiche de la page. */
-
-.m-merci__ouverture {
-  flex: 1 1 100%;
-}
-.m-merci__titre {
-  font-family: var(--font-display);
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  font-size: clamp(4rem, 14vw, 11rem);
-  line-height: 0.9;
-}
 
 /* ---------- Le mur ----------
    Chaque brique se cale sur son nom et grandit avec ses voisines
@@ -91,15 +74,11 @@
 /* ---------- Mobile & tablette ----------
    Le mur reste un mur : deux noms courts se serrent côte à côte
    sur la même rangée. Tout empiler donnerait une colonne de cases
-   identiques — une liste, plus un mur. Seule l'ouverture prend
-   toute la largeur, et le mot se resserre pour tenir sur l'écran. */
+   identiques — une liste, plus un mur. */
 
 @media (max-width: 899px) {
   .mondrian--remerciements .m-merci {
     padding: 1rem 0.75rem;
-  }
-  .m-merci__titre {
-    font-size: clamp(3.5rem, 22vw, 8rem);
   }
 }
 
