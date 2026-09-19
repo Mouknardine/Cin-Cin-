@@ -61,13 +61,13 @@
   }
 
   /* L'ouverture : un seul mot en très grand, d'un bord à l'autre,
-     comme l'âge du cinéma ouvre la page Histoire. L'intitulé
-     au-dessus nomme la rubrique, le mot en dessous est ce qu'on
-     dit à ceux du mur. */
+     comme l'âge du cinéma ouvre la page Histoire. Un seul mot
+     suffit : la case qui mène ici s'appelle déjà « Merci », et
+     nommer la rubrique au-dessus reviendrait à dire deux fois la
+     même chose avant les noms. */
   function ouvertureHTML() {
     return bande("m-bande--ouverture", [
       '<div class="m-cell m-merci__ouverture ' + C.classe() + '">' +
-      '<p class="m-cell__label">Remerciements</p>' +
       '<p class="m-merci__titre">Merci</p></div>',
     ]);
   }
@@ -94,7 +94,7 @@
     return cadre(
       bande("m-bande--vide", [
         '<div class="m-cell m-info ' + C.classe() + '">' +
-        '<p class="m-cell__label">Remerciements</p>' +
+        '<p class="m-cell__label">Merci</p>' +
         '<p class="m-cell__value">La liste est en préparation.</p></div>',
       ])
     );

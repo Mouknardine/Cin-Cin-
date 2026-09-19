@@ -182,7 +182,7 @@
          ne doit pas être un cul-de-sac. « Notre histoire » suit —
          la frise a quitté le menu, cette case en est la seule porte.
 
-         « Remerciements » ferme la rangée : la porte vers le mur de
+         « Merci » ferme la rangée : la porte vers le mur de
          celles et ceux qui font vivre le cinéma (remerciements.js).
          Les noms ne sont plus étalés ici — ils se lisent bien mieux
          sur leur propre page, tous à la même taille. La case
@@ -191,7 +191,7 @@
       bande("m-bande--pages", [
         R.caseVoirLesSeances(),
         caseInterne("Notre histoire", root + "histoire/"),
-        aDesRemerciements(reglages) ? caseInterne("Remerciements", root + "remerciements/") : "",
+        aDesRemerciements(reglages) ? caseInterne("Merci", root + "remerciements/") : "",
       ]) +
       "</article>";
   });
