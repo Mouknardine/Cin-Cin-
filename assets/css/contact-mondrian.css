@@ -83,7 +83,7 @@
   white-space: pre-line;
 }
 
-/* ---------- Les portes vers l'Histoire et les Remerciements ----------
+/* ---------- Les portes vers « Notre histoire » et « Merci » ----------
    Ni l'une ni l'autre n'est dans le menu : ces deux cases en sont
    les seules portes d'entrée. Elles se lisent donc comme des
    titres, pas comme une ligne d'information de plus. */
@@ -95,9 +95,9 @@
   letter-spacing: -0.01em;
   font-size: var(--taille-titre);
   line-height: 1;
-  /* « Remerciements » est un seul mot, plus large qu'un écran de
-     téléphone à la taille des titres : il se coupe alors avec un
-     trait d'union, comme dans un journal — jamais de débordement. */
+  /* Un mot plus large qu'un écran de téléphone à la taille des
+     titres se couperait avec un trait d'union, comme dans un
+     journal — jamais de débordement. */
   hyphens: auto;
   overflow-wrap: anywhere;
 }
