@@ -2,33 +2,37 @@
    Les couleurs du planning : une par film, une par semaine.
 
    UNE COULEUR PAR FILM. D'un coup d'œil, on voit où passe chaque film
-   dans la semaine, et s'il revient trop souvent le même jour. La
-   couleur d'un film suit sa place dans la liste des films à
-   l'affiche (triée par titre) : elle reste la même d'une semaine à
-   l'autre tant que l'affiche ne change pas, et deux films à
-   l'affiche n'ont jamais la même tant qu'ils sont douze au plus.
+   dans la semaine. Les couleurs sont distribuées aux seuls films de la
+   semaine affichée (films-de-la-semaine.ts), dans l'ordre du compteur :
+   jusqu'à douze films, deux films n'ont jamais la même teinte.
 
-   UNE COULEUR PAR SEMAINE. En passant d'une semaine à l'autre, le
-   bandeau change de teinte : impossible de croire qu'on travaille
+   La palette est faite de douze teintes franchement différentes,
+   rangées pour que deux films voisins dans la liste ne reçoivent
+   jamais deux teintes proches. (L'ancienne palette
+   mettait trois bleus et deux rouges dans la même semaine.)
+
+   UNE COULEUR PAR SEMAINE. En passant d'une semaine à l'autre, la
+   pastille change de teinte : impossible de croire qu'on travaille
    sur la semaine prochaine quand on est revenu sur celle-ci.
-
-   Des teintes moyennes, lisibles sur le Studio clair comme sombre.
    ============================================================ */
-import type {FilmPlanning} from '../types'
 
+/* Les neuf premières sont les plus éloignées les unes des autres : une
+   semaine ordinaire compte rarement plus de neuf films. Les trois
+   dernières ne servent qu'au-delà, et restent distinctes de leurs
+   voisines dans la liste. */
 const COULEURS_FILMS = [
-  '#E4572E',
-  '#2E86AB',
-  '#3BB273',
-  '#F2A541',
-  '#7B6CF6',
-  '#D7263D',
-  '#1B998B',
-  '#C17817',
-  '#A23B72',
-  '#5C80BC',
-  '#8AB17D',
-  '#E07A5F',
+  '#E6194B', // rouge
+  '#3CB44B', // vert
+  '#4363D8', // bleu
+  '#F58231', // orange
+  '#911EB4', // violet
+  '#1FB5D6', // cyan
+  '#E6B800', // jaune
+  '#9A6324', // brun
+  '#4A4A4A', // graphite
+  '#E829C8', // rose
+  '#8DB600', // olive
+  '#008080', // sarcelle
 ] as const
 
 const COULEURS_SEMAINES = [
@@ -42,7 +46,7 @@ const COULEURS_SEMAINES = [
 
 const JOUR_MS = 24 * 60 * 60 * 1000
 
-/** Un nombre stable tiré d'un identifiant, pour les films hors de la liste. */
+/** Un nombre stable tiré d'un identifiant, pour un film hors de la liste. */
 function empreinte(texte: string): number {
   let valeur = 0
   for (const caractere of texte) valeur = (valeur * 31 + caractere.charCodeAt(0)) >>> 0
@@ -50,13 +54,12 @@ function empreinte(texte: string): number {
 }
 
 /**
- * La couleur de chaque film. Les films à l'affiche d'abord, dans l'ordre
- * de la liste ; les autres (terminés, supprimés) reçoivent une couleur
- * tirée de leur identifiant.
+ * La couleur de chaque film, selon sa place parmi les films de la
+ * semaine. Un film absent de la liste reçoit une teinte tirée de son
+ * identifiant, pour ne jamais rester sans couleur.
  */
-export function couleursDesFilms(films: readonly FilmPlanning[]): (filmId: string) => string {
-  const actifs = films.filter((film) => film.statut !== 'passe')
-  const index = new Map(actifs.map((film, position) => [film._id, position]))
+export function couleursDesFilms(filmIdsDeLaSemaine: readonly string[]): (filmId: string) => string {
+  const index = new Map(filmIdsDeLaSemaine.map((filmId, position) => [filmId, position]))
   return (filmId: string) => {
     const position = index.get(filmId) ?? empreinte(filmId)
     return COULEURS_FILMS[position % COULEURS_FILMS.length]

@@ -25,9 +25,10 @@ import type {ActionsPlanning, SeancePlanning} from '../types'
 import {heureDeFin} from '../utils/conflits'
 import {autreSalle} from '../utils/salles-attitrees'
 
-/** Une couleur « #RRGGBB » à 18 % : lisible sur le Studio clair comme sombre. */
+/** Une couleur « #RRGGBB » à 26 % : assez franche pour distinguer les films,
+    assez pâle pour que le titre reste lisible. */
 function teinte(couleur: string): string {
-  return `${couleur}2E`
+  return `${couleur}42`
 }
 
 interface Props {

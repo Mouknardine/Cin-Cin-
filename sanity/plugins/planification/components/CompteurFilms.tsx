@@ -9,49 +9,13 @@
  * de suite, comme un film qui passe bien plus souvent que les autres.
  */
 import {Box, Card, Flex, Stack, Text} from '@sanity/ui'
-import {useMemo} from 'react'
 
-import type {FilmPlanning, SeancePlanning} from '../types'
-
-/** Les films qu'on s'attend à voir programmés, même sans séance encore. */
-const STATUTS_A_PROGRAMMER = ['a-laffiche', 'avant-premiere', 'cycle']
+import type {FilmDeLaSemaine} from '../utils/films-de-la-semaine'
 
 interface Props {
-  films: readonly FilmPlanning[]
-  seances: readonly SeancePlanning[]
+  /** Les films de la semaine, dans l'ordre (voir utils/films-de-la-semaine.ts). */
+  lignes: readonly FilmDeLaSemaine[]
   couleurDe: (filmId: string) => string
-}
-
-interface LigneCompteur {
-  filmId: string
-  titre: string
-  nombre: number
-  salles: string[]
-}
-
-function lignesDuCompteur(
-  films: readonly FilmPlanning[],
-  seances: readonly SeancePlanning[],
-): LigneCompteur[] {
-  const parFilm = new Map<string, LigneCompteur>()
-  for (const film of films) {
-    if (!STATUTS_A_PROGRAMMER.includes(film.statut ?? '')) continue
-    parFilm.set(film._id, {filmId: film._id, titre: film.titre, nombre: 0, salles: []})
-  }
-  /* Un film programmé cette semaine compte toujours, même s'il n'est
-     plus « à l'affiche » (une reprise, un film terminé). */
-  for (const seance of seances) {
-    const ligne = parFilm.get(seance.filmId) ?? {
-      filmId: seance.filmId,
-      titre: seance.filmTitre,
-      nombre: 0,
-      salles: [],
-    }
-    ligne.nombre += 1
-    if (!ligne.salles.includes(seance.salle)) ligne.salles.push(seance.salle)
-    parFilm.set(seance.filmId, ligne)
-  }
-  return [...parFilm.values()].sort((a, b) => a.titre.localeCompare(b.titre, 'fr'))
 }
 
 function Pastille({nombre, couleur}: {nombre: number; couleur: string}): React.JSX.Element {
@@ -81,8 +45,7 @@ function Pastille({nombre, couleur}: {nombre: number; couleur: string}): React.J
   )
 }
 
-export function CompteurFilms({films, seances, couleurDe}: Props): React.JSX.Element | null {
-  const lignes = useMemo(() => lignesDuCompteur(films, seances), [films, seances])
+export function CompteurFilms({lignes, couleurDe}: Props): React.JSX.Element | null {
   if (lignes.length === 0) return null
 
   return (
@@ -100,7 +63,7 @@ export function CompteurFilms({films, seances, couleurDe}: Props): React.JSX.Ele
             border
             style={{
               borderLeft: `6px solid ${couleurDe(ligne.filmId)}`,
-              background: `${couleurDe(ligne.filmId)}2E`,
+              background: `${couleurDe(ligne.filmId)}42`,
             }}
           >
             <Flex align="center" gap={2}>

@@ -9,7 +9,7 @@
  * rebattant les cartes), ou remplir la semaine au hasard.
  */
 import {WarningOutlineIcon} from '@sanity/icons'
-import {Box, Card, Container, Flex, Stack, Text, useToast} from '@sanity/ui'
+import {Card, Container, Flex, Stack, Text, useToast} from '@sanity/ui'
 import {useCallback, useMemo, useState} from 'react'
 import {useClient} from 'sanity'
 
@@ -27,6 +27,7 @@ import {
 import {idsEnConflit} from '../utils/conflits'
 import {couleurDeLaSemaine, couleursDesFilms} from '../utils/couleurs'
 import {finDeSemaine} from '../utils/dates'
+import {filmsDeLaSemaine} from '../utils/films-de-la-semaine'
 import {DialogNewsletter} from '../newsletter/DialogNewsletter'
 import {supprimerSeance} from '../utils/mutations'
 import {BarreSemaine, type DialogOuvert} from './BarreSemaine'
@@ -60,7 +61,13 @@ export function PlanificationTool(): React.JSX.Element {
   const rafraichir = useSoireesAJour(debutSemaine, finSemaine, recharger)
   const glisser = useDeplacementSeances(rafraichir)
   const changerDeSalle = useChangementDeSalle(seances, rafraichir)
-  const couleurDe = useMemo(() => couleursDesFilms(films), [films])
+  /* Les films de la semaine, dans l'ordre du compteur : c'est aussi
+     l'ordre dans lequel ils reçoivent leur couleur. */
+  const lesFilmsDeLaSemaine = useMemo(() => filmsDeLaSemaine(films, seances), [films, seances])
+  const couleurDe = useMemo(
+    () => couleursDesFilms(lesFilmsDeLaSemaine.map((ligne) => ligne.filmId)),
+    [lesFilmsDeLaSemaine],
+  )
   const fermerDialog = useCallback(() => setDialogOuvert(null), [])
   const fermerChoixDeFilm = useCallback(() => setChoixDeFilm(null), [])
 
@@ -124,7 +131,7 @@ export function PlanificationTool(): React.JSX.Element {
           </Card>
         )}
 
-        <CompteurFilms films={films} seances={seances} couleurDe={couleurDe} />
+        <CompteurFilms lignes={lesFilmsDeLaSemaine} couleurDe={couleurDe} />
 
         <GrilleSemaine
           debutSemaine={debutSemaine}
@@ -136,18 +143,11 @@ export function PlanificationTool(): React.JSX.Element {
           glisser={glisser}
         />
 
-        <Box>
-          <Text size={1} muted>
-            Attrapez une séance et déposez-la ailleurs : sur une case libre elle déménage, sur une
-            case occupée les deux films échangent leurs places. Une case vide se remplit d'un clic.
-            Chaque film garde sa salle ; pour le faire changer de salle toute la semaine, menu ⋮
-            d'une de ses séances → « Passer ce film en Salle 2 ».
-            La séance de 21 h part à 21 h au plus tôt et attend la fin du film de 19 h : derrière
-            un film de 2 h 20, elle commence au quart d'heure suivant (21:30), et l'outil la décale
-            tout seul quand il le faut. La semaine de cinéma va du mercredi au mardi. Tout ce qui se fait ici est
-            publié immédiatement sur le site.
-          </Text>
-        </Box>
+        <Text size={1} muted>
+          Glissez une séance pour la déplacer (sur une case occupée, les deux films échangent),
+          cliquez une case vide pour la remplir. Menu ⋮ d'une séance pour changer son film ou
+          faire passer le film dans l'autre salle. Tout est publié immédiatement sur le site.
+        </Text>
       </Stack>
 
       {dialogOuvert === 'programmer' && (
