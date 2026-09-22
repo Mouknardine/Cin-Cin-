@@ -83,18 +83,22 @@
   white-space: pre-line;
 }
 
-/* ---------- La porte vers « Merci » ----------
+/* ---------- La porte vers « Merci ! » ----------
    Elle n'est pas dans le menu : cette case en est la seule porte
    d'entrée. Elle se lit donc comme un titre, pas comme une ligne
    d'information de plus. « Notre histoire », à côté, est écrite en
-   petit, comme « Voir les séances » (voir contact.js). */
+   petit, comme « Voir les séances » (voir contact.js).
+
+   Plus grande que les titres du site — c'est le seul mot de la page
+   qui remercie quelqu'un, et le cinéma le veut vu de loin (demande
+   du 22 septembre). */
 
 .m-contact__page-titre {
   font-family: var(--font-display);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -0.01em;
-  font-size: var(--taille-titre);
+  font-size: clamp(4rem, 2rem + 8vw, 8.5rem);
   line-height: 1;
   /* Un mot plus large qu'un écran de téléphone à la taille des
      titres se couperait avec un trait d'union, comme dans un

@@ -123,7 +123,14 @@
      (jamais de case vide dans le tableau). */
   function seanceHTML(s) {
     var filmHref = s.film ? root + "film/?s=" + encodeURIComponent(s.film.slug) : root + "films/";
-    var sub = [R.escapeHtml(s.room || ""), s.versionNote ? "— " + R.escapeHtml(s.versionNote) : ""]
+    /* La salle se lit d'un coup d'œil, en capitales et en gras comme
+       le titre au-dessus (demande du cinéma, 22 septembre). La note de
+       version reste en maigre et telle qu'elle est écrite : « VO st.
+       fr » en capitales se lirait plus mal, pas mieux. */
+    var sub = [
+      s.room ? '<span class="m-seance__salle-nom">' + R.escapeHtml(s.room) + "</span>" : "",
+      s.versionNote ? "— " + R.escapeHtml(s.versionNote) : "",
+    ]
       .filter(Boolean)
       .join(" ");
     var heureHTML =

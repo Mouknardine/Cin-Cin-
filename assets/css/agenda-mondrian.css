@@ -71,6 +71,13 @@
   overflow-wrap: anywhere;
 }
 .m-seance__salle { font-weight: 400; }
+/* Le nom de la salle en capitales et en gras : en maigre et en bas de
+   casse sous un titre de film en capitales, il se perdait. La note de
+   version, dans la même ligne, garde sa graisse de texte courant. */
+.m-seance__salle-nom {
+  font-weight: 800;
+  text-transform: uppercase;
+}
 .m-seance__statut {
   flex: 0 0 auto;
   align-items: center;
