@@ -8,13 +8,22 @@
  * gestes — et garde le clavier opérationnel, puisque le menu ⋮ propose
  * les mêmes déplacements.
  */
-import {DragHandleIcon, EditIcon, EllipsisVerticalIcon, TransferIcon, TrashIcon, WarningOutlineIcon} from '@sanity/icons'
+import {
+  DragHandleIcon,
+  EditIcon,
+  EllipsisVerticalIcon,
+  SortIcon,
+  TransferIcon,
+  TrashIcon,
+  WarningOutlineIcon,
+} from '@sanity/icons'
 import {Badge, Box, Button, Card, Flex, Menu, MenuButton, MenuItem, Stack, Text} from '@sanity/ui'
 import {useCallback, useMemo} from 'react'
 import {useRouter} from 'sanity/router'
 
 import type {ActionsPlanning, SeancePlanning} from '../types'
 import {heureDeFin} from '../utils/conflits'
+import {autreSalle} from '../utils/salles-attitrees'
 
 interface Props {
   seance: SeancePlanning
@@ -55,6 +64,14 @@ export function CarteSeance({
     () => actions.onChangerFilm(seance),
     [actions, seance],
   )
+  const demanderChangementDeSalle = useCallback(
+    () => actions.onChangerDeSalle(seance),
+    [actions, seance],
+  )
+  /* Le Hall-Bar n'a pas d'« autre salle » : ses séances ne déménagent
+     qu'à la main. */
+  const salleVoisine = autreSalle(seance.salle)
+  const couleur = actions.couleurDe(seance.filmId)
 
   const commencer = useCallback(
     (evenement: React.DragEvent<HTMLDivElement>) => {
@@ -77,7 +94,12 @@ export function CarteSeance({
       draggable
       onDragStart={commencer}
       onDragEnd={onFinGlisser}
-      style={{cursor: 'grab', opacity: enCoursDeDeplacement ? 0.4 : 1}}
+      style={{
+        cursor: 'grab',
+        opacity: enCoursDeDeplacement ? 0.4 : 1,
+        /* La couleur du film, la même que dans le compteur au-dessus. */
+        borderLeft: `5px solid ${couleur}`,
+      }}
       title={`${seance.filmTitre} — glissez la carte pour déplacer cette séance`}
     >
       <Flex align="flex-start" gap={1}>
@@ -117,6 +139,13 @@ export function CarteSeance({
                 text="Changer le film…"
                 onClick={demanderChangementDeFilm}
               />
+              {salleVoisine && (
+                <MenuItem
+                  icon={SortIcon}
+                  text={`Passer ce film en ${salleVoisine} (toute la semaine)`}
+                  onClick={demanderChangementDeSalle}
+                />
+              )}
               <MenuItem icon={EditIcon} text="Ouvrir la fiche" onClick={ouvrirFiche} />
               <MenuItem
                 icon={TrashIcon}

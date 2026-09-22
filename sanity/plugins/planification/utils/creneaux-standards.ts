@@ -8,9 +8,9 @@
    « 19 h » et « 21 h » sont des NOMS DE VAGUE, pas des heures fixes.
    La première part bien à 19 h ; la seconde part à 21 h *au plus
    tôt*, et plus tard si le film de 19 h n'est pas fini — un film de
-   2 h 20 libère la salle à 21 h 20, et la séance suivante commence à
-   21 h 20 pile. L'heure réelle de chaque case se calcule dans
-   enchainement.ts, à la minute près.
+   2 h 20 libère la salle à 21 h 20, et la séance suivante commence au
+   quart d'heure suivant, 21 h 30. L'heure réelle de chaque case se
+   calcule dans enchainement.ts.
 
    Le Hall-Bar ne fait pas partie de cette grille : on n'y joue que
    pour un événement particulier, quelques fois par an. Ses séances

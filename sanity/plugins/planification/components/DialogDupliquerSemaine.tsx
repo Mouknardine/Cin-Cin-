@@ -4,7 +4,8 @@
  * conflits de salle.
  *
  * Avec l'option « rebattre les cartes », les mêmes films reviennent en
- * même nombre, mais changent de jour, d'heure et de salle. C'est la
+ * même nombre, mais changent de jour et de moment de la soirée — chacun
+ * dans SA salle : un film reste dans la salle où il jouait. C'est la
  * façon la plus rapide de programmer une semaine de plus avec les films
  * déjà à l'affiche : on garde le volume, on renouvelle la grille.
  * Les séances particulières — Hall-Bar, horaires inhabituels — ne sont
@@ -16,11 +17,16 @@ import {useClient} from 'sanity'
 
 import {API_VERSION, type RapportCreation, type SeanceCandidate, type SeancePlanning} from '../types'
 import {verifierNouvellesSeances} from '../utils/conflits'
-import {HORS_GRILLE, creneauDeLaSeance, vagueDeLaSeance} from '../utils/creneaux-standards'
+import {
+  HORS_GRILLE,
+  SALLES_STANDARD,
+  creneauDeLaSeance,
+  vagueDeLaSeance,
+} from '../utils/creneaux-standards'
 import {ajouterJours, finDeSemaine, formatPeriodeSemaine} from '../utils/dates'
 import {chargerSeancesPeriode, creerSeances} from '../utils/mutations'
 import {poserLesHeures} from '../utils/heures-de-la-grille'
-import {affecterFilms} from '../utils/repartition'
+import {type Place, affecterFilms} from '../utils/repartition'
 import {OptionACocher} from './OptionACocher'
 import {RapportResultat} from './RapportResultat'
 
@@ -51,10 +57,11 @@ function estOrdinaire(seance: SeancePlanning): boolean {
 
 /**
  * Les séances de la semaine d'arrivée, films redistribués au hasard sur les
- * mêmes cases. Les séances particulières sont recopiées à l'identique.
+ * mêmes cases, salle par salle : un film ne quitte pas sa salle. Les
+ * séances particulières sont recopiées à l'identique.
  *
  * Les heures sont RECALCULÉES, pas recopiées : un film de 2 h 20 qui atterrit
- * à 19 h repousse d'autant la séance de 21 h de sa salle, à la minute près.
+ * à 19 h repousse la séance de 21 h de sa salle au quart d'heure suivant.
  */
 function rebattreLesCartes(
   seancesSemaine: SeancePlanning[],
@@ -65,17 +72,25 @@ function rebattreLesCartes(
   const particulieres = seancesSemaine.filter((seance) => !estOrdinaire(seance))
   const parFilm = new Map(ordinaires.map((seance) => [seance.filmId, seance]))
 
-  const creneaux = ordinaires.map((seance) => ({
-    ...creneauDeLaSeance(seance),
-    date: ajouterJours(seance.date, decalage * 7),
-  }))
-  const pool = ordinaires.map((seance) => seance.filmId)
-  const occupees = dejaPosees
+  const occupees: Place[] = dejaPosees
     .map((seance) => ({...creneauDeLaSeance(seance), filmId: seance.filmId}))
     .filter((place) => place.vague !== HORS_GRILLE)
 
+  const affectations: Place[] = []
+  for (const salle of SALLES_STANDARD) {
+    const deLaSalle = ordinaires.filter((seance) => seance.salle === salle)
+    const creneaux = deLaSalle.map((seance) => ({
+      ...creneauDeLaSeance(seance),
+      date: ajouterJours(seance.date, decalage * 7),
+    }))
+    const pool = deLaSalle.map((seance) => seance.filmId)
+    affectations.push(
+      ...affecterFilms(creneaux, pool, {dejaPosees: [...occupees, ...affectations]}),
+    )
+  }
+
   const melangees = poserLesHeures(
-    affecterFilms(creneaux, pool, {dejaPosees: occupees}),
+    affectations,
     (filmId) => parFilm.get(filmId)?.filmDuree ?? null,
     dejaPosees,
   ).map((place) => ({
@@ -159,8 +174,8 @@ export function DialogDupliquerSemaine({
               cochee={rebattre}
               onChanger={setRebattre}
             >
-              Les mêmes films, en même nombre, mais à d'autres jours, salles et moments de la
-              soirée. Un film ne se retrouve jamais deux fois dans la même vague, ni deux fois le
+              Les mêmes films, en même nombre, mais à d'autres jours et moments de la soirée —
+              chacun reste dans sa salle. Un film ne se retrouve jamais deux fois dans la même vague, ni deux fois le
               même jour tant qu'on peut l'éviter. Les horaires sont recalculés : un long film posé
               à 19 h repousse la séance de 21 h de sa salle. Les {nbOrdinaires} séances de 19 h et
               21 h sont concernées ; les séances particulières sont recopiées telles quelles.

@@ -30,6 +30,15 @@ import {
 
 const aujourdhui = () => new Date().toISOString().slice(0, 10);
 
+/* Le jour à l'heure du cinéma, comme le site : à minuit passé, la
+   date UTC aurait encore un jour de retard. */
+const aujourdhuiLocal = (): string => {
+  const maintenant = new Date();
+  const mois = String(maintenant.getMonth() + 1).padStart(2, "0");
+  const jour = String(maintenant.getDate()).padStart(2, "0");
+  return `${maintenant.getFullYear()}-${mois}-${jour}`;
+};
+
 export const deskStructure: StructureResolver = (S) =>
   S.list()
     .title("Zinéma")
@@ -90,15 +99,38 @@ export const deskStructure: StructureResolver = (S) =>
             ])
         ),
 
-      /* ---------------- Événements ---------------- */
+      /* ---------------- Événements ----------------
+         La rubrique montre tout ce que la page Événements du site
+         annonce : les événements saisis ici, ET les films qui s'y
+         affichent d'eux-mêmes — ceux qui sortent prochainement et
+         ceux qui passent en présence d'un invité. On les retrouve
+         donc au même endroit que sur le site, sans les ressaisir :
+         un clic ouvre la fiche du film. Le « + » ne crée que des
+         événements ; un film se crée dans « Films ».
+
+         Le filtre reprend exactement celui du site
+         (getFilmsAnnonces dans assets/js/data.js) : le jour de sa
+         sortie, un film quitte la rubrique tout seul. */
       S.listItem()
         .id("evenements")
         .title("Événements")
         .icon(SparklesIcon)
         .child(
-          S.documentTypeList("evenement")
-            .title("Événements")
-            .defaultOrdering([{ field: "dateDebut", direction: "desc" }])
+          S.documentList()
+            .id("evenements-et-films-annonces")
+            .title("Événements et films annoncés")
+            .apiVersion("2024-06-01")
+            .filter(
+              '_type == "evenement" || (_type == "film" && status != "passe" && (' +
+                '(status == "prochainement" && !(defined(releaseDate) && releaseDate <= $today)) || ' +
+                '(defined(presence) && presence != "")))'
+            )
+            .params({ today: aujourdhuiLocal() })
+            .initialValueTemplates([S.initialValueTemplateItem("evenement")])
+            .defaultOrdering([
+              { field: "dateDebut", direction: "desc" },
+              { field: "releaseDate", direction: "asc" },
+            ])
         ),
 
       /* ---------------- Location ----------------

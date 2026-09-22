@@ -6,13 +6,15 @@
    soit utilisable. Personne ne va recompter à la main vingt-huit
    séances avant de publier : c'est ici que ça se vérifie.
 
-   Trois promesses sont tenues sous surveillance :
+   Quatre promesses sont tenues sous surveillance :
 
      1. chaque film obtient à peu près le même nombre de séances,
         en tenant compte de ce qu'il a déjà à l'affiche ;
      2. un film ne passe JAMAIS deux fois dans la même vague
         (même jour, même heure, les deux salles) ;
-     3. ce qui est déjà programmé n'est ni déplacé ni recouvert.
+     3. ce qui est déjà programmé n'est ni déplacé ni recouvert ;
+     4. un film reste dans SA salle, et en change d'un seul geste
+        quand on le demande.
 
    Le tirage est aléatoire : chaque cas est donc rejoué deux cents
    fois, avec un hasard reproductible, pour qu'un échec rare ne passe
@@ -49,6 +51,12 @@ const {heureDeDepart, recalagesNecessaires} = await chargerModule(
 )
 const {intervallesSeChevauchent} = await chargerModule(
   '../sanity/plugins/planification/utils/conflits.ts',
+)
+const {deplacementsPourChangerDeSalle} = await chargerModule(
+  '../sanity/plugins/planification/utils/changement-de-salle.ts',
+)
+const {attribuerLesSalles, autreSalle} = await chargerModule(
+  '../sanity/plugins/planification/utils/salles-attitrees.ts',
 )
 
 /* ------------------------------------------------------------------
@@ -127,7 +135,7 @@ function verifier(intitule, condition, detail = '') {
 
    La séance de 21 h n'est pas une séance « à 21:00 » : c'est la
    seconde séance de la soirée. Elle part à 21 h si la salle est
-   libre, et à la minute exacte où le film de 19 h se termine s'il
+   libre, et au quart d'heure qui suit la fin du film de 19 h s'il
    déborde. C'est la règle la plus facile à casser sans s'en
    apercevoir — d'où ces cas, écrits noir sur blanc.
    ------------------------------------------------------------------ */
@@ -146,14 +154,24 @@ verifier(
   heureDeDepart(1, de19h(120)) === '21:00',
 )
 verifier(
-  'Un film de 2 h 20 repousse la séance suivante à 21:20',
-  heureDeDepart(1, de19h(140)) === '21:20',
+  'Un film de 2 h 20 repousse la séance suivante au quart d’heure suivant : 21:30',
+  heureDeDepart(1, de19h(140)) === '21:30',
   heureDeDepart(1, de19h(140)),
 )
 verifier(
-  'Un film de 2 h 43 repousse la séance suivante à 21:43',
-  heureDeDepart(1, de19h(163)) === '21:43',
+  'Un film de 2 h 43 repousse la séance suivante à 21:45',
+  heureDeDepart(1, de19h(163)) === '21:45',
   heureDeDepart(1, de19h(163)),
+)
+verifier(
+  'Un film qui finit pile sur un quart d’heure laisse partir la suite à cette minute : 21:15',
+  heureDeDepart(1, de19h(135)) === '21:15',
+  heureDeDepart(1, de19h(135)),
+)
+verifier(
+  'Une minute de trop suffit à passer au quart d’heure suivant : 21:01 donne 21:15',
+  heureDeDepart(1, de19h(121)) === '21:15',
+  heureDeDepart(1, de19h(121)),
 )
 verifier(
   'Sans durée connue, on compte 2 h et rien ne bouge',
@@ -189,8 +207,8 @@ const aRecaler = recalagesNecessaires([
   seance('b', '21:00', 'Salle 1', 95, 'Le court'),
 ])
 verifier(
-  'Derrière un film de 2 h 20, la séance de 21 h est repoussée à 21:20',
-  aRecaler.length === 1 && aRecaler[0].id === 'b' && aRecaler[0].vers === '21:20',
+  'Derrière un film de 2 h 20, la séance de 21 h est repoussée à 21:30',
+  aRecaler.length === 1 && aRecaler[0].id === 'b' && aRecaler[0].vers === '21:30',
   JSON.stringify(aRecaler),
 )
 
@@ -206,7 +224,7 @@ verifier(
   'Une séance déjà à la bonne heure n’est pas retouchée',
   recalagesNecessaires([
     seance('a', '19:00', 'Salle 1', 140, 'Le long'),
-    seance('b', '21:20', 'Salle 1', 95, 'Le suivant'),
+    seance('b', '21:30', 'Salle 1', 95, 'Le suivant'),
   ]).length === 0,
 )
 
@@ -285,12 +303,29 @@ for (let graine = 1; graine <= TIRAGES; graine += 1) {
   )
 
   const parFilm = compter(semaine, (s) => s.filmId)
-  const comptes = [...parFilm.values()]
+  verifier('Chaque film retenu obtient des séances', parFilm.size === films.length, `graine ${graine}`)
+
+  const sallesParFilm = compter(semaine, (s) => `${s.filmId}|${s.salle}`)
   verifier(
-    'Chaque film obtient à peu près le même nombre de séances',
-    parFilm.size === films.length && Math.max(...comptes) - Math.min(...comptes) <= 1,
-    `graine ${graine} : ${comptes.join(', ')}`,
+    'Chaque film reste dans une seule salle toute la semaine',
+    sallesParFilm.size === parFilm.size,
+    `graine ${graine}`,
   )
+
+  /* L'égalité se juge DANS une salle : cinq films sur deux salles de
+     quatorze cases ne peuvent pas avoir tous le même nombre de séances
+     sans changer de salle — et c'est la salle qui prime. */
+  for (const salle of ['Salle 1', 'Salle 2']) {
+    const comptes = [...compter(
+      semaine.filter((s) => s.salle === salle),
+      (s) => s.filmId,
+    ).values()]
+    verifier(
+      'Dans une même salle, les films ont à peu près le même nombre de séances',
+      comptes.length > 0 && Math.max(...comptes) - Math.min(...comptes) <= 1,
+      `graine ${graine}, ${salle} : ${comptes.join(', ')}`,
+    )
+  }
 
   const cases = compter(semaine, (s) => `${s.date}|${s.salle}|${vagueDeLaSeance(s)}`)
   verifier(
@@ -432,7 +467,7 @@ for (let graine = 1; graine <= TIRAGES; graine += 1) {
   const parFilm = compter(semaine, (s) => s.filmId)
   const comptes = [...parFilm.values()]
   verifier(
-    'Avec douze films, chacun obtient deux ou trois séances',
+    'Avec douze films, six par salle, chacun obtient deux ou trois séances',
     parFilm.size === films.length && Math.max(...comptes) - Math.min(...comptes) <= 1,
     `graine ${graine} : ${comptes.join(', ')}`,
   )
@@ -447,10 +482,129 @@ verifier(
 )
 
 verifier(
-  'Un seul film peut remplir la semaine, faute de mieux',
+  'Un seul film remplit sa salle, et ne déborde pas dans l’autre',
   composerLaSemaine({debutSemaine: MERCREDI, films: [film(1)], seancesExistantes: []}).length ===
-    CRENEAUX_PAR_SEMAINE,
+    CRENEAUX_PAR_SEMAINE / 2,
 )
+
+/* ------------------------------------------------------------------
+   8. Un film reste dans SA salle.
+
+   C'est la demande du cinéma : le tirage choisit le jour et le moment
+   de la soirée, jamais la salle. La salle d'un film vient de ce qu'il
+   joue déjà cette semaine, sinon de la semaine d'avant ; un nouveau
+   venu va dans la salle qui a le moins de films.
+   ------------------------------------------------------------------ */
+for (let graine = 1; graine <= TIRAGES; graine += 1) {
+  const semaine = composerLaSemaine(
+    {
+      debutSemaine: MERCREDI,
+      films: [1, 2, 3, 4].map(film),
+      /* Le film 2 joue déjà mercredi en Salle 2. */
+      seancesExistantes: [posee('d1', '21:00', 'Salle 2', 2)],
+      /* Le film 1 jouait en Salle 1 la semaine d'avant, le film 3 en Salle 2. */
+      semainePrecedente: [
+        {filmId: 'film-1', salle: 'Salle 1'},
+        {filmId: 'film-1', salle: 'Salle 1'},
+        {filmId: 'film-3', salle: 'Salle 2'},
+      ],
+    },
+    hasard(graine),
+  )
+  const sallesDe = (filmId) => new Set(semaine.filter((s) => s.filmId === filmId).map((s) => s.salle))
+  verifier(
+    'Un film qui joue déjà en Salle 2 cette semaine y reste',
+    [...sallesDe('film-2')].every((salle) => salle === 'Salle 2'),
+    `graine ${graine} : ${[...sallesDe('film-2')].join(', ')}`,
+  )
+  verifier(
+    'Un film qui jouait en Salle 1 la semaine d’avant y reste',
+    [...sallesDe('film-1')].every((salle) => salle === 'Salle 1'),
+    `graine ${graine}`,
+  )
+  verifier(
+    'Un film qui jouait en Salle 2 la semaine d’avant y reste',
+    [...sallesDe('film-3')].every((salle) => salle === 'Salle 2'),
+    `graine ${graine}`,
+  )
+  verifier(
+    'Le nouveau venu va dans la salle qui a le moins de films',
+    [...sallesDe('film-4')].every((salle) => salle === 'Salle 1'),
+    `graine ${graine} : ${[...sallesDe('film-4')].join(', ')}`,
+  )
+}
+
+for (let graine = 1; graine <= TIRAGES; graine += 1) {
+  const salles = attribuerLesSalles(['a', 'b', 'c', 'd'], {semaine: [], semainePrecedente: []}, hasard(graine))
+  const enSalle1 = [...salles.values()].filter((salle) => salle === 'Salle 1').length
+  verifier('Quatre nouveaux films se partagent les salles deux à deux', enSalle1 === 2, `graine ${graine}`)
+}
+
+for (let graine = 1; graine <= TIRAGES; graine += 1) {
+  /* Trois films tous installés en Salle 1 : la Salle 2 resterait vide
+     toute la semaine. L'un d'eux déménage — pas celui qui joue déjà. */
+  const salles = attribuerLesSalles(
+    ['a', 'b', 'c'],
+    {
+      semaine: [{filmId: 'a', salle: 'Salle 1'}],
+      semainePrecedente: [
+        {filmId: 'b', salle: 'Salle 1'},
+        {filmId: 'c', salle: 'Salle 1'},
+      ],
+    },
+    hasard(graine),
+  )
+  verifier(
+    'Aucune salle ne reste sans film quand l’autre en a plusieurs',
+    [...salles.values()].includes('Salle 2') && salles.get('a') === 'Salle 1',
+    `graine ${graine} : ${JSON.stringify([...salles])}`,
+  )
+}
+
+/* ------------------------------------------------------------------
+   9. Changer un film de salle, en un geste, pour toute la semaine.
+   ------------------------------------------------------------------ */
+function enSalle(id, date, heure, salle, filmId) {
+  return {_id: id, date, heure, salle, filmId, filmTitre: filmId, filmDuree: 100}
+}
+{
+  const JEUDI = '2026-10-08'
+  const semaine = [
+    enSalle('a1', MERCREDI, '19:00', 'Salle 1', 'A'),
+    enSalle('a2', JEUDI, '21:15', 'Salle 1', 'A'),
+    enSalle('b1', MERCREDI, '19:00', 'Salle 2', 'B'),
+    enSalle('c1', JEUDI, '21:00', 'Salle 2', 'C'),
+    enSalle('a3', MERCREDI, '17:00', 'Salle 1', 'A'),
+  ]
+  const deplacements = deplacementsPourChangerDeSalle(semaine, 'A', 'Salle 2')
+  const vers = (id) => deplacements.find((d) => d.id === id)?.vers
+  verifier(
+    'Le film passe dans l’autre salle, au même jour et au même moment',
+    vers('a1')?.salle === 'Salle 2' && vers('a1')?.heure === '19:00' && vers('a1')?.date === MERCREDI,
+    JSON.stringify(deplacements),
+  )
+  verifier(
+    'Le film qui occupait la place fait le chemin inverse : personne n’est recouvert',
+    vers('b1')?.salle === 'Salle 1' && vers('c1')?.salle === 'Salle 1',
+    JSON.stringify(deplacements),
+  )
+  verifier(
+    'La séance de 21 h repart de 21:00 : l’outil la recale ensuite au bon quart d’heure',
+    vers('a2')?.heure === '21:00' && vers('c1')?.heure === '21:00',
+    JSON.stringify(deplacements),
+  )
+  verifier(
+    'Une séance particulière (17 h) ne déménage pas',
+    vers('a3') === undefined,
+  )
+  verifier(
+    'Un film déjà dans la bonne salle ne bouge pas',
+    deplacementsPourChangerDeSalle(semaine, 'B', 'Salle 2').length === 0,
+  )
+}
+
+verifier('L’autre salle de la Salle 1 est la Salle 2', autreSalle('Salle 1') === 'Salle 2')
+verifier('Le Hall-Bar n’a pas d’autre salle', autreSalle('Hall-Bar') === null)
 
 console.log(`\n${reussites} vérification(s) réussie(s), ${echecs} échec(s).`)
 process.exit(echecs > 0 ? 1 : 0)

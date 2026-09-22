@@ -31,8 +31,10 @@ const PENALITE_MEME_JOUR = 1_000
 /** Le même film toujours sur la même vague : une fois de plus à 19 h, une fois de plus le poids. */
 const PENALITE_MEME_MOMENT = 10
 
-/** Le même film toujours dans la même salle. */
-const PENALITE_MEME_SALLE = 3
+/* La salle, elle, n'est PAS une affaire de hasard : un film reste dans
+   la salle qui lui est attribuée (voir salles-attitrees.ts). Le tirage
+   se fait donc salle par salle, et rien ici ne pousse un film à en
+   changer. */
 
 /**
  * Le film ne tient pas dans la case : la salle est reprise avant qu'il
@@ -57,11 +59,10 @@ export interface Historique {
   parJour: Map<string, Set<string>>
   parVague: Map<string, Set<string>>
   parMoment: Map<string, number>
-  parSalle: Map<string, number>
 }
 
 function historiqueVide(): Historique {
-  return {parJour: new Map(), parVague: new Map(), parMoment: new Map(), parSalle: new Map()}
+  return {parJour: new Map(), parVague: new Map(), parMoment: new Map()}
 }
 
 function ensemble(index: Map<string, Set<string>>, clef: string): Set<string> {
@@ -91,7 +92,6 @@ export function noterPlacement(
   }
   if (ensemble(histoire.parJour, creneau.date).has(filmId)) note += PENALITE_MEME_JOUR
   note += PENALITE_MEME_MOMENT * (histoire.parMoment.get(`${filmId}|${creneau.vague}`) ?? 0)
-  note += PENALITE_MEME_SALLE * (histoire.parSalle.get(`${filmId}|${creneau.salle}`) ?? 0)
   /* Placer d'abord les films qui ont encore beaucoup de séances à caser :
      ce sont eux qui, laissés pour la fin, n'auraient plus que de mauvaises
      places. */
@@ -109,9 +109,7 @@ export function enregistrerPlacement(
   ensemble(histoire.parJour, creneau.date).add(filmId)
   ensemble(histoire.parVague, `${creneau.date}|${creneau.vague}`).add(filmId)
   const clefMoment = `${filmId}|${creneau.vague}`
-  const clefSalle = `${filmId}|${creneau.salle}`
   histoire.parMoment.set(clefMoment, (histoire.parMoment.get(clefMoment) ?? 0) + 1)
-  histoire.parSalle.set(clefSalle, (histoire.parSalle.get(clefSalle) ?? 0) + 1)
 }
 
 /**

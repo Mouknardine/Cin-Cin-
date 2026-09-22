@@ -57,6 +57,15 @@
     );
   }
 
+  /* Une petite porte vers une autre page du site, écrite comme
+     « Voir les séances » : un lien parmi d'autres, pas un titre. */
+  function casePetiteInterne(libelle, href) {
+    return (
+      '<a class="m-cell m-action ' + C.classe() + '" href="' + R.escapeHtml(href) + '">' +
+      "<span>" + R.escapeHtml(libelle) + "</span></a>"
+    );
+  }
+
   /* Une case-lien qui sort du site. */
   function caseAction(libelle, href) {
     return (
@@ -179,10 +188,12 @@
       /* La rangée qui ferme la page, à l'endroit où l'on a fini de
          chercher un renseignement. Le chemin des séances ouvre la
          rangée : le pied de page ne le porte pas, et une page d'infos
-         ne doit pas être un cul-de-sac. « Notre histoire » suit —
-         la frise a quitté le menu, cette case en est la seule porte.
+         ne doit pas être un cul-de-sac. « Notre histoire » suit, en
+         petit, écrite comme « Voir les séances » — c'est la seule
+         porte vers la frise, mais pas le mot que la rangée met en
+         avant (demande du cinéma, 22 septembre).
 
-         « Merci » ferme la rangée : la porte vers le mur de
+         « Merci » ferme la rangée, en grand : la porte vers le mur de
          celles et ceux qui font vivre le cinéma (remerciements.js).
          Les noms ne sont plus étalés ici — ils se lisent bien mieux
          sur leur propre page, tous à la même taille. La case
@@ -190,7 +201,7 @@
          vers une page vide. */
       bande("m-bande--pages", [
         R.caseVoirLesSeances(),
-        caseInterne("Notre histoire", root + "histoire/"),
+        casePetiteInterne("Notre histoire", root + "histoire/"),
         aDesRemerciements(reglages) ? caseInterne("Merci", root + "remerciements/") : "",
       ]) +
       "</article>";

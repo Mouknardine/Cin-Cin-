@@ -83,10 +83,11 @@
   white-space: pre-line;
 }
 
-/* ---------- Les portes vers « Notre histoire » et « Merci » ----------
-   Ni l'une ni l'autre n'est dans le menu : ces deux cases en sont
-   les seules portes d'entrée. Elles se lisent donc comme des
-   titres, pas comme une ligne d'information de plus. */
+/* ---------- La porte vers « Merci » ----------
+   Elle n'est pas dans le menu : cette case en est la seule porte
+   d'entrée. Elle se lit donc comme un titre, pas comme une ligne
+   d'information de plus. « Notre histoire », à côté, est écrite en
+   petit, comme « Voir les séances » (voir contact.js). */
 
 .m-contact__page-titre {
   font-family: var(--font-display);

@@ -13,8 +13,10 @@ import {Box, Card, Container, Flex, Stack, Text, useToast} from '@sanity/ui'
 import {useCallback, useMemo, useState} from 'react'
 import {useClient} from 'sanity'
 
+import {useChangementDeSalle} from '../hooks/useChangementDeSalle'
 import {useDeplacementSeances} from '../hooks/useDeplacementSeances'
 import {useDonneesPlanning} from '../hooks/useDonneesPlanning'
+import {useSemaineAffichee} from '../hooks/useSemaineAffichee'
 import {useSoireesAJour} from '../hooks/useSoireesAJour'
 import {
   API_VERSION,
@@ -23,10 +25,12 @@ import {
   type SeancePlanning,
 } from '../types'
 import {idsEnConflit} from '../utils/conflits'
-import {ajouterJours, aujourdHui, debutDeSemaine, finDeSemaine} from '../utils/dates'
+import {couleurDeLaSemaine, couleursDesFilms} from '../utils/couleurs'
+import {finDeSemaine} from '../utils/dates'
 import {DialogNewsletter} from '../newsletter/DialogNewsletter'
 import {supprimerSeance} from '../utils/mutations'
 import {BarreSemaine, type DialogOuvert} from './BarreSemaine'
+import {CompteurFilms} from './CompteurFilms'
 import {DialogDupliquerSemaine} from './DialogDupliquerSemaine'
 import {DialogFilmDuCreneau} from './DialogFilmDuCreneau'
 import {DialogGenererSemaine} from './DialogGenererSemaine'
@@ -41,8 +45,9 @@ export function PlanificationTool(): React.JSX.Element {
   const client = useClient({apiVersion: API_VERSION})
   const toast = useToast()
 
-  /* La semaine de cinéma va du mercredi au mardi : c'est ce mercredi-là. */
-  const [debutSemaine, setDebutSemaine] = useState(() => debutDeSemaine(aujourdHui()))
+  /* La semaine de cinéma va du mercredi au mardi : c'est ce mercredi-là.
+     Elle est retenue d'une visite de l'onglet à l'autre. */
+  const {debutSemaine, semainePrecedente, semaineSuivante, semaineActuelle} = useSemaineAffichee()
   const [dialogOuvert, setDialogOuvert] = useState<DialogOuvert>(null)
   const [choixDeFilm, setChoixDeFilm] = useState<ChoixDeFilm>(null)
   const [seanceASupprimer, setSeanceASupprimer] = useState<SeancePlanning | null>(null)
@@ -54,16 +59,8 @@ export function PlanificationTool(): React.JSX.Element {
 
   const rafraichir = useSoireesAJour(debutSemaine, finSemaine, recharger)
   const glisser = useDeplacementSeances(rafraichir)
-
-  const semainePrecedente = useCallback(
-    () => setDebutSemaine((jour: string) => ajouterJours(jour, -7)),
-    [],
-  )
-  const semaineSuivante = useCallback(
-    () => setDebutSemaine((jour: string) => ajouterJours(jour, 7)),
-    [],
-  )
-  const semaineActuelle = useCallback(() => setDebutSemaine(debutDeSemaine(aujourdHui())), [])
+  const changerDeSalle = useChangementDeSalle(seances, rafraichir)
+  const couleurDe = useMemo(() => couleursDesFilms(films), [films])
   const fermerDialog = useCallback(() => setDialogOuvert(null), [])
   const fermerChoixDeFilm = useCallback(() => setChoixDeFilm(null), [])
 
@@ -71,9 +68,11 @@ export function PlanificationTool(): React.JSX.Element {
     () => ({
       onSupprimer: setSeanceASupprimer,
       onChangerFilm: (seance) => setChoixDeFilm({seance}),
+      onChangerDeSalle: (seance) => void changerDeSalle(seance),
       onAjouter: (creneau) => setChoixDeFilm({creneau}),
+      couleurDe,
     }),
-    [],
+    [changerDeSalle, couleurDe],
   )
 
   const confirmerSuppression = useCallback(async () => {
@@ -125,8 +124,11 @@ export function PlanificationTool(): React.JSX.Element {
           </Card>
         )}
 
+        <CompteurFilms seances={seances} couleurDe={couleurDe} />
+
         <GrilleSemaine
           debutSemaine={debutSemaine}
+          couleurSemaine={couleurDeLaSemaine(debutSemaine)}
           seances={seances}
           conflits={conflits}
           chargement={chargement}
@@ -138,9 +140,11 @@ export function PlanificationTool(): React.JSX.Element {
           <Text size={1} muted>
             Attrapez une séance et déposez-la ailleurs : sur une case libre elle déménage, sur une
             case occupée les deux films échangent leurs places. Une case vide se remplit d'un clic.
+            Chaque film garde sa salle ; pour le faire changer de salle toute la semaine, menu ⋮
+            d'une de ses séances → « Passer ce film en Salle 2 ».
             La séance de 21 h part à 21 h au plus tôt et attend la fin du film de 19 h : derrière
-            un film de 2 h 20, elle commence à 21:20 pile, et l'outil la décale tout seul quand il
-            le faut. La semaine de cinéma va du mercredi au mardi. Tout ce qui se fait ici est
+            un film de 2 h 20, elle commence au quart d'heure suivant (21:30), et l'outil la décale
+            tout seul quand il le faut. La semaine de cinéma va du mercredi au mardi. Tout ce qui se fait ici est
             publié immédiatement sur le site.
           </Text>
         </Box>

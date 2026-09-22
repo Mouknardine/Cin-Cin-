@@ -4,7 +4,8 @@
  *
  * Tous les films sont proposés, y compris ceux retirés de l'affiche :
  * une reprise, un ciné-club ou un cycle se programment comme le reste.
- * Seuls les films à l'affiche sont cochés d'avance.
+ * Aucun n'est coché d'avance : c'est à la personne qui programme de
+ * choisir les films de la semaine.
  */
 import {Box, Card, Checkbox, Flex, Stack, Text} from '@sanity/ui'
 import {useCallback} from 'react'

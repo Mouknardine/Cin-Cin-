@@ -3,13 +3,14 @@
 
    La séance de 21 h ne part pas toujours à 21 h. Un film de 2 h 20
    commencé à 19 h libère la salle à 21 h 20 : la séance suivante
-   commence alors à 21 h 20 pile, pas une minute avant, pas une minute
-   après. C'est la règle que le cinéma applique déjà à la main — le
-   vendredi, la Salle 1 enchaîne à 21:15 quand la Salle 2 part à
-   21:00 — et c'est elle qui est écrite ici.
+   commence alors au QUART D'HEURE SUIVANT, 21 h 30. Un programme se
+   lit en 21:15, 21:30, 21:45 — jamais en 21:43 (demande du cinéma,
+   22 septembre 2026). Un film qui finit pile sur un quart d'heure
+   (21:15) laisse partir la suite à cette minute-là.
 
-   Aucun battement n'est ajouté : la salle se libère à la minute
-   exacte de fin du film (voir conflits.ts, qui dit pourquoi).
+   La détection des conflits, elle, reste à la minute exacte de fin
+   du film (voir conflits.ts, qui dit pourquoi) : l'arrondi ne sert
+   qu'à choisir l'heure d'une séance, jamais à en refuser une.
 
    Deux services :
 
@@ -27,6 +28,14 @@ import {HORS_GRILLE, SALLES_STANDARD, VAGUES, vagueDeLaSeance} from './creneaux-
 import {formatJourCourt} from './dates'
 
 const MINUTES_PAR_JOUR = 24 * 60
+
+/** Les séances partent sur un quart d'heure : 21:00, 21:15, 21:30, 21:45. */
+const PAS_DES_HORAIRES_MIN = 15
+
+/** Arrondit au quart d'heure suivant : 1283 (21:23) donne 1290 (21:30). */
+function auQuartDHeureSuivant(minutes: number): number {
+  return Math.ceil(minutes / PAS_DES_HORAIRES_MIN) * PAS_DES_HORAIRES_MIN
+}
 
 /** Ce qu'il faut savoir d'une séance pour l'enchaîner à la suivante. */
 export interface SeanceEnGrille {
@@ -55,8 +64,8 @@ function finEnMinutes(seance: {heure: string; filmDuree: number | null}): number
  * À quelle heure poser une séance sur cette vague.
  *
  * `precedente` est la séance qui occupe déjà la salle plus tôt dans la
- * soirée, s'il y en a une. La vague part à son heure habituelle, ou à
- * la fin du film précédent si celui-ci déborde.
+ * soirée, s'il y en a une. La vague part à son heure habituelle, ou au
+ * quart d'heure qui suit la fin du film précédent si celui-ci déborde.
  */
 export function heureDeDepart(
   vague: number,
@@ -70,7 +79,7 @@ export function heureDeDepart(
   /* Un film qui déborderait sur le lendemain n'a pas d'heure de suite
      représentable : on laisse l'heure habituelle, et le chevauchement
      s'affichera en rouge plutôt que d'inventer une heure fausse. */
-  return heureDepuisMinutes(fin) ?? habituelle
+  return heureDepuisMinutes(auQuartDHeureSuivant(fin)) ?? habituelle
 }
 
 /** Les séances d'une journée dans une salle, rangées par vague. */
@@ -105,8 +114,8 @@ export interface Recalage {
  * Les séances qu'il faut repousser pour que la soirée tienne debout.
  *
  * On ne regarde qu'un cas : une séance de seconde vague qui commencerait
- * avant la fin du film de la première, dans la même salle. Elle part alors
- * à la minute exacte où la salle se libère.
+ * avant l'heure que lui laisse le film de la première, dans la même salle.
+ * Elle part alors au quart d'heure qui suit la fin de ce film.
  */
 export function recalagesNecessaires(seances: readonly SeanceEnGrille[]): Recalage[] {
   const recalages: Recalage[] = []

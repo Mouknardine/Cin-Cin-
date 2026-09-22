@@ -115,6 +115,10 @@
   margin-top: 0.5rem;
   font-size: var(--taille-texte);
   font-weight: 400;
+  /* En capitales comme le titre au-dessus : c'est le même nom du
+     film, dans sa langue d'origine. La graisse et l'opacité suffisent
+     à le mettre en retrait. */
+  text-transform: uppercase;
   opacity: 0.6;
 }
 .m-titre__realisation {

@@ -47,7 +47,7 @@ const FIN = '2026-09-22'
 const S = (date, heure, salle, statut = 'disponible') => ({date, heure, salle, statut})
 
 const film = (o) => ({
-  genres: [], realisation: null, pays: null, annee: null, duree: null,
+  typeDeFilm: null, genres: [], realisation: null, pays: null, annee: null, duree: null,
   version: null, sousTitres: null, age: null, synopsis: null, dateDeSortie: null,
   statut: 'a-laffiche', bandeAnnonce: null, presse: null, afficheRef: null,
   seances: [], slug: o._id, ...o,

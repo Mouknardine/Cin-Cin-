@@ -227,9 +227,21 @@
   }
 
   /* ---------------- Morceaux de requête réutilisés ---------------- */
+
+  /* Le jour de sa sortie, un film annoncé passe à l'affiche tout
+     seul : personne n'a à rouvrir sa fiche le mercredi matin. Dès que
+     sa date de sortie est atteinte, le site le traite partout comme
+     « À l'affiche » — il quitte la page Événements, rejoint la
+     rubrique À l'affiche de la page Films et monte sur l'accueil.
+     Sans date de sortie, c'est le Studio qui décide. Les requêtes qui
+     utilisent CHAMPS_FILM passent donc toutes le paramètre $today. */
+  var FILM_SORTI = 'status == "prochainement" && defined(releaseDate) && releaseDate <= $today';
+  var STATUT_DU_JOUR = '"status":select(' + FILM_SORTI + ' => "a-laffiche", status)';
+
   var CHAMPS_FILM =
     '_id,"slug":coalesce(slug.current,_id),title,originalTitle,director,year,country,duration,' +
-    "language,subtitles,ageRating,genres,status,releaseDate,synopsis,poster,stillImages,trailerUrl," +
+    "language,subtitles,ageRating,typeDeFilm,genres," + STATUT_DU_JOUR +
+    ",releaseDate,synopsis,poster,stillImages,trailerUrl," +
     "presence,presenceDate," +
     'price,sumupCheckoutUrl,presseUrl';
 
@@ -266,7 +278,8 @@
     getFilms: function () {
       return cachee("films", function () {
         return sanityFetch(
-          '*[_type == "film" && status != "passe"] | order(title asc) {' + CHAMPS_FILM + "}"
+          '*[_type == "film" && status != "passe"] | order(title asc) {' + CHAMPS_FILM + "}",
+          { today: aujourdhui() }
         );
       });
     },
@@ -300,8 +313,9 @@
     },
 
     /** Les films que la page Événements annonce d'elle-même : ceux
-        qui sortent prochainement, et ceux qui passent en présence de
-        quelqu'un. Un film peut être les deux : il n'est alors annoncé
+        qui sortent prochainement (le jour de leur sortie, ils
+        quittent la page tout seuls), et ceux qui passent en présence
+        de quelqu'un. Un film peut être les deux : il n'est alors annoncé
         qu'une fois, la requête ne le renvoyant qu'une fois.
 
         Chacun repart avec sa prochaine séance non annulée, pour
@@ -311,7 +325,8 @@
       return cachee("films-annonces", function () {
         return sanityFetch(
           '*[_type == "film" && status != "passe" && ' +
-            '(status == "prochainement" || (defined(presence) && presence != ""))]{' + CHAMPS_FILM +
+            '((status == "prochainement" && !(' + FILM_SORTI + ')) || ' +
+            '(defined(presence) && presence != ""))]{' + CHAMPS_FILM +
             ',"prochaineSeance": *[_type == "screening" && references(^._id) && ' +
             'date >= $today && status != "annule"] | order(date asc, time asc)[0]{date,time}}',
           { today: aujourdhui() }

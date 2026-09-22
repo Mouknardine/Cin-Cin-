@@ -16,6 +16,14 @@ import { ChampSeancesDuFilm } from "../plugins/planification/components/ChampSea
    seul, il n'y a rien à « régler » pour que ce soit joli.
    ============================================================ */
 
+/** La date du jour, AAAA-MM-JJ, à l'heure de Lausanne comme le site. */
+function dateDuJour(): string {
+  const maintenant = new Date();
+  const mois = String(maintenant.getMonth() + 1).padStart(2, "0");
+  const jour = String(maintenant.getDate()).padStart(2, "0");
+  return `${maintenant.getFullYear()}-${mois}-${jour}`;
+}
+
 export const film = defineType({
   name: "film",
   title: "Film",
@@ -114,13 +122,34 @@ export const film = defineType({
       type: "string",
       description: "Ex. 12/14 ans, ou « Tous publics ».",
     }),
+    /* Un simple texte, écrit comme il doit se lire. L'ancien champ
+       « Genres » fabriquait une étiquette à chaque Entrée : taper
+       « doc » puis cliquer ailleurs perdait le mot, ou laissait
+       « doc » au lieu de « Documentaire ». */
+    defineField({
+      name: "typeDeFilm",
+      title: "Type de film",
+      type: "string",
+      description:
+        "Écrit tel qu'il s'affichera sur le site. Ex. Documentaire, Fiction, Animation, Comédie · Jeune public.",
+    }),
+    /* L'ancien champ, gardé pour ne rien perdre : les films saisis
+       avant le 22 septembre 2026 ont leur genre ici. Il n'apparaît
+       que tant que « Type de film » est vide, en lecture seule, et
+       le site l'affiche en attendant. */
     defineField({
       name: "genres",
-      title: "Genres",
+      title: "Genre (ancienne saisie)",
       type: "array",
       of: [{ type: "string" }],
       options: { layout: "tags" },
-      description: "Tapez un genre puis Entrée. Ex. Documentaire, Comédie, Jeune public.",
+      readOnly: true,
+      hidden: ({ document }) => {
+        const film = document as { genres?: unknown[]; typeDeFilm?: string } | undefined;
+        return !film?.genres?.length || Boolean(film.typeDeFilm?.trim());
+      },
+      description:
+        "Saisi avec l'ancien formulaire, et encore affiché sur le site. Pour le changer, écrivez le type du film dans « Type de film » juste au-dessus : c'est lui qui compte dès qu'il est rempli, et ce champ disparaît.",
     }),
     defineField({
       name: "synopsis",
@@ -140,7 +169,7 @@ export const film = defineType({
       title: "Où en est ce film ?",
       type: "string",
       description:
-        "Détermine dans quelle partie de la page Films il apparaît. Passez-le sur « Terminé » quand il quitte l'affiche : il sort des pages publiques mais reste consultable ici.",
+        "Détermine dans quelle partie de la page Films il apparaît. Un film « Prochainement » passe tout seul « À l'affiche » le jour de sa date de sortie, et quitte alors la page Événements : rien à changer ce jour-là. Passez-le sur « Terminé » quand il quitte l'affiche : il sort des pages publiques mais reste consultable ici.",
       options: {
         list: [
           { title: "À l'affiche — visible en premier sur le site", value: "a-laffiche" },
@@ -273,9 +302,10 @@ export const film = defineType({
       year: "year",
       status: "status",
       releaseDate: "releaseDate",
+      presence: "presence",
       media: "poster",
     },
-    prepare({ title, director, year, status, releaseDate, media }) {
+    prepare({ title, director, year, status, releaseDate, presence, media }) {
       const etats: Record<string, string> = {
         "a-laffiche": "À l'affiche",
         "avant-premiere": "Avant-première",
@@ -289,11 +319,23 @@ export const film = defineType({
       let etat = etats[status as string] || "";
       if (status === "prochainement" && typeof releaseDate === "string" && releaseDate) {
         const [annee, mois, jour] = releaseDate.split("-");
-        if (annee && mois && jour) etat += ` — dès le ${jour}/${mois}/${annee}`;
+        /* Le jour de sa sortie, le site le passe à l'affiche tout seul
+           (voir assets/js/data.js) : la liste le dit aussi. */
+        const sorti = releaseDate <= dateDuJour();
+        if (annee && mois && jour) {
+          etat = sorti
+            ? `À l'affiche — sorti le ${jour}/${mois}/${annee}`
+            : `${etat} — dès le ${jour}/${mois}/${annee}`;
+        }
       }
+      /* L'invité·e se lit dans la liste : c'est ce qui fait apparaître
+         le film dans la rubrique Événements. */
+      const invite = typeof presence === "string" && presence.trim()
+        ? `en présence de ${presence.trim()}`
+        : "";
       return {
         title: title || "Film sans titre",
-        subtitle: [etat, director, year].filter(Boolean).join(" · "),
+        subtitle: [etat, invite, director, year].filter(Boolean).join(" · "),
         media,
       };
     },

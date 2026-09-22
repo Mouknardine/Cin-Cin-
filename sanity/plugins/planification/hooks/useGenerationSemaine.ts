@@ -23,9 +23,6 @@ import {ajouterJours, finDeSemaine} from '../utils/dates'
 import {compterParFilm, composerLaSemaine, creneauxLibres} from '../utils/generation-semaine'
 import {chargerSeancesPeriode, compterSeancesParFilm, creerSeances} from '../utils/mutations'
 
-/** Les statuts d'un film qu'on propose d'emblée : ceux qui sont à l'affiche. */
-const STATUTS_COCHES_DAVANCE = ['a-laffiche', 'avant-premiere', 'cycle']
-
 /** Sur combien de semaines alentour on regarde pour égaliser les films. */
 export const SEMAINES_DE_RECUL = 4
 
@@ -59,14 +56,10 @@ export function useGenerationSemaine({
   const client = useClient({apiVersion: API_VERSION})
   const toast = useToast()
 
-  const [selection, setSelection] = useState<Set<string>>(
-    () =>
-      new Set(
-        films
-          .filter((film) => STATUTS_COCHES_DAVANCE.includes(film.statut ?? ''))
-          .map((film) => film._id),
-      ),
-  )
+  /* Aucun film n'est coché d'avance : rien ne se remplit tant qu'on
+     n'a pas choisi soi-même les films de la semaine (demande du
+     cinéma, 22 septembre 2026). */
+  const [selection, setSelection] = useState<Set<string>>(() => new Set())
   const [equilibrer, setEquilibrer] = useState(true)
   const [proposition, setProposition] = useState<SeanceCandidate[] | null>(null)
   const [enCours, setEnCours] = useState(false)
@@ -102,19 +95,25 @@ export function useGenerationSemaine({
   const proposer = useCallback(async () => {
     setEnCours(true)
     try {
-      const dejaProgrammees = equilibrer
-        ? await compterSeancesParFilm(
-            client,
-            ajouterJours(debutSemaine, -7 * SEMAINES_DE_RECUL),
-            finDeSemaine(ajouterJours(debutSemaine, 7 * SEMAINES_DE_RECUL)),
-          )
-        : {}
+      /* La semaine d'avant dit dans quelle salle chaque film est
+         installé : il y reste. */
+      const [dejaProgrammees, semainePrecedente] = await Promise.all([
+        equilibrer
+          ? compterSeancesParFilm(
+              client,
+              ajouterJours(debutSemaine, -7 * SEMAINES_DE_RECUL),
+              finDeSemaine(ajouterJours(debutSemaine, 7 * SEMAINES_DE_RECUL)),
+            )
+          : Promise.resolve({}),
+        chargerSeancesPeriode(client, ajouterJours(debutSemaine, -7), ajouterJours(debutSemaine, -1)),
+      ])
       setProposition(
         composerLaSemaine({
           debutSemaine,
           films: films.filter((film) => selection.has(film._id)),
           seancesExistantes: seancesSemaine,
           dejaProgrammees,
+          semainePrecedente,
         }),
       )
     } catch {

@@ -9,7 +9,7 @@
  * nulle part où poser quoi que ce soit.
  *
  * Chaque case affiche SON heure, pas celle de sa vague : derrière un
- * film de 2 h 20 commencé à 19 h, la case de 21 h annonce 21:20. Le
+ * film de 2 h 20 commencé à 19 h, la case de 21 h annonce 21:30. Le
  * calcul est dans enchainement.ts.
  *
  * Les séances qui ne tombent sur aucune case ordinaire — le Hall-Bar
@@ -28,6 +28,8 @@ import {CelluleCreneau} from './CelluleCreneau'
 interface Props {
   /** Le mercredi qui ouvre la semaine affichée. */
   debutSemaine: string
+  /** La teinte de cette semaine, reprise en haut de chaque journée. */
+  couleurSemaine: string
   seances: SeancePlanning[]
   /** Les identifiants des séances qui se chevauchent : elles s'affichent en rouge. */
   conflits: ReadonlySet<string>
@@ -61,6 +63,7 @@ function rangerParCase(seancesDuJour: SeancePlanning[]): {
 
 export function GrilleSemaine({
   debutSemaine,
+  couleurSemaine,
   seances,
   conflits,
   chargement,
@@ -96,6 +99,7 @@ export function GrilleSemaine({
               radius={3}
               tone={estAujourdHui ? 'primary' : 'transparent'}
               border
+              style={{borderTop: `4px solid ${couleurSemaine}`}}
             >
               <Stack space={3}>
                 <Text size={1} weight={estAujourdHui ? 'bold' : 'semibold'} align="center">

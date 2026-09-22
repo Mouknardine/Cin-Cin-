@@ -1,10 +1,10 @@
 /**
  * Assistant « Remplir la semaine au hasard ».
  *
- * On coche les films, l'outil compose la semaine : il répartit les
- * séances à peu près également entre les films, sans jamais mettre le
- * même film deux fois dans la même vague ni, si possible, deux fois le
- * même jour.
+ * On coche les films, l'outil compose la semaine : chaque film reste
+ * dans sa salle, et les séances de chaque salle se répartissent à peu
+ * près également entre ses films, sans jamais mettre le même film deux
+ * fois dans la même vague ni, si possible, deux fois le même jour.
  *
  * Rien n'est créé avant d'avoir été vu : l'outil PROPOSE d'abord une
  * grille, on regarde combien de séances chaque film obtient, on relance
@@ -54,7 +54,10 @@ export function DialogGenererSemaine({
               {formatPeriodeSemaine(debutSemaine)} — <strong>{libres}</strong> créneau
               {libres > 1 ? 'x' : ''} libre{libres > 1 ? 's' : ''} à remplir (19 h et 21 h, Salle 1
               et Salle 2). La séance de 21 h attend la fin du film de 19 h : derrière un film de
-              2 h 20 elle partira à 21:20 pile. Les séances déjà programmées ne sont pas touchées.
+              2 h 20, elle partira au quart d'heure suivant, 21:30. Chaque film reste dans sa
+              salle — celle où il joue déjà, sinon celle de la semaine d'avant ; un nouveau film
+              va dans la salle qui en a le moins. Les séances déjà programmées ne sont pas
+              touchées.
             </Text>
 
             <Stack space={2}>

@@ -90,6 +90,16 @@
     );
   }
 
+  /* Les noms se lisent dans l'ordre alphabétique, quel que soit
+     l'ordre de saisie dans le Studio : on y retrouve un nom d'un coup
+     d'œil. L'ordre suit le français — « Émile » avec les E, sans
+     distinguer majuscules et minuscules. */
+  var alphabet = new Intl.Collator("fr", { sensitivity: "base", numeric: true });
+
+  function parOrdreAlphabetique(a, b) {
+    return alphabet.compare(String(a.nom).trim(), String(b.nom).trim());
+  }
+
   app.innerHTML = R.etatChargement("des remerciements");
 
   D.getReglages().then(function (reglages) {
@@ -98,9 +108,11 @@
       return;
     }
 
-    var noms = ((reglages && reglages.remerciements) || []).filter(function (merci) {
-      return merci && merci.nom;
-    });
+    var noms = ((reglages && reglages.remerciements) || [])
+      .filter(function (merci) {
+        return merci && merci.nom;
+      })
+      .sort(parOrdreAlphabetique);
 
     if (!noms.length) {
       app.innerHTML = pageVide();

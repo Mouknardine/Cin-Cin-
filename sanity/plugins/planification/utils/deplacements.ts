@@ -84,7 +84,7 @@ export async function changerFilmDeSeance(
  * Remet les soirées d'aplomb après un changement.
  *
  * Un film plus long posé à 19 h repousse la séance de 21 h de sa salle,
- * à la minute exacte où le premier se termine. Plutôt que de prévoir ce
+ * au quart d'heure qui suit la fin du premier. Plutôt que de prévoir ce
  * décalage dans chacun des gestes possibles — déplacer, échanger,
  * remplacer un film, créer une séance — on relit la semaine après coup
  * et on corrige ce qui doit l'être. La règle ne peut ainsi pas être

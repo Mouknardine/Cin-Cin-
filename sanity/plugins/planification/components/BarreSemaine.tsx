@@ -11,8 +11,9 @@ import {
   SparklesIcon,
   SyncIcon,
 } from '@sanity/icons'
-import {Button, Flex, Stack, Text} from '@sanity/ui'
+import {Box, Button, Flex, Stack, Text} from '@sanity/ui'
 
+import {couleurDeLaSemaine} from '../utils/couleurs'
 import {formatPeriodeSemaine} from '../utils/dates'
 
 /** Les assistants ouvrables depuis la barre. */
@@ -43,9 +44,26 @@ export function BarreSemaine({
         <Text size={3} weight="bold">
           Planification des séances
         </Text>
-        <Text size={1} muted>
-          {formatPeriodeSemaine(debutSemaine)} · {nbSeances} séance{nbSeances > 1 ? 's' : ''}
-        </Text>
+        {/* La pastille prend la couleur de la semaine : en changeant de
+            semaine, on la voit changer de teinte. */}
+        <Flex align="center" gap={2}>
+          <Box
+            aria-hidden
+            style={{
+              width: 12,
+              height: 12,
+              borderRadius: 999,
+              background: couleurDeLaSemaine(debutSemaine),
+              flexShrink: 0,
+            }}
+          />
+          <Text size={1} weight="semibold">
+            {formatPeriodeSemaine(debutSemaine)}
+          </Text>
+          <Text size={1} muted>
+            · {nbSeances} séance{nbSeances > 1 ? 's' : ''}
+          </Text>
+        </Flex>
       </Stack>
       <Flex gap={2} wrap="wrap">
         <Button

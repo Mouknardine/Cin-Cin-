@@ -106,7 +106,8 @@ où son contenu apparaît, et **rien n'existe à deux endroits**.
 ```
 Films                 les fiches de film — et, dans chaque fiche, ses horaires
 Agenda                Séances à venir · Séances passées
-Événement             cycles, brunchs, séances spéciales
+Événements            cycles, brunchs, séances spéciales — et les films
+                      qui sortent prochainement ou passent avec un invité
 Location              les espaces à louer et l'adresse des demandes
 Histoire              la phrase d'accueil et les étapes de la frise
 Membership            phrase d'accueil, formules et paiement
@@ -121,11 +122,29 @@ règlent dans la fiche de ce film — c'est là qu'on se pose la question.
 « Agenda » sert seulement à retrouver une séance quand on ne se souvient
 plus de quel film il s'agit.
 
+**La rubrique Événements montre tout ce que la page Événements du site
+annonce** : les événements saisis à la main, et les films qui s'y
+affichent d'eux-mêmes — ceux qui sortent prochainement et ceux qui
+passent en présence d'un invité. Un clic ouvre la fiche du film. Le
+« + » de cette rubrique crée un événement ; un film se crée dans
+« Films ».
+
 **Il n'y a pas non plus de rubrique par statut** (à l'affiche, première,
 prochainement, cycles). La liste « Films » les montre tous, et chaque
 ligne affiche déjà l'affiche, le titre, l'état du film et sa réalisation.
 Pour déplacer un film d'un onglet du site à l'autre, on ouvre sa fiche et
 on change « Où en est ce film ? ».
+
+**Le jour de sa sortie, un film « Prochainement » passe tout seul « À
+l'affiche »** : dès que sa date de sortie est atteinte, le site le range
+avec les films à l'affiche, le fait monter sur l'accueil et le retire de
+la page Événements. Rien à changer ce jour-là. Dans la liste du Studio,
+il s'affiche alors « À l'affiche — sorti le … ». Sans date de sortie,
+c'est le choix fait dans la fiche qui compte.
+
+**Le type du film** (Documentaire, Fiction, Animation…) s'écrit en
+toutes lettres dans le champ « Type de film », tel qu'il doit se lire
+sur le site.
 
 ## Où se modifie le texte d'une page
 
@@ -211,11 +230,12 @@ bien à 19 h. La seconde part à 21 h **au plus tôt**, et plus tard si le film 
 |---|---|---|
 | 1 h 30 | 20:30 | **21:00** |
 | 2 h 00 | 21:00 | **21:00** |
-| 2 h 20 | 21:20 | **21:20** |
-| 2 h 43 | 21:43 | **21:43** |
+| 2 h 15 | 21:15 | **21:15** |
+| 2 h 20 | 21:20 | **21:30** |
+| 2 h 43 | 21:43 | **21:45** |
 
-Aucun battement n'est ajouté : la salle se libère à la minute exacte de fin du
-film. Chaque carte de séance affiche son heure de fin (`19:00 · Titre → 21:20`),
+La séance suivante part au **quart d'heure qui suit** la fin du film :
+21:00, 21:15, 21:30 ou 21:45 — jamais 21:43. Chaque carte de séance affiche son heure de fin (`19:00 · Titre → 21:20`),
 et chaque case libre affiche l'heure à laquelle elle partira.
 
 Concrètement :
@@ -224,13 +244,36 @@ Concrètement :
   duplication, remplissage au hasard.
 - **Quand un changement rallonge la soirée**, l'outil **décale tout seul** la
   séance de 21 h de cette salle et vous le dit (« *Le Grand Bleu* passe de 21:00
-  à 21:20, le temps que finisse *Ceci est mon corps* »).
+  à 21:30, le temps que finisse *Ceci est mon corps* »).
 - **Une séance n'est jamais avancée.** Si vous avez volontairement laissé un
   battement — 21:30 derrière un film qui finit à 21:15 — il vous appartient et
   l'outil n'y touche pas.
 - **Un long film n'écrase pas une séance déjà fixée** : si une séance est déjà
   calée à 21 h, le tirage au sort ne mettra pas un film de 2 h 20 à 19 h dans
   cette salle — il en choisira un qui rentre.
+
+### Se repérer d'un coup d'œil
+
+- **La semaine affichée est retenue** : on peut ouvrir la fiche d'un film et
+  revenir, le planning reste sur la semaine qu'on préparait. Une semaine déjà
+  terminée n'est jamais rouverte d'office.
+- **Chaque semaine a sa couleur** (pastille à côté des dates, trait en haut de
+  chaque journée) : en changeant de semaine, la couleur change.
+- **Chaque film a sa couleur**, sur ses cartes, et un **compteur** au-dessus de
+  la grille indique pour chaque film son nombre de séances de la semaine et sa
+  salle.
+
+### Chaque film garde sa salle
+
+Un film reste dans la salle où il joue : celle où il est déjà programmé cette
+semaine, sinon celle de la semaine d'avant. Un nouveau film va dans la salle
+qui a le moins de films. Le remplissage au hasard et « Rebattre les cartes »
+changent le jour et le moment de la soirée, **jamais la salle**.
+
+Pour faire changer un film de salle : menu ⋮ d'une de ses séances →
+**« Passer ce film en Salle 2 (toute la semaine) »**. Toutes ses séances de la
+semaine déménagent au même jour et au même moment ; les films qui occupaient
+ces places font le chemin inverse — personne n'est supprimé.
 
 ### Déplacer une séance à la souris
 
@@ -252,12 +295,13 @@ Concrètement :
   séances sont créées et publiées d'un coup.
 - **Dupliquer la semaine** : recopie toutes les séances de la semaine affichée
   vers la suivante, en un clic. Avec l'option **« Rebattre les cartes »**, les
-  **mêmes films reviennent en même nombre mais changent de jour, de salle et de
-  moment de la soirée** : c'est la façon la plus rapide de faire une semaine de
+  **mêmes films reviennent en même nombre mais changent de jour et de moment de
+  la soirée**, chacun dans sa salle : c'est la façon la plus rapide de faire une semaine de
   plus avec les films déjà à l'affiche. Les horaires sont **recalculés**, pas
   recopiés.
-- **Remplir au hasard** : cocher les films, l'outil compose la semaine en
-  donnant **à peu près le même nombre de séances à chacun**. Il propose d'abord
+- **Remplir au hasard** : cocher les films (aucun n'est coché d'avance), l'outil
+  compose la semaine en donnant, dans chaque salle, **à peu près le même nombre
+  de séances à chaque film**. Il propose d'abord
   une grille — le nombre de séances de chaque film s'affiche en face de son
   titre — on peut **relancer le tirage** autant de fois qu'on veut, et on ne
   valide que lorsqu'elle convient.
@@ -268,8 +312,8 @@ Concrètement :
 - Un film ne passe **jamais deux fois en même temps** dans les deux salles.
 - Il évite de passer **deux fois le même jour**, tant qu'il y a assez de films
   pour l'éviter.
-- Il change de vague et de salle d'une séance à l'autre plutôt que de toujours
-  tomber à 19 h en Salle 1.
+- Il change de vague d'une séance à l'autre plutôt que de toujours tomber à
+  19 h — mais il ne change **jamais** un film de salle.
 - Il ne propose **jamais un horaire impossible** : chaque séance de 21 h part
   après la fin du film de 19 h de sa salle.
 - **Rien de ce qui est déjà programmé n'est touché** : ni déplacé, ni recouvert.

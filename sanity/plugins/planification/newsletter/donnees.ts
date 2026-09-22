@@ -44,6 +44,9 @@ export interface FilmNewsletter {
   version: string | null
   sousTitres: string | null
   age: string | null
+  /** Le type du film, écrit tel quel (« Documentaire »). */
+  typeDeFilm: string | null
+  /** L'ancienne saisie en étiquettes, lue tant que le type est vide. */
   genres: string[] | null
   synopsis: string | null
   dateDeSortie: string | null
@@ -90,6 +93,7 @@ const CHAMPS_FILM = `
   "version": language,
   "sousTitres": subtitles,
   "age": ageRating,
+  typeDeFilm,
   genres,
   synopsis,
   "dateDeSortie": releaseDate,

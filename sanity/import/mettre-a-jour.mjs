@@ -128,7 +128,9 @@ function champsDuFilm(film) {
     duration: film.duration,
     language: film.language,
     ageRating: film.ageRating,
-    genres: film.genres,
+    /* Le type s'écrit désormais en texte libre (« Type de film ») ;
+       le programme le donne encore en liste. */
+    typeDeFilm: (film.genres || []).join(", ") || undefined,
     synopsis: film.synopsis,
     status: film.status,
     trailerUrl: film.trailerUrl,

@@ -61,7 +61,7 @@ function etiquette({texte, ton}: Etiquette, alAffiche: boolean): string {
 function ligneTechnique(film: FilmNewsletter): string {
   const version = [film.version, film.sousTitres].map((v) => String(v ?? '').trim()).filter(Boolean)
   return [
-    (film.genres ?? []).join(', '),
+    film.typeDeFilm?.trim() || (film.genres ?? []).join(', '),
     film.realisation,
     film.pays,
     film.annee,

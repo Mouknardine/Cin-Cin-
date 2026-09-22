@@ -82,7 +82,11 @@ import type {CreneauDate} from './utils/creneaux-standards'
 export interface ActionsPlanning {
   onSupprimer: (seance: SeancePlanning) => void
   onChangerFilm: (seance: SeancePlanning) => void
+  /** Fait passer le film de cette séance dans l'autre salle, pour toute la semaine. */
+  onChangerDeSalle: (seance: SeancePlanning) => void
   onAjouter: (creneau: CreneauDate) => void
+  /** La couleur d'un film dans la grille et dans le compteur. */
+  couleurDe: (filmId: string) => string
 }
 
 /**

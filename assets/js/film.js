@@ -268,12 +268,27 @@
     return '<div class="m-bande ' + classe + '">' + contenu + "</div>";
   }
 
+  /* Le type du film, tel qu'il est écrit dans le Studio. Les films
+     saisis avant le champ « Type de film » ont encore une liste de
+     genres : on la lit en attendant. Le point médian est collé au
+     genre qui le suit (espace insécable) : à la coupure, il descend
+     avec lui au lieu de rester orphelin en bout de ligne. */
+  function typeDuFilm(film) {
+    var texte = String(film.typeDeFilm || "").trim();
+    if (texte) return texte;
+    return (film.genres || []).join(" ·\u00A0");
+  }
+
   function renderFilm(film) {
     document.title = film.title + " — Zinéma";
     var embed = R.toEmbedUrl(film.trailerUrl);
 
+    /* Les deux titres s'affichent en capitales : « Nomadland » et
+       « NOMADLAND » sont donc le même titre, inutile de le répéter. */
     var original =
-      film.originalTitle && film.originalTitle !== film.title
+      film.originalTitle &&
+      film.originalTitle.trim().toLocaleUpperCase("fr") !==
+        String(film.title || "").trim().toLocaleUpperCase("fr")
         ? '<p class="m-titre__original">' + R.escapeHtml(film.originalTitle) + "</p>"
         : "";
 
@@ -299,10 +314,7 @@
       celluleInfo("Année", film.year ? String(film.year) : "") +
       celluleInfo("Pays", film.country) +
       celluleInfo("Durée", film.duration ? film.duration + " min" : "") +
-      /* Le point médian est collé au genre qui le suit (espace
-         insécable) : à la coupure, il descend avec lui au lieu de
-         rester orphelin en bout de ligne. */
-      celluleInfo("Genre", (film.genres || []).join(" ·\u00A0")) +
+      celluleInfo("Genre", typeDuFilm(film)) +
       celluleInfo("Version", [film.language, film.subtitles].filter(Boolean).join(" ")) +
       celluleInfo("Âge", film.ageRating) +
       /* L'invité·e annoncé dans le Studio. La même information qu'en
