@@ -124,7 +124,7 @@ export function PlanificationTool(): React.JSX.Element {
           </Card>
         )}
 
-        <CompteurFilms seances={seances} couleurDe={couleurDe} />
+        <CompteurFilms films={films} seances={seances} couleurDe={couleurDe} />
 
         <GrilleSemaine
           debutSemaine={debutSemaine}

@@ -25,6 +25,11 @@ import type {ActionsPlanning, SeancePlanning} from '../types'
 import {heureDeFin} from '../utils/conflits'
 import {autreSalle} from '../utils/salles-attitrees'
 
+/** Une couleur « #RRGGBB » à 18 % : lisible sur le Studio clair comme sombre. */
+function teinte(couleur: string): string {
+  return `${couleur}2E`
+}
+
 interface Props {
   seance: SeancePlanning
   enConflit: boolean
@@ -97,8 +102,12 @@ export function CarteSeance({
       style={{
         cursor: 'grab',
         opacity: enCoursDeDeplacement ? 0.4 : 1,
-        /* La couleur du film, la même que dans le compteur au-dessus. */
-        borderLeft: `5px solid ${couleur}`,
+        /* La couleur du film, la même que dans le compteur au-dessus :
+           un liseré franc et toute la carte légèrement teintée, pour que
+           la semaine se lise film par film. Une séance en conflit garde
+           son fond rouge : l'alerte passe avant la couleur. */
+        borderLeft: `6px solid ${couleur}`,
+        ...(enConflit ? {} : {background: teinte(couleur)}),
       }}
       title={`${seance.filmTitre} — glissez la carte pour déplacer cette séance`}
     >
