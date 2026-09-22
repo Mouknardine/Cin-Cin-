@@ -101,35 +101,59 @@ export const deskStructure: StructureResolver = (S) =>
 
       /* ---------------- Événements ----------------
          La rubrique montre tout ce que la page Événements du site
-         annonce : les événements saisis ici, ET les films qui s'y
-         affichent d'eux-mêmes — ceux qui sortent prochainement et
-         ceux qui passent en présence d'un invité. On les retrouve
-         donc au même endroit que sur le site, sans les ressaisir :
-         un clic ouvre la fiche du film. Le « + » ne crée que des
-         événements ; un film se crée dans « Films ».
+         annonce, en deux listes :
 
-         Le filtre reprend exactement celui du site
+           - les événements saisis ici (cycles, brunchs…), du plus
+             récent au plus ancien ;
+           - les films qui s'y affichent d'eux-mêmes — ceux qui sortent
+             prochainement et ceux qui passent en présence d'un
+             invité —, par date de sortie. Un clic ouvre la fiche du
+             film ; rien à ressaisir.
+
+         Deux listes et non une seule : un événement et un film n'ont
+         pas la même date (« Premier jour » d'un côté, « Date de
+         sortie » de l'autre), et le Studio refuse de trier une liste
+         mélangée sur un champ que l'un des deux n'a pas — il affichait
+         une erreur et réessayait sans fin.
+
+         Le filtre des films reprend exactement celui du site
          (getFilmsAnnonces dans assets/js/data.js) : le jour de sa
-         sortie, un film quitte la rubrique tout seul. */
+         sortie, un film quitte la liste tout seul. */
       S.listItem()
         .id("evenements")
         .title("Événements")
         .icon(SparklesIcon)
         .child(
-          S.documentList()
-            .id("evenements-et-films-annonces")
-            .title("Événements et films annoncés")
-            .apiVersion("2024-06-01")
-            .filter(
-              '_type == "evenement" || (_type == "film" && status != "passe" && (' +
-                '(status == "prochainement" && !(defined(releaseDate) && releaseDate <= $today)) || ' +
-                '(defined(presence) && presence != "")))'
-            )
-            .params({ today: aujourdhuiLocal() })
-            .initialValueTemplates([S.initialValueTemplateItem("evenement")])
-            .defaultOrdering([
-              { field: "dateDebut", direction: "desc" },
-              { field: "releaseDate", direction: "asc" },
+          S.list()
+            .id("evenements-rubrique")
+            .title("Événements")
+            .items([
+              S.listItem()
+                .id("evenements-saisis")
+                .title("Événements")
+                .icon(SparklesIcon)
+                .child(
+                  S.documentTypeList("evenement")
+                    .title("Événements")
+                    .defaultOrdering([{ field: "dateDebut", direction: "desc" }])
+                ),
+              S.listItem()
+                .id("evenements-films-annonces")
+                .title("Films annoncés")
+                .icon(PlayIcon)
+                .child(
+                  S.documentTypeList("film")
+                    .id("films-annonces")
+                    .title("Films annoncés")
+                    .apiVersion("2024-06-01")
+                    .filter(
+                      '_type == "film" && status != "passe" && (' +
+                        '(status == "prochainement" && !(defined(releaseDate) && releaseDate <= $today)) || ' +
+                        '(defined(presence) && presence != ""))'
+                    )
+                    .params({ today: aujourdhuiLocal() })
+                    .defaultOrdering([{ field: "releaseDate", direction: "asc" }])
+                ),
             ])
         ),
 

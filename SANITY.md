@@ -123,11 +123,11 @@ règlent dans la fiche de ce film — c'est là qu'on se pose la question.
 plus de quel film il s'agit.
 
 **La rubrique Événements montre tout ce que la page Événements du site
-annonce** : les événements saisis à la main, et les films qui s'y
-affichent d'eux-mêmes — ceux qui sortent prochainement et ceux qui
-passent en présence d'un invité. Un clic ouvre la fiche du film. Le
-« + » de cette rubrique crée un événement ; un film se crée dans
-« Films ».
+annonce**, en deux listes : **Événements** (ceux saisis à la main) et
+**Films annoncés** (les films qui s'y affichent d'eux-mêmes — ceux qui
+sortent prochainement et ceux qui passent en présence d'un invité),
+rangés par date de sortie. Un clic ouvre la fiche du film ; un film se
+crée dans « Films ».
 
 **Il n'y a pas non plus de rubrique par statut** (à l'affiche, première,
 prochainement, cycles). La liste « Films » les montre tous, et chaque
