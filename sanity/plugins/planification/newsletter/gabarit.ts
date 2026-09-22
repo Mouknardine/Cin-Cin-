@@ -44,27 +44,30 @@ import {lignesDuProgramme} from './programme'
 export type OptionsGabarit = ProjetSanity
 
 /**
- * Le logo du cinéma, en blanc, servi par le site lui-même : une adresse que
- * toute messagerie peut aller chercher.
+ * Le logo du cinéma, tel qu'il est dessiné : noir sur blanc. Servi par le
+ * site lui-même, à une adresse que toute messagerie peut aller chercher.
  *
- * Le logo d'origine est noir sur transparence — il disparaîtrait sur l'encre.
- * zinema-logo-blanc.png en est la version inversée, faite pour ce fond-là.
+ * Le cinéma a demandé qu'il soit « plus frontal et toujours noir sur blanc »
+ * (22 septembre 2026) : l'ancienne version blanche sur l'encre ne passait
+ * ni à l'écran ni à l'impression, où le fond noir sortait en gris.
  */
-const LOGO = `${SITE}/assets/img/zinema-logo-blanc.png`
-const LARGEUR_LOGO = 400
+const LOGO = `${SITE}/assets/img/zinema-logo.png`
+const MARGE_LOGO = 16
+/* Toute la largeur du message, moins la marge de chaque côté. */
+const LARGEUR_LOGO = LARGEUR - 2 * MARGE_LOGO
 
 /**
- * L'en-tête : le logo seul, en grand, sur l'encre. Si la messagerie bloque les
- * images, le texte de remplacement s'écrit à sa place — en blanc, pour rester
- * lisible sur ce fond.
+ * L'en-tête : le logo seul, sur toute la largeur du message, en noir sur
+ * blanc. Si la messagerie bloque les images, le texte de remplacement
+ * s'écrit à sa place, en noir.
  */
 function entete(): string {
   return `<tr>${cellule(
-    `<a href="${SITE}" style="display:block;color:${BLANC};text-decoration:none;">` +
+    `<a href="${SITE}" style="display:block;color:${ENCRE};text-decoration:none;">` +
       `<img src="${LOGO}" width="${LARGEUR_LOGO}" alt="ZINÉMA" style="display:block;width:100%;` +
-      `max-width:${LARGEUR_LOGO}px;height:auto;border:0;margin:0 auto;color:${BLANC};font-family:${POLICE};` +
+      `max-width:${LARGEUR_LOGO}px;height:auto;border:0;margin:0 auto;color:${ENCRE};font-family:${POLICE};` +
       `font-size:${TAILLE.titre};font-weight:bold;text-align:center;"></a>`,
-    `background-color:${ENCRE};padding:22px 16px;text-align:center;`,
+    `background-color:${BLANC};padding:${MARGE_LOGO + 8}px ${MARGE_LOGO}px;text-align:center;`,
     'align="center"',
   )}</tr>`
 }

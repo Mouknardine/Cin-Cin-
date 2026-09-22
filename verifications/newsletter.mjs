@@ -339,16 +339,20 @@ console.log("\nL'en-tête")
 {
   const html = construire()
   verifier(
-    "le logo ouvre le message, et c'est la version blanche",
-    html.includes('/assets/img/zinema-logo-blanc.png'),
+    "le logo ouvre le message, et c'est le logo noir d'origine",
+    html.includes('/assets/img/zinema-logo.png') && !html.includes('zinema-logo-blanc'),
   )
   verifier(
-    "il est posé sur l'encre — le logo noir y disparaîtrait",
-    /background-color:#100f0c;padding:22px 16px;text-align:center;/.test(html),
+    'il est posé sur du blanc, jamais sur l’encre',
+    /background-color:#ffffff;padding:24px 16px;text-align:center;/.test(html),
+  )
+  verifier(
+    'il prend toute la largeur du message, marges comprises',
+    /<img src="[^"]*zinema-logo\.png" width="568"/.test(html) && html.includes('max-width:568px'),
   )
   verifier(
     "le texte de remplacement reste lisible si l'image est bloquée",
-    /alt="ZIN\u00c9MA"[^>]*color:#ffffff/.test(html),
+    /alt="ZIN\u00c9MA"[^>]*color:#100f0c/.test(html),
   )
   verifier('le logo mène au site', /href="https:\/\/www\.zinema\.ch"[^>]*>\s*<img/.test(html))
 }
