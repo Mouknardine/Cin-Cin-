@@ -18,9 +18,11 @@ import {useToast} from '@sanity/ui'
 
 import {API_VERSION, type CreneauDate, type GlisserDeposer, type SeancePlanning} from '../types'
 import {type Deplacement, deplacerSeances} from '../utils/deplacements'
+import {semainesDe} from '../utils/historique'
+import type {Historique} from './useHistorique'
 import {formatJourCourt} from '../utils/dates'
 
-export function useDeplacementSeances(onFait: () => void): GlisserDeposer {
+export function useDeplacementSeances(onFait: () => void, historique: Historique): GlisserDeposer {
   const client = useClient({apiVersion: API_VERSION})
   const toast = useToast()
   const [seanceGlissee, setSeanceGlissee] = useState<SeancePlanning | null>(null)
@@ -46,6 +48,10 @@ export function useDeplacementSeances(onFait: () => void): GlisserDeposer {
       }
 
       try {
+        await historique.avantDeModifier(
+          occupant ? 'échanger deux séances' : 'déplacer une séance',
+          semainesDe(portee.date, creneau.date),
+        )
         await deplacerSeances(client, deplacements)
         toast.push({
           status: 'success',
@@ -58,7 +64,7 @@ export function useDeplacementSeances(onFait: () => void): GlisserDeposer {
         toast.push({status: 'error', title: 'Le déplacement a échoué. Réessayez.'})
       }
     },
-    [client, onFait, seanceGlissee, toast],
+    [client, historique, onFait, seanceGlissee, toast],
   )
 
   return {seanceGlissee, onDebut, onFin, onDeposer}

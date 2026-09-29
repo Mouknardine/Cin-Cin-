@@ -11,6 +11,8 @@ import {
   EnvelopeIcon,
   SparklesIcon,
   SyncIcon,
+  TrashIcon,
+  UndoIcon,
 } from '@sanity/icons'
 import {Box, Button, Flex, Stack, Text} from '@sanity/ui'
 
@@ -24,6 +26,7 @@ export type DialogOuvert =
   | 'generer'
   | 'newsletter'
   | 'impression'
+  | 'vider'
   | null
 
 interface Props {
@@ -34,6 +37,10 @@ interface Props {
   onSemaineSuivante: () => void
   onActualiser: () => void
   onOuvrir: (dialog: DialogOuvert) => void
+  /** Le geste que « Annuler » déferait ; null s'il n'y a rien à annuler. */
+  dernierGeste: string | null
+  annulationEnCours: boolean
+  onAnnuler: () => void
 }
 
 export function BarreSemaine({
@@ -44,6 +51,9 @@ export function BarreSemaine({
   onSemaineSuivante,
   onActualiser,
   onOuvrir,
+  dernierGeste,
+  annulationEnCours,
+  onAnnuler,
 }: Props): React.JSX.Element {
   return (
     <Flex align="center" justify="space-between" gap={3} wrap="wrap">
@@ -88,6 +98,14 @@ export function BarreSemaine({
         />
         <Button icon={SyncIcon} mode="ghost" onClick={onActualiser} aria-label="Actualiser" />
         <Button
+          icon={UndoIcon}
+          text={annulationEnCours ? 'Annulation…' : 'Annuler'}
+          mode="ghost"
+          disabled={!dernierGeste || annulationEnCours}
+          title={dernierGeste ? `Annuler : ${dernierGeste}` : 'Rien à annuler'}
+          onClick={onAnnuler}
+        />
+        <Button
           icon={CopyIcon}
           text="Dupliquer la semaine"
           mode="ghost"
@@ -104,6 +122,13 @@ export function BarreSemaine({
           text="Imprimer le programme"
           mode="ghost"
           onClick={() => onOuvrir('impression')}
+        />
+        <Button
+          icon={TrashIcon}
+          text="Vider la semaine"
+          mode="ghost"
+          tone="critical"
+          onClick={() => onOuvrir('vider')}
         />
         <Button
           icon={SparklesIcon}

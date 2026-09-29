@@ -17,7 +17,9 @@ import {useClient} from 'sanity'
 
 import {useChangementDeSalle} from '../hooks/useChangementDeSalle'
 import {useDeplacementSeances} from '../hooks/useDeplacementSeances'
+import {useAnnulation} from '../hooks/useAnnulation'
 import {useDonneesPlanning} from '../hooks/useDonneesPlanning'
+import {FournisseurHistorique, useHistoriqueDeLOnglet} from '../hooks/useHistorique'
 import {useSemaineAffichee} from '../hooks/useSemaineAffichee'
 import {useSoireesAJour} from '../hooks/useSoireesAJour'
 import {
@@ -29,6 +31,7 @@ import {
 import {idsEnConflit} from '../utils/conflits'
 import {couleurDeLaSemaine, couleursDesFilms} from '../utils/couleurs'
 import {finDeSemaine} from '../utils/dates'
+import {semainesDe} from '../utils/historique'
 import {filmsDeLaSemaine} from '../utils/films-de-la-semaine'
 import {supprimerSeance} from '../utils/mutations'
 import {AssistantsDeLaSemaine} from './AssistantsDeLaSemaine'
@@ -58,8 +61,10 @@ export function PlanificationTool(): React.JSX.Element {
   const conflits = useMemo(() => idsEnConflit(seances), [seances])
 
   const rafraichir = useSoireesAJour(debutSemaine, finSemaine, recharger)
-  const glisser = useDeplacementSeances(rafraichir)
-  const changerDeSalle = useChangementDeSalle(seances, rafraichir)
+  const historique = useHistoriqueDeLOnglet()
+  const annulation = useAnnulation(historique, recharger)
+  const glisser = useDeplacementSeances(rafraichir, historique)
+  const changerDeSalle = useChangementDeSalle(seances, rafraichir, historique)
   /* Les films de la semaine, dans l'ordre du compteur : c'est aussi
      l'ordre dans lequel ils reçoivent leur couleur. */
   const lesFilmsDeLaSemaine = useMemo(() => filmsDeLaSemaine(films, seances), [films, seances])
@@ -85,6 +90,7 @@ export function PlanificationTool(): React.JSX.Element {
     if (!seanceASupprimer) return
     setSuppressionEnCours(true)
     try {
+      await historique.avantDeModifier('supprimer une séance', semainesDe(seanceASupprimer.date))
       await supprimerSeance(client, seanceASupprimer._id)
       toast.push({status: 'success', title: 'Séance supprimée.'})
       setSeanceASupprimer(null)
@@ -94,85 +100,90 @@ export function PlanificationTool(): React.JSX.Element {
     } finally {
       setSuppressionEnCours(false)
     }
-  }, [client, rafraichir, seanceASupprimer, toast])
+  }, [client, historique, rafraichir, seanceASupprimer, toast])
 
   return (
-    <Container width={5} padding={4}>
-      <Stack space={4}>
-        <BarreSemaine
+    <FournisseurHistorique value={historique}>
+      <Container width={5} padding={4}>
+        <Stack space={4}>
+          <BarreSemaine
+            debutSemaine={debutSemaine}
+            nbSeances={seances.length}
+            onSemainePrecedente={semainePrecedente}
+            onSemaineActuelle={semaineActuelle}
+            onSemaineSuivante={semaineSuivante}
+            onActualiser={recharger}
+            onOuvrir={setDialogOuvert}
+            dernierGeste={historique.dernierGeste}
+            annulationEnCours={annulation.enCours}
+            onAnnuler={() => void annulation.annuler()}
+          />
+
+          {erreur && (
+            <Card padding={3} radius={2} tone="critical">
+              <Text size={1}>{erreur}</Text>
+            </Card>
+          )}
+
+          {conflits.size > 0 && (
+            <Card padding={3} radius={2} tone="caution">
+              <Flex gap={2} align="center">
+                <Text size={1}>
+                  <WarningOutlineIcon />
+                </Text>
+                <Text size={1}>
+                  {conflits.size} séance{conflits.size > 1 ? 's' : ''} se chevauche
+                  {conflits.size > 1 ? 'nt' : ''} dans une même salle — elles apparaissent en rouge
+                  ci-dessous. Déplacez-en une, ou corrigez son heure.
+                </Text>
+              </Flex>
+            </Card>
+          )}
+
+          <CompteurFilms lignes={lesFilmsDeLaSemaine} couleurDe={couleurDe} />
+
+          <GrilleSemaine
+            debutSemaine={debutSemaine}
+            couleurSemaine={couleurDeLaSemaine(debutSemaine)}
+            seances={seances}
+            conflits={conflits}
+            chargement={chargement}
+            actions={actions}
+            glisser={glisser}
+          />
+
+          <Text size={1} muted>
+            Glissez une séance pour la déplacer (sur une case occupée, les deux films échangent),
+            cliquez une case vide pour la remplir. Menu ⋮ d'une séance pour changer son film ou
+            faire passer le film dans l'autre salle. Tout est publié immédiatement sur le site.
+          </Text>
+        </Stack>
+
+        <AssistantsDeLaSemaine
+          ouvert={dialogOuvert}
           debutSemaine={debutSemaine}
-          nbSeances={seances.length}
-          onSemainePrecedente={semainePrecedente}
-          onSemaineActuelle={semaineActuelle}
-          onSemaineSuivante={semaineSuivante}
-          onActualiser={recharger}
-          onOuvrir={setDialogOuvert}
-        />
-
-        {erreur && (
-          <Card padding={3} radius={2} tone="critical">
-            <Text size={1}>{erreur}</Text>
-          </Card>
-        )}
-
-        {conflits.size > 0 && (
-          <Card padding={3} radius={2} tone="caution">
-            <Flex gap={2} align="center">
-              <Text size={1}>
-                <WarningOutlineIcon />
-              </Text>
-              <Text size={1}>
-                {conflits.size} séance{conflits.size > 1 ? 's' : ''} se chevauche
-                {conflits.size > 1 ? 'nt' : ''} dans une même salle — elles apparaissent en rouge
-                ci-dessous. Déplacez-en une, ou corrigez son heure.
-              </Text>
-            </Flex>
-          </Card>
-        )}
-
-        <CompteurFilms lignes={lesFilmsDeLaSemaine} couleurDe={couleurDe} />
-
-        <GrilleSemaine
-          debutSemaine={debutSemaine}
-          couleurSemaine={couleurDeLaSemaine(debutSemaine)}
-          seances={seances}
-          conflits={conflits}
-          chargement={chargement}
-          actions={actions}
-          glisser={glisser}
-        />
-
-        <Text size={1} muted>
-          Glissez une séance pour la déplacer (sur une case occupée, les deux films échangent),
-          cliquez une case vide pour la remplir. Menu ⋮ d'une séance pour changer son film ou
-          faire passer le film dans l'autre salle. Tout est publié immédiatement sur le site.
-        </Text>
-      </Stack>
-
-      <AssistantsDeLaSemaine
-        ouvert={dialogOuvert}
-        debutSemaine={debutSemaine}
-        films={films}
-        seances={seances}
-        onFermer={fermerDialog}
-        onCree={rafraichir}
-      />
-      {choixDeFilm && (
-        <DialogFilmDuCreneau
           films={films}
-          cible={choixDeFilm}
-          onFermer={fermerChoixDeFilm}
-          onFait={rafraichir}
+          seances={seances}
+          onFermer={fermerDialog}
+          onCree={rafraichir}
         />
-      )}
-      {seanceASupprimer && (
-        <DialogSupprimerSeance
-          seance={seanceASupprimer}
-          enCours={suppressionEnCours}
-          onConfirmer={confirmerSuppression}
-          onAnnuler={() => setSeanceASupprimer(null)}
-        />
-      )}
-    </Container>
+        {choixDeFilm && (
+          <DialogFilmDuCreneau
+            films={films}
+            cible={choixDeFilm}
+            onFermer={fermerChoixDeFilm}
+            onFait={rafraichir}
+          />
+        )}
+        {seanceASupprimer && (
+          <DialogSupprimerSeance
+            seance={seanceASupprimer}
+            enCours={suppressionEnCours}
+            onConfirmer={confirmerSuppression}
+            onAnnuler={() => setSeanceASupprimer(null)}
+          />
+        )}
+      </Container>
+    </FournisseurHistorique>
   )
 }

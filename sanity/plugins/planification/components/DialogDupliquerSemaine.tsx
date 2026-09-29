@@ -24,6 +24,8 @@ import {
   vagueDeLaSeance,
 } from '../utils/creneaux-standards'
 import {ajouterJours, finDeSemaine, formatPeriodeSemaine} from '../utils/dates'
+import {useHistorique} from '../hooks/useHistorique'
+import {semainesDe} from '../utils/historique'
 import {chargerSeancesPeriode, creerSeances} from '../utils/mutations'
 import {poserLesHeures} from '../utils/heures-de-la-grille'
 import {type Place, affecterFilms} from '../utils/repartition'
@@ -113,6 +115,7 @@ export function DialogDupliquerSemaine({
 }: Props): React.JSX.Element {
   const client = useClient({apiVersion: API_VERSION})
   const toast = useToast()
+  const historique = useHistorique()
 
   const [decalage, setDecalage] = useState(1)
   const [rebattre, setRebattre] = useState(false)
@@ -135,6 +138,9 @@ export function DialogDupliquerSemaine({
         ? rebattreLesCartes(seancesSemaine, decalage, existantes)
         : seancesSemaine.map((seance) => recopier(seance, decalage))
       const {aCreer, doublons, conflits} = verifierNouvellesSeances(candidates, existantes)
+      if (aCreer.length > 0) {
+        await historique.avantDeModifier('dupliquer la semaine', semainesDe(debutCible))
+      }
       await creerSeances(client, aCreer)
       setRapport({creees: aCreer.length, doublons, conflits})
       if (aCreer.length > 0) onCree()
@@ -143,7 +149,7 @@ export function DialogDupliquerSemaine({
     } finally {
       setEnCours(false)
     }
-  }, [client, debutCible, decalage, onCree, rebattre, seancesSemaine, toast])
+  }, [client, debutCible, decalage, historique, onCree, rebattre, seancesSemaine, toast])
 
   return (
     <Dialog id="dupliquer-semaine" header="Dupliquer la semaine" onClose={onFermer} width={1}>

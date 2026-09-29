@@ -21,7 +21,9 @@ import {
 import {verifierNouvellesSeances} from '../utils/conflits'
 import {ajouterJours, finDeSemaine} from '../utils/dates'
 import {compterParFilm, composerLaSemaine, creneauxLibres} from '../utils/generation-semaine'
+import {semainesDe} from '../utils/historique'
 import {chargerSeancesPeriode, compterSeancesParFilm, creerSeances} from '../utils/mutations'
+import {useHistorique} from './useHistorique'
 
 /** Sur combien de semaines alentour on regarde pour égaliser les films. */
 export const SEMAINES_DE_RECUL = 4
@@ -55,6 +57,7 @@ export function useGenerationSemaine({
 }: Entree): Generation {
   const client = useClient({apiVersion: API_VERSION})
   const toast = useToast()
+  const historique = useHistorique()
 
   /* Aucun film n'est coché d'avance : rien ne se remplit tant qu'on
      n'a pas choisi soi-même les films de la semaine (demande du
@@ -129,6 +132,9 @@ export function useGenerationSemaine({
     try {
       const existantes = await chargerSeancesPeriode(client, debutSemaine, finDeSemaine(debutSemaine))
       const {aCreer, doublons, conflits} = verifierNouvellesSeances(proposition, existantes)
+      if (aCreer.length > 0) {
+        await historique.avantDeModifier('remplir la semaine au hasard', semainesDe(debutSemaine))
+      }
       await creerSeances(client, aCreer)
       setRapport({creees: aCreer.length, doublons, conflits})
       if (aCreer.length > 0) onCree()
@@ -137,7 +143,7 @@ export function useGenerationSemaine({
     } finally {
       setEnCours(false)
     }
-  }, [client, debutSemaine, onCree, proposition, toast])
+  }, [client, debutSemaine, historique, onCree, proposition, toast])
 
   return {
     selection,

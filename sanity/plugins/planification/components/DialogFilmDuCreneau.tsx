@@ -13,6 +13,8 @@ import {useClient} from 'sanity'
 import {API_VERSION, type CreneauDate, type FilmPlanning, type SeancePlanning} from '../types'
 import {formatJourCourt} from '../utils/dates'
 import {changerFilmDeSeance} from '../utils/deplacements'
+import {useHistorique} from '../hooks/useHistorique'
+import {semainesDe} from '../utils/historique'
 import {creerSeances} from '../utils/mutations'
 
 interface Props {
@@ -32,6 +34,7 @@ function creneauDeLaCible(cible: Props['cible']): CreneauDate {
 export function DialogFilmDuCreneau({films, cible, onFermer, onFait}: Props): React.JSX.Element {
   const client = useClient({apiVersion: API_VERSION})
   const toast = useToast()
+  const historique = useHistorique()
   const remplacement = 'seance' in cible
   const creneau = creneauDeLaCible(cible)
 
@@ -42,6 +45,10 @@ export function DialogFilmDuCreneau({films, cible, onFermer, onFait}: Props): Re
     if (!filmId) return
     setEnCours(true)
     try {
+      await historique.avantDeModifier(
+        remplacement ? 'changer le film d’une séance' : 'créer une séance',
+        semainesDe(creneau.date),
+      )
       if ('seance' in cible) {
         await changerFilmDeSeance(client, cible.seance._id, filmId)
       } else {
@@ -58,7 +65,7 @@ export function DialogFilmDuCreneau({films, cible, onFermer, onFait}: Props): Re
     } finally {
       setEnCours(false)
     }
-  }, [cible, client, filmId, onFait, onFermer, remplacement, toast])
+  }, [cible, client, creneau.date, filmId, historique, onFait, onFermer, remplacement, toast])
 
   return (
     <Dialog

@@ -14,11 +14,14 @@ import {useToast} from '@sanity/ui'
 import {API_VERSION, type SeancePlanning} from '../types'
 import {deplacementsPourChangerDeSalle} from '../utils/changement-de-salle'
 import {deplacerSeances} from '../utils/deplacements'
+import {semainesDe} from '../utils/historique'
 import {autreSalle} from '../utils/salles-attitrees'
+import type {Historique} from './useHistorique'
 
 export function useChangementDeSalle(
   seancesSemaine: readonly SeancePlanning[],
   onFait: () => void,
+  historique: Historique,
 ): (seance: SeancePlanning) => Promise<void> {
   const client = useClient({apiVersion: API_VERSION})
   const toast = useToast()
@@ -38,6 +41,7 @@ export function useChangementDeSalle(
         return deplacee !== undefined && deplacee.filmId !== seance.filmId
       }).length
       try {
+        await historique.avantDeModifier('changer un film de salle', semainesDe(seance.date))
         await deplacerSeances(client, deplacements)
         const nombre = deplacements.length - echanges
         toast.push({
@@ -55,6 +59,6 @@ export function useChangementDeSalle(
         toast.push({status: 'error', title: 'Le changement de salle a échoué. Réessayez.'})
       }
     },
-    [client, onFait, seancesSemaine, toast],
+    [client, historique, onFait, seancesSemaine, toast],
   )
 }

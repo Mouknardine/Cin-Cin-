@@ -2,16 +2,17 @@
  * Assistant « Programmer un film » : on choisit un film, ses créneaux hebdomadaires
  * et la période — toutes les séances sont créées d'un coup, sans les conflits de salle.
  */
-import {AddIcon} from '@sanity/icons'
 import {Box, Button, Dialog, Flex, Select, Stack, Text, TextInput, useToast} from '@sanity/ui'
 import {useCallback, useMemo, useState} from 'react'
 import {useClient} from 'sanity'
 
-import {API_VERSION, type Creneau, type FilmPlanning, type RapportCreation, type SeanceCandidate} from '../types'
+import {API_VERSION, type Creneau, type FilmPlanning, type RapportCreation} from '../types'
 import {verifierNouvellesSeances} from '../utils/conflits'
-import {ajouterJours, debutDeSemaine} from '../utils/dates'
+import {genererCandidates} from '../utils/candidates-film'
+import {useHistorique} from '../hooks/useHistorique'
+import {semainesDe} from '../utils/historique'
 import {chargerSeancesPeriode, creerSeances} from '../utils/mutations'
-import {LigneCreneau} from './LigneCreneau'
+import {ListeCreneaux} from './ListeCreneaux'
 import {RapportResultat} from './RapportResultat'
 
 interface Props {
@@ -30,31 +31,6 @@ interface Props {
 /* Mercredi : le premier jour de la semaine de cinéma, donc le décalage 0. */
 const CRENEAU_INITIAL: Creneau = {jour: 0, heure: '19:00', salle: 'Salle 1'}
 
-function genererCandidates(
-  film: FilmPlanning,
-  creneaux: Creneau[],
-  dateDebut: string,
-  nbSemaines: number,
-): SeanceCandidate[] {
-  const premierMercredi = debutDeSemaine(dateDebut)
-  const candidates: SeanceCandidate[] = []
-  for (let semaine = 0; semaine < nbSemaines; semaine += 1) {
-    for (const creneau of creneaux) {
-      const date = ajouterJours(premierMercredi, semaine * 7 + creneau.jour)
-      if (date < dateDebut) continue
-      candidates.push({
-        filmId: film._id,
-        titre: film.titre,
-        duree: film.duree,
-        date,
-        heure: creneau.heure,
-        salle: creneau.salle,
-      })
-    }
-  }
-  return candidates
-}
-
 export function DialogProgrammerFilm({
   films,
   debutSemaine,
@@ -64,6 +40,7 @@ export function DialogProgrammerFilm({
 }: Props): React.JSX.Element {
   const client = useClient({apiVersion: API_VERSION})
   const toast = useToast()
+  const historique = useHistorique()
 
   const [filmId, setFilmId] = useState(filmImpose?._id ?? '')
   const [creneaux, setCreneaux] = useState<Creneau[]>([CRENEAU_INITIAL])
@@ -106,6 +83,9 @@ export function DialogProgrammerFilm({
         dates.reduce((max, d) => (d > max ? d : max), dates[0]),
       )
       const {aCreer, doublons, conflits} = verifierNouvellesSeances(candidates, existantes)
+      if (aCreer.length > 0) {
+        await historique.avantDeModifier('programmer un film', semainesDe(...aCreer.map((c) => c.date)))
+      }
       await creerSeances(client, aCreer)
       setRapport({creees: aCreer.length, doublons, conflits})
       if (aCreer.length > 0) onCree()
@@ -114,7 +94,7 @@ export function DialogProgrammerFilm({
     } finally {
       setEnCours(false)
     }
-  }, [client, creneaux, dateDebut, film, nbSemaines, onCree, toast])
+  }, [client, creneaux, dateDebut, film, historique, nbSemaines, onCree, toast])
 
   const totalPrevu = creneaux.length * nbSemaines
 
@@ -150,50 +130,14 @@ export function DialogProgrammerFilm({
               </Stack>
             )}
 
-            <Stack space={2}>
-              <Text size={1} weight="semibold">
-                Créneaux chaque semaine
-              </Text>
-              {/* Les largeurs reprennent exactement celles de LigneCreneau,
-                  pour que chaque intitulé tombe au-dessus de son champ. */}
-              <Flex gap={2} align="center">
-                <Box flex={3}>
-                  <Text size={0} muted>
-                    Jour
-                  </Text>
-                </Box>
-                <Box flex={2} style={{minWidth: 110}}>
-                  <Text size={0} muted>
-                    Début
-                  </Text>
-                </Box>
-                <Box flex={2} style={{minWidth: 96}}>
-                  <Text size={0} muted align="center">
-                    Fin
-                  </Text>
-                </Box>
-                <Box flex={3}>
-                  <Text size={0} muted>
-                    Salle
-                  </Text>
-                </Box>
-                {/* Réserve la place du bouton « retirer » des lignes en dessous. */}
-                <Box style={{width: 35}} />
-              </Flex>
-              {creneaux.map((creneau, index) => (
-                <LigneCreneau
-                  key={index}
-                  creneau={creneau}
-                  index={index}
-                  suppressionPossible={creneaux.length > 1}
-                  dureeFilm={film?.duree ?? null}
-                  filmChoisi={Boolean(film)}
-                  onModifier={modifierCreneau}
-                  onSupprimer={supprimerCreneau}
-                />
-              ))}
-              <Button mode="ghost" icon={AddIcon} text="Ajouter un créneau" onClick={ajouterCreneau} />
-            </Stack>
+            <ListeCreneaux
+              creneaux={creneaux}
+              dureeFilm={film?.duree ?? null}
+              filmChoisi={Boolean(film)}
+              onModifier={modifierCreneau}
+              onSupprimer={supprimerCreneau}
+              onAjouter={ajouterCreneau}
+            />
 
             <Flex gap={3}>
               <Stack space={2} flex={1}>
