@@ -377,6 +377,10 @@ console.log('\nCe que le cinéma a demandé le 15 septembre au soir')
     !/>Semaine \d+</.test(html),
   )
   verifier(
+    'les salles du programme sont en gras et en majuscules',
+    /font-weight:bold;text-transform:uppercase;white-space:nowrap;text-align:right;">Salle 1</.test(html),
+  )
+  verifier(
     'la case verte est en majuscules',
     /background-color:#275a1b;[^"]*text-transform:uppercase;/.test(html),
   )

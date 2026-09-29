@@ -7,7 +7,7 @@
  */
 import {formatJourLong} from '../utils/dates'
 import type {SeanceProgramme} from './donnees'
-import {BLANC, BLEU, ENCRE, GRIS, JAUNE, ROUGE, TAILLE, cellule, echapper, lienDuFilm} from './html'
+import {BLANC, BLEU, ENCRE, JAUNE, ROUGE, TAILLE, cellule, echapper, lienDuFilm} from './html'
 
 /** Les couleurs qui se relaient d'un jour à l'autre, jamais deux fois de suite. */
 const COULEURS_DES_JOURS: {fond: string; encre: string}[] = [
@@ -15,6 +15,11 @@ const COULEURS_DES_JOURS: {fond: string; encre: string}[] = [
   {fond: JAUNE, encre: ENCRE},
   {fond: BLEU, encre: BLANC},
 ]
+
+/* La salle s'écrit en gras et en capitales, comme le titre, pour se lire
+   d'un coup d'œil (demande du cinéma, 29 septembre 2026). La colonne est
+   assez large pour « HALL-BAR », le nom de salle le plus long. */
+const LARGEUR_SALLE = 104
 
 /** Les séances regroupées par date, sans rebattre l'ordre du programme. */
 function parJour(programme: SeanceProgramme[]): Map<string, SeanceProgramme[]> {
@@ -60,9 +65,9 @@ function ligneDeSeance(seance: SeanceProgramme): string {
     ) +
     cellule(
       echapper(seance.salle),
-      `padding:10px 12px;width:80px;font-size:${TAILLE.texte};line-height:1.3;color:${GRIS};` +
-        `white-space:nowrap;text-align:right;`,
-      'width="80" valign="middle" align="right"',
+      `padding:10px 12px;width:${LARGEUR_SALLE}px;font-size:${TAILLE.texte};line-height:1.3;font-weight:bold;` +
+        `text-transform:uppercase;white-space:nowrap;text-align:right;`,
+      `width="${LARGEUR_SALLE}" valign="middle" align="right"`,
     ) +
     '</tr>'
   )
