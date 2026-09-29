@@ -46,7 +46,7 @@ const {composerLaSemaine, creneauxLibres} = await chargerModule(
 const {CRENEAUX_PAR_SEMAINE, vagueDeLaSeance} = await chargerModule(
   '../sanity/plugins/planification/utils/creneaux-standards.ts',
 )
-const {heureDeDepart, recalagesNecessaires} = await chargerModule(
+const {heureDeDepart, recalagesNecessaires, resumerRecalages} = await chargerModule(
   '../sanity/plugins/planification/utils/enchainement.ts',
 )
 const {intervallesSeChevauchent} = await chargerModule(
@@ -243,12 +243,29 @@ verifier(
   JSON.stringify(aRecaler),
 )
 
+/* Le cas signalé le 29 septembre 2026 : une semaine dupliquée, des films
+   échangés, et « Kalari Kid » gardait le 21:15 d'un film qui n'était plus
+   là. Derrière un film fini à 20:26, la séance revient à 21:00. */
+const aAvancer = recalagesNecessaires([
+  seance('a', '19:00', 'Salle 1', 86, 'Les Matins merveilleux'),
+  seance('b', '21:15', 'Salle 1', 93, 'Kalari Kid'),
+])
 verifier(
-  'Un battement volontaire n’est jamais repris : 21:30 derrière un film qui finit à 20:30',
+  'Derrière un film plus court, la séance de 21 h revient à 21:00',
+  aAvancer.length === 1 && aAvancer[0].id === 'b' && aAvancer[0].vers === '21:00',
+  JSON.stringify(aAvancer),
+)
+verifier(
+  'Une séance ramenée plus tôt est annoncée comme telle',
+  resumerRecalages(aAvancer).includes('finissant plus tôt'),
+  resumerRecalages(aAvancer),
+)
+verifier(
+  'Derrière un film un peu moins long, la séance recule seulement au bon quart d’heure : 21:45 → 21:15',
   recalagesNecessaires([
-    seance('a', '19:00', 'Salle 1', 90, 'Le court'),
-    seance('b', '21:30', 'Salle 1', 95, 'Le suivant'),
-  ]).length === 0,
+    seance('a', '19:00', 'Salle 1', 130, 'Un peu long'),
+    seance('b', '21:45', 'Salle 1', 95, 'Le suivant'),
+  ])[0]?.vers === '21:15',
 )
 
 verifier(

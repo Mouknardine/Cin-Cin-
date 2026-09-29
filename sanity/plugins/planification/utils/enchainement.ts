@@ -18,12 +18,15 @@
    Deux services :
 
      - `heureDeDepart` : à quelle heure poser une NOUVELLE séance ;
-     - `recalagesNecessaires` : quelles séances existantes il faut
-       repousser parce que le film d'avant a grandi.
+     - `recalagesNecessaires` : quelles séances existantes ne sont
+       plus à la bonne heure parce que le film d'avant a changé.
 
-   Une séance n'est jamais tirée vers l'avant. Si le cinéma a
-   volontairement laissé un battement — 21:30 pour un film qui finit
-   à 21:15 — ce battement lui appartient, et l'outil n'y touche pas.
+   Le recalage marche DANS LES DEUX SENS. Un film plus long repousse
+   la séance suivante ; un film plus court la ramène à son heure
+   habituelle. Sans ce retour, une séance gardait l'heure d'un film
+   qui n'était plus là : après avoir dupliqué une semaine et échangé
+   des films, « Kalari Kid » restait à 21:15 derrière un film fini à
+   20:26 (signalé par le cinéma, 29 septembre 2026).
    ============================================================ */
 import {heureEnMinutes} from '../../../salles'
 import {DUREE_PAR_DEFAUT_MIN} from './conflits'
@@ -107,7 +110,7 @@ function parVague(seances: readonly SeanceEnGrille[]): Map<number, SeanceEnGrill
   return index
 }
 
-/** Une séance à repousser, et de combien. */
+/** Une séance à remettre à la bonne heure. */
 export interface Recalage {
   id: string
   titre: string
@@ -116,16 +119,17 @@ export interface Recalage {
   de: string
   /** L'heure à laquelle elle doit passer. */
   vers: string
-  /** Le film qui la repousse. */
+  /** Le film d'avant, qui décide de son heure. */
   cause: string
 }
 
 /**
- * Les séances qu'il faut repousser pour que la soirée tienne debout.
+ * Les séances qui ne sont plus à la bonne heure.
  *
- * On ne regarde qu'un cas : une séance de seconde vague qui commencerait
- * avant l'heure que lui laisse le film de la première, dans la même salle.
- * Elle part alors au quart d'heure qui suit la fin de ce film.
+ * On ne regarde que la seconde vague : elle part à son heure habituelle,
+ * ou au quart d'heure qui suit la fin du film de la première vague dans
+ * la même salle s'il déborde. Toute autre heure est un reste d'un ancien
+ * film, et se corrige — plus tard comme plus tôt.
  */
 export function recalagesNecessaires(seances: readonly SeanceEnGrille[]): Recalage[] {
   const recalages: Recalage[] = []
@@ -145,7 +149,7 @@ export function recalagesNecessaires(seances: readonly SeanceEnGrille[]): Recala
       const attendue = heureDeDepart(vague, suivante.date, precedente)
       const actuelle = heureEnMinutes(suivante.heure)
       const voulue = heureEnMinutes(attendue)
-      if (actuelle === null || voulue === null || actuelle >= voulue) continue
+      if (actuelle === null || voulue === null || actuelle === voulue) continue
       recalages.push({
         id: suivante._id,
         titre: suivante.filmTitre,
@@ -159,12 +163,20 @@ export function recalagesNecessaires(seances: readonly SeanceEnGrille[]): Recala
   return recalages
 }
 
-/** Ce que l'outil annonce après avoir repoussé des séances. */
+/** Une séance ramenée plus tôt, ou repoussée plus tard ? */
+function estAvancee(recalage: Recalage): boolean {
+  return (heureEnMinutes(recalage.vers) ?? 0) < (heureEnMinutes(recalage.de) ?? 0)
+}
+
+/** Une phrase par séance recalée, qui dit pourquoi. */
+function resumerUnRecalage(recalage: Recalage): string {
+  const debut = `${formatJourCourt(recalage.date)} : « ${recalage.titre} » passe de ${recalage.de} à ${recalage.vers}`
+  return estAvancee(recalage)
+    ? `${debut}, « ${recalage.cause} » finissant plus tôt.`
+    : `${debut}, le temps que finisse « ${recalage.cause} ».`
+}
+
+/** Ce que l'outil annonce après avoir remis des séances à l'heure. */
 export function resumerRecalages(recalages: readonly Recalage[]): string {
-  return recalages
-    .map(
-      (recalage) =>
-        `${formatJourCourt(recalage.date)} : « ${recalage.titre} » passe de ${recalage.de} à ${recalage.vers}, le temps que finisse « ${recalage.cause} ».`,
-    )
-    .join(' ')
+  return recalages.map(resumerUnRecalage).join(' ')
 }

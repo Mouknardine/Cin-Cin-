@@ -84,15 +84,13 @@ export async function changerFilmDeSeance(
  * Remet les soirées d'aplomb après un changement.
  *
  * Un film plus long posé à 19 h repousse la séance de 21 h de sa salle,
- * au quart d'heure qui suit la fin du premier. Plutôt que de prévoir ce
- * décalage dans chacun des gestes possibles — déplacer, échanger,
- * remplacer un film, créer une séance — on relit la semaine après coup
- * et on corrige ce qui doit l'être. La règle ne peut ainsi pas être
- * oubliée par un chemin.
+ * au quart d'heure qui suit la fin du premier ; un film plus court la
+ * ramène à 21 h. Plutôt que de prévoir ce décalage dans chacun des
+ * gestes possibles — déplacer, échanger, remplacer un film, créer une
+ * séance — on relit la semaine après coup et on corrige ce qui doit
+ * l'être. La règle ne peut ainsi pas être oubliée par un chemin.
  *
- * Une séance n'est JAMAIS avancée : si le cinéma a laissé un battement
- * volontaire, il lui appartient. Renvoie ce qui a été décalé, pour
- * pouvoir le dire.
+ * Renvoie ce qui a été décalé, pour pouvoir le dire.
  */
 export async function recalerLesSoirees(
   client: SanityClient,

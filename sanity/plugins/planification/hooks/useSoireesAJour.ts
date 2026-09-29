@@ -3,7 +3,8 @@
  * la semaine.
  *
  * Un film plus long posé à 19 h repousse la séance de 21 h de sa salle,
- * au quart d'heure qui suit la fin du premier. Plutôt que de prévoir ce
+ * au quart d'heure qui suit la fin du premier ; un film plus court la
+ * ramène à 21 h. Plutôt que de prévoir ce
  * décalage dans chacun des gestes possibles — déplacer, échanger,
  * remplacer un film, en créer une, en générer vingt-huit — on relit la
  * semaine après coup et on corrige ce qui doit l'être. La règle ne peut
@@ -32,9 +33,9 @@ export function useSoireesAJour(
         const nombre = recalages.length
         toast.push({
           status: 'info',
-          title: `${nombre} séance${nombre > 1 ? 's' : ''} décalée${
+          title: `${nombre} séance${nombre > 1 ? 's' : ''} remise${
             nombre > 1 ? 's' : ''
-          } pour laisser finir le film d'avant.`,
+          } à l'heure, d'après la fin du film d'avant.`,
           description: resumerRecalages(recalages),
           duration: 9000,
         })
