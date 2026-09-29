@@ -69,7 +69,9 @@ function semaine(seancesParJour) {
 console.log('\nLa feuille A4 du programme')
 
 /* ---- Une seule page, quoi qu'il arrive ---- */
-for (const parJour of [1, 2, 4, 5, 6, 7]) {
+/* Une semaine ordinaire compte quatre séances par jour, cinq avec un
+   événement au Hall-Bar ; six par jour laisse de la marge. */
+for (const parJour of [1, 2, 4, 5, 6]) {
   const programme = semaine(parJour)
   const lignes = programme.length + JOURS.length
   const mesures = mesuresDeLaFeuille(lignes)
@@ -105,10 +107,19 @@ verifier(
 )
 verifier('Le logo est en tête', /<img class="logo" src="https:\/\/studio\.exemple\/logo\.png"/.test(html))
 verifier('Le format de page est A4', html.includes('size: A4 portrait'))
+verifier('Les salles sont en majuscules', /td\.salle \{[^}]*text-transform: uppercase;/.test(html))
 verifier(
-  'Les salles sont en gras et en majuscules',
-  /td\.salle \{[^}]*font-weight: bold;[^}]*text-transform: uppercase;/.test(html),
+  'Seuls les titres sont en gras : la semaine et les jours',
+  (html.match(/font-weight: bold/g) ?? []).length === 2 &&
+    /\.titre-semaine \{[^}]*font-weight: bold;/.test(html) &&
+    /tr\.jour td \{[^}]*font-weight: bold;/.test(html),
 )
+verifier(
+  'Le titre de la semaine a la même taille que le reste',
+  (html.match(/font-size: [\d.]+mm/g) ?? []).every((taille, _, toutes) => taille === toutes[0]),
+  String(html.match(/font-size: [\d.]+mm/g)),
+)
+verifier('Le logo occupe toute la largeur, comme dans la newsletter', /\.logo \{[^}]*width: 100%;/.test(html))
 verifier('Les titres sont en majuscules', /td\.titre \{ text-transform: uppercase; \}/.test(html))
 verifier('Chaque jour a son bandeau', (html.match(/<tr class="jour">/g) ?? []).length === 7)
 verifier('Le dimanche est bien annoncé', html.includes('dimanche 4 octobre'))

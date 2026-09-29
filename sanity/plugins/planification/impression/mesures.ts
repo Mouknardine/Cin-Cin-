@@ -9,7 +9,12 @@
 /* ---- La page ---- */
 export const HAUTEUR_A4 = 297
 export const MARGE = 12
-export const HAUTEUR_LOGO = 22
+/* Le logo occupe toute la largeur de la feuille, comme dans la newsletter
+   (demande du cinéma, 29 septembre 2026). Sa hauteur suit ses proportions :
+   762 × 164 pixels. */
+const LARGEUR_UTILE = 210 - 2 * MARGE
+const PROPORTION_LOGO = 164 / 762
+export const HAUTEUR_LOGO = Math.floor(LARGEUR_UTILE * PROPORTION_LOGO * 10) / 10
 export const ESPACE_SOUS_LOGO = 6
 export const HAUTEUR_TITRE = 10
 /** Le trait qui sépare les lignes : il prend sa part de la hauteur. */

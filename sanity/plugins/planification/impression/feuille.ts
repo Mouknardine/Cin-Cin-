@@ -4,8 +4,8 @@
  * C'est la feuille que le cinéma affiche et pose sur le comptoir : le logo
  * en haut, la semaine dans un bandeau noir, puis chaque jour et ses séances
  * — l'heure, le titre, la salle. Elle reprend la mise en page de celle qu'il
- * imprimait déjà ; la salle s'y écrit en gras et en capitales, comme dans
- * la newsletter (demande du cinéma, 29 septembre 2026).
+ * imprimait déjà, tout en capitales : les titres en gras, les séances en
+ * maigre (demande du cinéma, 29 septembre 2026).
  *
  * TOUJOURS UNE SEULE PAGE.
  *

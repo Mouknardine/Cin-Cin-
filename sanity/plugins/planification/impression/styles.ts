@@ -2,6 +2,10 @@
  * La feuille de style de la feuille A4 : un format de page fixe, des
  * hauteurs en millimètres, et un aperçu à l'écran qui montre la feuille
  * posée sur un fond gris, comme sur une table.
+ *
+ * Une seule taille de texte, et une règle pour la graisse : les titres
+ * (la semaine, les jours) en gras, les séances en maigre — tout est déjà
+ * en capitales (demande du cinéma, 29 septembre 2026).
  */
 import {
   BLANC, ENCRE, ESPACE_SOUS_LOGO, GRIS_JOUR, HAUTEUR_A4, HAUTEUR_LOGO, HAUTEUR_TITRE, MARGE,
@@ -31,9 +35,8 @@ export function stylesDeLaFeuille(mesures: MesuresFeuille): string {
     }
     .logo {
       display: block;
+      width: 100%;
       height: ${HAUTEUR_LOGO}mm;
-      width: auto;
-      max-width: 100%;
       margin: 0 auto ${ESPACE_SOUS_LOGO}mm;
     }
     .titre-semaine {
@@ -43,7 +46,7 @@ export function stylesDeLaFeuille(mesures: MesuresFeuille): string {
       padding: 0 3mm;
       background: ${ENCRE};
       color: ${BLANC};
-      font-size: 3.9mm;
+      font-size: ${mesures.tailleTexte}mm;
       font-weight: bold;
       text-transform: uppercase;
       letter-spacing: 0.02em;
@@ -75,9 +78,8 @@ export function stylesDeLaFeuille(mesures: MesuresFeuille): string {
     col.col-salle { width: 30mm; }
     td.heure { font-variant-numeric: tabular-nums; }
     td.titre { text-transform: uppercase; }
-    td.salle { text-align: right; font-weight: bold; text-transform: uppercase; }
+    td.salle { text-align: right; text-transform: uppercase; }
     td.vide { text-align: center; }
-    .complet { font-weight: bold; }
     @media print {
       body { background: ${BLANC}; }
       .feuille { margin: 0; box-shadow: none; }
