@@ -2,11 +2,13 @@
  * Onglet « Planification » du Studio.
  *
  * La semaine de cinéma, du mercredi au mardi, affichée comme une
- * grille de créneaux : 19 h et 21 h, Salle 1 et Salle 2. On y déplace
+ * grille de créneaux : 19 h et 21 h (17 h et 19 h le dimanche),
+ * Salle 1 et Salle 2. On y déplace
  * une séance à la souris, on clique une case libre pour y poser un
- * film, et trois assistants font le gros du travail — programmer un
+ * film, et des assistants font le gros du travail — programmer un
  * film sur plusieurs semaines, dupliquer une semaine (au besoin en
- * rebattant les cartes), ou remplir la semaine au hasard.
+ * rebattant les cartes), la remplir au hasard, puis en sortir la
+ * newsletter et la feuille A4 à imprimer.
  */
 import {WarningOutlineIcon} from '@sanity/icons'
 import {Card, Container, Flex, Stack, Text, useToast} from '@sanity/ui'
@@ -28,14 +30,11 @@ import {idsEnConflit} from '../utils/conflits'
 import {couleurDeLaSemaine, couleursDesFilms} from '../utils/couleurs'
 import {finDeSemaine} from '../utils/dates'
 import {filmsDeLaSemaine} from '../utils/films-de-la-semaine'
-import {DialogNewsletter} from '../newsletter/DialogNewsletter'
 import {supprimerSeance} from '../utils/mutations'
+import {AssistantsDeLaSemaine} from './AssistantsDeLaSemaine'
 import {BarreSemaine, type DialogOuvert} from './BarreSemaine'
 import {CompteurFilms} from './CompteurFilms'
-import {DialogDupliquerSemaine} from './DialogDupliquerSemaine'
 import {DialogFilmDuCreneau} from './DialogFilmDuCreneau'
-import {DialogGenererSemaine} from './DialogGenererSemaine'
-import {DialogProgrammerFilm} from './DialogProgrammerFilm'
 import {DialogSupprimerSeance} from './DialogSupprimerSeance'
 import {GrilleSemaine} from './GrilleSemaine'
 
@@ -150,34 +149,14 @@ export function PlanificationTool(): React.JSX.Element {
         </Text>
       </Stack>
 
-      {dialogOuvert === 'programmer' && (
-        <DialogProgrammerFilm
-          films={films}
-          debutSemaine={debutSemaine}
-          onFermer={fermerDialog}
-          onCree={rafraichir}
-        />
-      )}
-      {dialogOuvert === 'dupliquer' && (
-        <DialogDupliquerSemaine
-          debutSemaine={debutSemaine}
-          seancesSemaine={seances}
-          onFermer={fermerDialog}
-          onCree={rafraichir}
-        />
-      )}
-      {dialogOuvert === 'generer' && (
-        <DialogGenererSemaine
-          films={films}
-          debutSemaine={debutSemaine}
-          seancesSemaine={seances}
-          onFermer={fermerDialog}
-          onCree={rafraichir}
-        />
-      )}
-      {dialogOuvert === 'newsletter' && (
-        <DialogNewsletter debutSemaine={debutSemaine} onFermer={fermerDialog} />
-      )}
+      <AssistantsDeLaSemaine
+        ouvert={dialogOuvert}
+        debutSemaine={debutSemaine}
+        films={films}
+        seances={seances}
+        onFermer={fermerDialog}
+        onCree={rafraichir}
+      />
       {choixDeFilm && (
         <DialogFilmDuCreneau
           films={films}

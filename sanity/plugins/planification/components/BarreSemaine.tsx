@@ -7,6 +7,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   CopyIcon,
+  DocumentTextIcon,
   EnvelopeIcon,
   SparklesIcon,
   SyncIcon,
@@ -17,7 +18,13 @@ import {couleurDeLaSemaine} from '../utils/couleurs'
 import {formatPeriodeSemaine} from '../utils/dates'
 
 /** Les assistants ouvrables depuis la barre. */
-export type DialogOuvert = 'programmer' | 'dupliquer' | 'generer' | 'newsletter' | null
+export type DialogOuvert =
+  | 'programmer'
+  | 'dupliquer'
+  | 'generer'
+  | 'newsletter'
+  | 'impression'
+  | null
 
 interface Props {
   debutSemaine: string
@@ -91,6 +98,12 @@ export function BarreSemaine({
           text="Newsletter"
           mode="ghost"
           onClick={() => onOuvrir('newsletter')}
+        />
+        <Button
+          icon={DocumentTextIcon}
+          text="Imprimer le programme"
+          mode="ghost"
+          onClick={() => onOuvrir('impression')}
         />
         <Button
           icon={SparklesIcon}
