@@ -11,7 +11,7 @@
        inverse : les deux ÉCHANGENT leurs places, personne n'est
        supprimé ni recouvert.
 
-   L'heure de la séance de 21 h est remise à 21:00 : c'est l'outil qui
+   L'heure de la séance de 21 h est remise à 21:00 (19:00 le dimanche) : c'est l'outil qui
    la repousse ensuite au bon quart d'heure si le film de 19 h de sa
    nouvelle salle déborde (voir enchainement.ts). Les séances
    particulières (Hall-Bar, avant-première à 18 h) ne bougent pas.
@@ -20,12 +20,12 @@
    verifications/repartition.mjs.
    ============================================================ */
 import type {SeancePlanning} from '../types'
-import {HORS_GRILLE, VAGUES, vagueDeLaSeance} from './creneaux-standards'
+import {HORS_GRILLE, heureDeLaVague, vagueDeLaSeance} from './creneaux-standards'
 import type {Deplacement} from './deplacements'
 
 /** L'heure d'une séance posée sur cette vague, avant tout recalage. */
 function heureSurLaVague(seance: SeancePlanning, vague: number): string {
-  return vague === 0 ? seance.heure : (VAGUES[vague]?.heureAuPlusTot ?? seance.heure)
+  return vague === 0 ? seance.heure : heureDeLaVague(vague, seance.date)
 }
 
 /**

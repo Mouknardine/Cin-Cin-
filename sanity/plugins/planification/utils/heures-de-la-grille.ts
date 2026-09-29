@@ -4,8 +4,8 @@
    Le tirage (repartition.ts) décide QUI joue OÙ : un film, une salle,
    une vague. Il ne décide pas à quelle minute. C'est ici que chaque
    case reçoit son heure, en appliquant la règle d'enchainement.ts :
-   19 h pour la première vague, 21 h pour la seconde — ou la fin exacte
-   du film de 19 h s'il déborde.
+   19 h pour la première vague, 21 h pour la seconde (17 h et 19 h le
+   dimanche) — ou la fin exacte du premier film s'il déborde.
 
    On y répond aussi à la question inverse : ce film TIENT-IL dans
    cette case ? Un film de 2 h 20 ne peut pas être posé à 19 h si une
@@ -13,7 +13,13 @@
    ============================================================ */
 import {heureEnMinutes} from '../../../salles'
 import {DUREE_PAR_DEFAUT_MIN} from './conflits'
-import {type CreneauOrdinaire, HORS_GRILLE, VAGUES, vagueDeLaSeance} from './creneaux-standards'
+import {
+  type CreneauOrdinaire,
+  HORS_GRILLE,
+  NOMBRE_DE_VAGUES,
+  heureDeLaVague,
+  vagueDeLaSeance,
+} from './creneaux-standards'
 import {type SeanceEnGrille, heureDeDepart, heureDepuisMinutes} from './enchainement'
 import type {Place} from './regles-hasard'
 /** Une case, son film, et l'heure à laquelle la séance partira. */
@@ -60,12 +66,12 @@ export function poserLesHeures(
   }
 
   const posees: PlaceHoraire[] = []
-  for (let vague = 0; vague < VAGUES.length; vague += 1) {
+  for (let vague = 0; vague < NOMBRE_DE_VAGUES; vague += 1) {
     for (const place of affectations) {
       if (place.vague !== vague) continue
       const clef = `${place.date}|${place.salle}`
       const precedente = vague > 0 ? (salles.get(clef)?.get(vague - 1) ?? null) : null
-      const heure = heureDeDepart(vague, precedente)
+      const heure = heureDeDepart(vague, place.date, precedente)
       inscrire(salles, clef, vague, {heure, filmDuree: dureeDuFilm(place.filmId)})
       posees.push({...place, heure})
     }
@@ -85,7 +91,7 @@ function libreJusqua(
   creneau: CreneauOrdinaire,
   seancesExistantes: readonly SeanceEnGrille[],
 ): string | null {
-  const depart = heureEnMinutes(VAGUES[creneau.vague]?.heureAuPlusTot ?? '')
+  const depart = heureEnMinutes(heureDeLaVague(creneau.vague, creneau.date))
   if (depart === null) return null
   let limite: number | null = null
   for (const seance of seancesExistantes) {
@@ -111,7 +117,7 @@ export function tientDansLaCase(
 ): boolean {
   const limite = libreJusqua(creneau, seancesExistantes)
   if (limite === null) return true
-  const depart = heureEnMinutes(VAGUES[creneau.vague]?.heureAuPlusTot ?? '')
+  const depart = heureEnMinutes(heureDeLaVague(creneau.vague, creneau.date))
   const fermeture = heureEnMinutes(limite)
   if (depart === null || fermeture === null) return true
   return depart + (dureeMin ?? DUREE_PAR_DEFAUT_MIN) <= fermeture

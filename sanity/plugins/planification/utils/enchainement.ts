@@ -8,6 +8,9 @@
    22 septembre 2026). Un film qui finit pile sur un quart d'heure
    (21:15) laisse partir la suite à cette minute-là.
 
+   Le dimanche, la même règle s'applique deux heures plus tôt : 17 h,
+   puis 19 h au plus tôt (voir creneaux-standards.ts).
+
    La détection des conflits, elle, reste à la minute exacte de fin
    du film (voir conflits.ts, qui dit pourquoi) : l'arrondi ne sert
    qu'à choisir l'heure d'une séance, jamais à en refuser une.
@@ -24,7 +27,13 @@
    ============================================================ */
 import {heureEnMinutes} from '../../../salles'
 import {DUREE_PAR_DEFAUT_MIN} from './conflits'
-import {HORS_GRILLE, SALLES_STANDARD, VAGUES, vagueDeLaSeance} from './creneaux-standards'
+import {
+  HORS_GRILLE,
+  NOMBRE_DE_VAGUES,
+  SALLES_STANDARD,
+  heureDeLaVague,
+  vagueDeLaSeance,
+} from './creneaux-standards'
 import {formatJourCourt} from './dates'
 
 const MINUTES_PAR_JOUR = 24 * 60
@@ -61,7 +70,7 @@ function finEnMinutes(seance: {heure: string; filmDuree: number | null}): number
 }
 
 /**
- * À quelle heure poser une séance sur cette vague.
+ * À quelle heure poser une séance sur cette vague, ce jour-là.
  *
  * `precedente` est la séance qui occupe déjà la salle plus tôt dans la
  * soirée, s'il y en a une. La vague part à son heure habituelle, ou au
@@ -69,9 +78,10 @@ function finEnMinutes(seance: {heure: string; filmDuree: number | null}): number
  */
 export function heureDeDepart(
   vague: number,
+  date: string,
   precedente: {heure: string; filmDuree: number | null} | null,
 ): string {
-  const habituelle = VAGUES[vague]?.heureAuPlusTot ?? VAGUES[0].heureAuPlusTot
+  const habituelle = heureDeLaVague(vague, date)
   if (!precedente) return habituelle
   const fin = finEnMinutes(precedente)
   const depart = heureEnMinutes(habituelle)
@@ -128,11 +138,11 @@ export function recalagesNecessaires(seances: readonly SeanceEnGrille[]): Recala
 
   for (const soiree of parSalleEtJour.values()) {
     const vagues = parVague(soiree)
-    for (let vague = 1; vague < VAGUES.length; vague += 1) {
+    for (let vague = 1; vague < NOMBRE_DE_VAGUES; vague += 1) {
       const suivante = vagues.get(vague)
       const precedente = vagues.get(vague - 1)
       if (!suivante || !precedente) continue
-      const attendue = heureDeDepart(vague, precedente)
+      const attendue = heureDeDepart(vague, suivante.date, precedente)
       const actuelle = heureEnMinutes(suivante.heure)
       const voulue = heureEnMinutes(attendue)
       if (actuelle === null || voulue === null || actuelle >= voulue) continue

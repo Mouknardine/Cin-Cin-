@@ -65,6 +65,12 @@ export function debutDeSemaine(dateISO: string): string {
   return ajouterJours(dateISO, -joursDepuisMercredi)
 }
 
+/** Cette date tombe-t-elle un dimanche ? */
+export function estUnDimanche(dateISO: string): boolean {
+  const DIMANCHE = 0 // getUTCDay() : 0 = dimanche
+  return enDateUTC(dateISO).getUTCDay() === DIMANCHE
+}
+
 /** Le mardi qui referme la semaine ouverte ce mercredi-là. */
 export function finDeSemaine(debutISO: string): string {
   return ajouterJours(debutISO, DUREE_SEMAINE_JOURS - 1)

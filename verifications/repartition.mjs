@@ -143,44 +143,75 @@ function de19h(dureeMin) {
   return {heure: '19:00', filmDuree: dureeMin}
 }
 
-verifier('La première séance part toujours à 19 h', heureDeDepart(0, null) === '19:00')
-verifier('Salle libre, la seconde part à 21 h', heureDeDepart(1, null) === '21:00')
+verifier('La première séance part toujours à 19 h', heureDeDepart(0, MERCREDI, null) === '19:00')
+verifier('Salle libre, la seconde part à 21 h', heureDeDepart(1, MERCREDI, null) === '21:00')
 verifier(
   'Un film court ne décale rien : 1 h 30 finit à 20:30',
-  heureDeDepart(1, de19h(90)) === '21:00',
+  heureDeDepart(1, MERCREDI, de19h(90)) === '21:00',
 )
 verifier(
   'Un film de 2 h pile libère la salle à 21:00, et la suite part à 21:00',
-  heureDeDepart(1, de19h(120)) === '21:00',
+  heureDeDepart(1, MERCREDI, de19h(120)) === '21:00',
 )
 verifier(
   'Un film de 2 h 20 repousse la séance suivante au quart d’heure suivant : 21:30',
-  heureDeDepart(1, de19h(140)) === '21:30',
-  heureDeDepart(1, de19h(140)),
+  heureDeDepart(1, MERCREDI, de19h(140)) === '21:30',
+  heureDeDepart(1, MERCREDI, de19h(140)),
 )
 verifier(
   'Un film de 2 h 43 repousse la séance suivante à 21:45',
-  heureDeDepart(1, de19h(163)) === '21:45',
-  heureDeDepart(1, de19h(163)),
+  heureDeDepart(1, MERCREDI, de19h(163)) === '21:45',
+  heureDeDepart(1, MERCREDI, de19h(163)),
 )
 verifier(
   'Un film qui finit pile sur un quart d’heure laisse partir la suite à cette minute : 21:15',
-  heureDeDepart(1, de19h(135)) === '21:15',
-  heureDeDepart(1, de19h(135)),
+  heureDeDepart(1, MERCREDI, de19h(135)) === '21:15',
+  heureDeDepart(1, MERCREDI, de19h(135)),
 )
 verifier(
   'Une minute de trop suffit à passer au quart d’heure suivant : 21:01 donne 21:15',
-  heureDeDepart(1, de19h(121)) === '21:15',
-  heureDeDepart(1, de19h(121)),
+  heureDeDepart(1, MERCREDI, de19h(121)) === '21:15',
+  heureDeDepart(1, MERCREDI, de19h(121)),
 )
 verifier(
   'Sans durée connue, on compte 2 h et rien ne bouge',
-  heureDeDepart(1, de19h(null)) === '21:00',
+  heureDeDepart(1, MERCREDI, de19h(null)) === '21:00',
 )
 verifier(
   'Une séance de 19:30 décale aussi : 2 h depuis 19:30 finit à 21:30',
-  heureDeDepart(1, {heure: '19:30', filmDuree: 120}) === '21:30',
-  heureDeDepart(1, {heure: '19:30', filmDuree: 120}),
+  heureDeDepart(1, MERCREDI, {heure: '19:30', filmDuree: 120}) === '21:30',
+  heureDeDepart(1, MERCREDI, {heure: '19:30', filmDuree: 120}),
+)
+
+/* Le dimanche, tout avance de deux heures : 17 h, puis 19 h
+   (demande du cinéma, 29 septembre 2026). */
+const DIMANCHE = '2026-10-11'
+verifier('Le dimanche, la première séance part à 17 h', heureDeDepart(0, DIMANCHE, null) === '17:00')
+verifier('Le dimanche, la seconde part à 19 h', heureDeDepart(1, DIMANCHE, null) === '19:00')
+verifier(
+  'Le dimanche, un film de 2 h 20 commencé à 17 h repousse la suite à 19:30',
+  heureDeDepart(1, DIMANCHE, {heure: '17:00', filmDuree: 140}) === '19:30',
+  heureDeDepart(1, DIMANCHE, {heure: '17:00', filmDuree: 140}),
+)
+verifier(
+  'Le dimanche, 17:00 appartient à la première vague et 19:00 à la seconde',
+  vagueDeLaSeance({date: DIMANCHE, heure: '17:00', salle: 'Salle 1'}) === 0 &&
+    vagueDeLaSeance({date: DIMANCHE, heure: '19:00', salle: 'Salle 1'}) === 1,
+)
+verifier(
+  'Le dimanche, une séance de 21:00 reste la seconde vague',
+  vagueDeLaSeance({date: DIMANCHE, heure: '21:00', salle: 'Salle 1'}) === 1,
+)
+verifier(
+  'Le dimanche, une séance à 16 h sort de la grille',
+  vagueDeLaSeance({date: DIMANCHE, heure: '16:00', salle: 'Salle 1'}) === -1,
+)
+verifier(
+  'Le dimanche, le recalage part de 17 h : 2 h 20 depuis 17:00 repousse 19:00 à 19:30',
+  recalagesNecessaires([
+    {_id: 'a', date: DIMANCHE, heure: '17:00', salle: 'Salle 1', filmDuree: 140, filmTitre: 'Le long'},
+    {_id: 'b', date: DIMANCHE, heure: '19:00', salle: 'Salle 1', filmDuree: 95, filmTitre: 'Le court'},
+  ])[0]?.vers === '19:30',
 )
 
 verifier('19:00 appartient à la vague de 19 h', vagueDeLaSeance(posee('x', '19:00', 'Salle 1', 1)) === 0)
@@ -292,6 +323,22 @@ for (let graine = 1; graine <= TIRAGES; graine += 1) {
   verifier(
     'Aucun film ne passe deux fois dans la même vague',
     [...parVague.values()].every((n) => n === 1),
+    `graine ${graine}`,
+  )
+
+  /* Le dimanche : 17 h, puis 19 h — ou le quart d'heure qui suit un long
+     film de 17 h, mais jamais 21 h. Les autres jours restent à 19 h. */
+  const duDimanche = semaine.filter((s) => s.date === DIMANCHE)
+  verifier(
+    'Le dimanche, les séances partent à 17 h et à 19 h',
+    duDimanche.length === 4 &&
+      duDimanche.filter((s) => s.heure === '17:00').length === 2 &&
+      duDimanche.every((s) => s.heure >= '17:00' && s.heure < '20:00'),
+    `graine ${graine} : ${duDimanche.map((s) => s.heure).join(', ')}`,
+  )
+  verifier(
+    'Les autres jours, la première séance reste à 19 h',
+    semaine.filter((s) => s.date !== DIMANCHE && vagueDeLaSeance(s) === 0).every((s) => s.heure === '19:00'),
     `graine ${graine}`,
   )
 

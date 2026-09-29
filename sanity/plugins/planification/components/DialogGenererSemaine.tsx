@@ -52,8 +52,8 @@ export function DialogGenererSemaine({
           <Stack space={4}>
             <Text size={1}>
               {formatPeriodeSemaine(debutSemaine)} — <strong>{libres}</strong> créneau
-              {libres > 1 ? 'x' : ''} libre{libres > 1 ? 's' : ''} à remplir (19 h et 21 h, Salle 1
-              et Salle 2). La séance de 21 h attend la fin du film de 19 h : derrière un film de
+              {libres > 1 ? 'x' : ''} libre{libres > 1 ? 's' : ''} à remplir (19 h et 21 h, 17 h et
+              19 h le dimanche, Salle 1 et Salle 2). La séance de 21 h attend la fin du film de 19 h : derrière un film de
               2 h 20, elle partira au quart d'heure suivant, 21:30. Chaque film reste dans sa
               salle — celle où il joue déjà, sinon celle de la semaine d'avant ; un nouveau film
               va dans la salle qui en a le moins. Les séances déjà programmées ne sont pas

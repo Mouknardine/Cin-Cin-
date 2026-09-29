@@ -1,7 +1,8 @@
 /**
  * La grille de la semaine : 7 colonnes (mercredi → mardi, la semaine
  * de cinéma), et dans chaque colonne les deux vagues du soir — celle
- * de 19 h et celle de 21 h — en Salle 1 et en Salle 2.
+ * de 19 h et celle de 21 h (17 h et 19 h le dimanche) — en Salle 1
+ * et en Salle 2.
  *
  * Montrer les cases LIBRES change tout : c'est là qu'on dépose une
  * séance venue d'un autre jour, et c'est là qu'on clique pour en
@@ -20,7 +21,7 @@ import {Box, Card, Flex, Grid, Spinner, Stack, Text} from '@sanity/ui'
 import {useMemo} from 'react'
 
 import type {ActionsPlanning, GlisserDeposer, SeancePlanning} from '../types'
-import {HORS_GRILLE, SALLES_STANDARD, VAGUES, vagueDeLaSeance} from '../utils/creneaux-standards'
+import {HORS_GRILLE, SALLES_STANDARD, vagueDeLaSeance, vaguesDuJour} from '../utils/creneaux-standards'
 import {DUREE_SEMAINE_JOURS, ajouterJours, aujourdHui, formatJourCourt} from '../utils/dates'
 import {heureDeDepart} from '../utils/enchainement'
 import {CelluleCreneau} from './CelluleCreneau'
@@ -106,7 +107,7 @@ export function GrilleSemaine({
                   {formatJourCourt(jour)}
                 </Text>
 
-                {VAGUES.map((vagueInfo, vague) => (
+                {vaguesDuJour(jour).map((vagueInfo, vague) => (
                   <Stack
                     key={vagueInfo.titre}
                     space={2}
@@ -119,10 +120,10 @@ export function GrilleSemaine({
                     {SALLES_STANDARD.map((salle) => {
                       const seance = parCase.get(`${salle}|${vague}`) ?? null
                       /* Une case libre de seconde vague ne part pas
-                         forcément à 21 h : elle attend la fin du film
-                         de 19 h dans la même salle. */
+                         forcément à l'heure de sa vague : elle attend la
+                         fin du premier film dans la même salle. */
                       const precedente = vague > 0 ? (parCase.get(`${salle}|${vague - 1}`) ?? null) : null
-                      const heure = seance?.heure ?? heureDeDepart(vague, precedente)
+                      const heure = seance?.heure ?? heureDeDepart(vague, jour, precedente)
                       return (
                         <CelluleCreneau
                           key={salle}
