@@ -14,6 +14,7 @@ import type {SanityClient} from 'sanity'
 
 import {ordonnerSeances} from '../../../salles'
 import {ajouterJours, debutDeSemaine, finDeSemaine} from '../utils/dates'
+import {jourDeLEnvoi} from './seances'
 
 /** Une séance, telle que la newsletter en a besoin. */
 export interface SeanceNewsletter {
@@ -75,6 +76,8 @@ export interface DonneesNewsletter {
   finSemaine: string
   /** Les séances de la semaine, dans l'ordre du programme. */
   programme: SeanceProgramme[]
+  /** Le lundi et le mardi de l'envoi, rappelés en grisé au-dessus du programme. */
+  lundiEtMardi: SeanceProgramme[]
   /** Les films projetés cette semaine, dans l'ordre où le programme les annonce. */
   filmsDeLaSemaine: FilmNewsletter[]
   /** Ceux qui arrivent : séances après la semaine, ou date de sortie à venir. */
@@ -117,6 +120,27 @@ const CHAMPS_FILM = `
  */
 const SEMAINES_EN_ARRIERE = 1
 const JOURS_EN_AVANT = 120
+
+/**
+ * Les séances de tous les films entre deux dates, dans l'ordre du programme :
+ * les vagues de séances l'une après l'autre, et dans chaque vague Salle 1,
+ * Salle 2, Hall-Bar (voir sanity/salles.ts). Les séances annulées sortent :
+ * on n'annonce pas dans une newsletter une séance qui n'aura pas lieu.
+ */
+export function programmeEntre(films: FilmNewsletter[], debut: string, fin: string): SeanceProgramme[] {
+  return ordonnerSeances(
+    films.flatMap((film) =>
+      film.seances
+        .filter((seance) => seance.date >= debut && seance.date <= fin && seance.statut !== 'annule')
+        .map((seance) => ({
+          ...seance,
+          filmId: film._id,
+          titre: film.titre,
+          slug: film.slug,
+        })),
+    ),
+  )
+}
 
 /** Le film joue-t-il au moins une fois dans la période donnée ? */
 function joueEntre(film: FilmNewsletter, debut: string, fin: string): boolean {
@@ -164,25 +188,13 @@ export async function chargerNewsletter(
     seances: film.seances ?? [],
   }))
 
-  /* Le programme de la semaine, dans l'ordre du programme : les vagues de
-     séances l'une après l'autre, et dans chaque vague Salle 1, Salle 2,
-     Hall-Bar (voir sanity/salles.ts). Les séances annulées sortent : on
-     n'annonce pas dans une newsletter une séance qui n'aura pas lieu. */
-  const programme = ordonnerSeances(
-    films.flatMap((film) =>
-      film.seances
-        .filter(
-          (seance) =>
-            seance.date >= debut && seance.date <= fin && seance.statut !== 'annule',
-        )
-        .map((seance) => ({
-          ...seance,
-          filmId: film._id,
-          titre: film.titre,
-          slug: film.slug,
-        })),
-    ),
-  )
+  const programme = programmeEntre(films, debut, fin)
+
+  /* La newsletter part le lundi, mais la semaine qu'elle annonce n'ouvre que
+     le mercredi : le soir même et le lendemain restaient sans programme. Le
+     cinéma les a fait remettre en tête, en grisé (5 octobre 2026). Ils ne
+     comptent pas parmi les films de la semaine : seulement dans la grille. */
+  const lundiEtMardi = programmeEntre(films, jourDeLEnvoi(debut), ajouterJours(debut, -1))
 
   /* Les films de la semaine se suivent dans l'ordre où le programme les
      annonce : celui qui ouvre la semaine ouvre la liste. Le lecteur vient de
@@ -215,6 +227,7 @@ export async function chargerNewsletter(
     debutSemaine: debut,
     finSemaine: fin,
     programme,
+    lundiEtMardi,
     filmsDeLaSemaine,
     filmsAVenir,
     reglages: {...(reponse.reglages ?? videReglages()), iban: reponse.iban ?? null},

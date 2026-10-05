@@ -18,6 +18,10 @@ export const BLEU = '#2f49c2'
 export const JAUNE = '#f7c600'
 /** L'encre éclaircie : les mentions secondaires, sur papier (6,6:1). */
 export const GRIS = '#57534a'
+/** Le grisé du lundi et du mardi de l'envoi, rappelés au-dessus du programme :
+    assez pâle pour s'effacer devant la semaine annoncée, assez sombre pour se
+    lire — en texte sur papier (3,5:1) comme en fond sous du blanc (4,1:1). */
+export const GRIS_CLAIR = '#807d76'
 /* Le vert du billet. C'est la seule couleur du site qui ait un sens fixe :
    elle ne sert qu'à acheter une place, nulle part ailleurs (voir --vert dans
    assets/css/style.css). La newsletter respecte la même règle. */

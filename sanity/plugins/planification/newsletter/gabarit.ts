@@ -73,8 +73,9 @@ function entete(): string {
 }
 
 /**
- * La case bleue, qui ouvre le message : « PROGRAMME DU MERCREDI 16 SEPTEMBRE
- * AU MARDI 22 SEPTEMBRE 2026 (38) ».
+ * La case bleue, qui ouvre le programme : « PROGRAMME DU MERCREDI 16 SEPTEMBRE
+ * AU MARDI 22 SEPTEMBRE 2026 (38) ». Seuls le lundi et le mardi de l'envoi,
+ * en grisé, passent au-dessus d'elle.
  *
  * Tout tient dans une seule case et une seule phrase, en majuscules — c'est
  * la formule que le cinéma écrit depuis toujours dans l'objet de son mail.
@@ -140,6 +141,12 @@ export function construireNewsletter(donnees: DonneesNewsletter, options: Option
 
   const corps =
     entete() +
+    /* Le lundi et le mardi de l'envoi, en grisé, au-dessus de la case bleue :
+       ils ne font pas partie de la semaine qu'elle annonce, mais l'abonné qui
+       lit le message ce lundi-là peut encore y aller. */
+    (donnees.lundiEtMardi.length
+      ? `<tr>${cellule(tableau(lignesDuProgramme(donnees.lundiEtMardi, true)), 'padding:0;')}</tr>`
+      : '') +
     bandeDeLaSemaine(donnees) +
     /* Pas de titre au-dessus du programme : la case bleue vient de le dire. */
     `<tr>${cellule(tableau(lignesDuProgramme(donnees.programme)), 'padding:0;')}</tr>` +

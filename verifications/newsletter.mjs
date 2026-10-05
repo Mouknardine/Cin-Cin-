@@ -37,7 +37,7 @@ async function chargerModule(chemin) {
 const {construireNewsletter, objetDeLaNewsletter} = await chargerModule(
   '../sanity/plugins/planification/newsletter/gabarit.ts',
 )
-const {ordonnerSeances} = await chargerModule('../sanity/salles.ts')
+const {programmeEntre} = await chargerModule('../sanity/plugins/planification/newsletter/donnees.ts')
 
 /* ------------------------------------------------------------------
    Le programme réellement envoyé par le cinéma, semaine 38 de 2026.
@@ -96,15 +96,10 @@ const REGLAGES = {
   iban: 'CH79 0900 0000 1725 7734 1',
 }
 
-/** Reconstitue ce que donnees.ts prépare, à partir d'une liste de films. */
+/** Reconstitue ce que donnees.ts prépare, à partir d'une liste de films. Le
+    tri des séances est le sien ; seule la lecture dans Sanity est remplacée. */
 function donneesPour(affiche, aVenir = A_VENIR, debut = DEBUT, fin = FIN) {
-  const programme = ordonnerSeances(
-    affiche.flatMap((f) =>
-      f.seances
-        .filter((s) => s.date >= debut && s.date <= fin && s.statut !== 'annule')
-        .map((s) => ({...s, filmId: f._id, titre: f.titre, slug: f.slug})),
-    ),
-  )
+  const programme = programmeEntre(affiche, debut, fin)
   const rang = new Map()
   programme.forEach((s, i) => {
     if (!rang.has(s.filmId)) rang.set(s.filmId, i)
@@ -113,6 +108,8 @@ function donneesPour(affiche, aVenir = A_VENIR, debut = DEBUT, fin = FIN) {
     debutSemaine: debut,
     finSemaine: fin,
     programme,
+    /* Le lundi 14 et le mardi 15 : la newsletter part le lundi. */
+    lundiEtMardi: programmeEntre(affiche, '2026-09-14', '2026-09-15'),
     filmsDeLaSemaine: affiche
       .filter((f) => rang.has(f._id))
       .sort((a, b) => rang.get(a._id) - rang.get(b._id)),
@@ -141,19 +138,30 @@ function verifier(intitule, condition, detail = '') {
   }
 }
 
-/** Les titres de films du programme, dans l'ordre où le gabarit les écrit.
-    On s'arrête à l'appel au site, qui suit le tableau et porte le même
-    interlettrage ; et chaque titre est enveloppé dans son lien. */
-function titresDuProgramme(html) {
-  /* Tout ce qui précède la case verte : l'en-tête, la case bleue, et le
-     tableau. Les titres de films sont les seuls à porter cet interlettrage,
-     et les blocs de film viennent après la case verte.
+/** Ce qui précède la case bleue : l'en-tête, et le lundi et le mardi de
+    l'envoi en grisé. On coupe sur son texte, pas sur sa couleur : les barres
+    des jours tournent rouge, jaune, bleu, et le vendredi porte le même bleu. */
+function avantLaCaseBleue(html) {
+  return html.split('>Programme du ')[0]
+}
 
-     On ne s'accroche ni au titre noir — le cinéma l'a fait retirer — ni à la
-     couleur de la case bleue : les barres des jours tournent rouge, jaune,
-     bleu, et le vendredi porte le même bleu qu'elle. */
-  const bloc = html.split('https://www.zinema.ch/agenda/')[0]
+/** Le programme de la semaine annoncée : de la case bleue à la case verte. */
+function programmeDeLaSemaine(html) {
+  return html.split('>Programme du ')[1].split('https://www.zinema.ch/agenda/')[0]
+}
+
+/** Les titres de films d'un morceau de grille, dans l'ordre où le gabarit les
+    écrit. Ils sont les seuls à porter cet interlettrage, et chaque titre est
+    enveloppé dans son lien. */
+function titresDe(bloc) {
   return [...bloc.matchAll(/letter-spacing:-0\.01em;">(?:<a[^>]*>)?([^<]*)</g)].map((m) => m[1])
+}
+
+/** Les titres du programme de la semaine annoncée. On s'arrête à l'appel au
+    site, qui suit le tableau et porte le même interlettrage. On ne s'accroche
+    pas au titre noir : le cinéma l'a fait retirer. */
+function titresDuProgramme(html) {
+  return titresDe(programmeDeLaSemaine(html))
 }
 
 /** Les étiquettes, dans l'ordre. La signature complète d'une pastille : le
@@ -276,9 +284,9 @@ console.log('\nCe qui ramène les abonnés sur le site')
 console.log('\nCe que le cinéma a demandé le 15 septembre 2026')
 {
   const html = construire()
-  const programme = html.split('https://www.zinema.ch/agenda/')[0]
+  const programme = programmeDeLaSemaine(html)
   verifier(
-    'le tableau du programme commence le mercredi, pas le lundi de l\'envoi',
+    'le programme de la semaine, sous la case bleue, commence le mercredi',
     programme.includes('mercredi 16 septembre') && !programme.includes('lundi 14 septembre'),
   )
   verifier(
@@ -333,6 +341,75 @@ console.log('\nCe que le cinéma a demandé le 15 septembre 2026')
   verifier('tout le message est en Arial', !/Helvetica Neue/.test(html) && html.includes('font-family:Arial,Helvetica,sans-serif'))
   const tailles = new Set([...html.matchAll(/font-size:([^;"]+)/g)].map((m) => m[1]).filter((t) => t !== '0'))
   verifier('trois tailles de texte, pas une de plus', tailles.size <= 3, [...tailles].join(' | '))
+}
+
+console.log('\nCe que le cinéma a demandé le 5 octobre 2026')
+{
+  /* « On communique le lundi via la newsletter le programme de la semaine
+     suivante, mais les projections de ce soir et demain mardi disparaissent.
+     Pourrais-tu rajouter en haut les projections du lundi et mardi, en grisé
+     mais même taille de caractère ? » */
+  const lundiMardi = [
+    film({_id: 'lundi', titre: 'Le Lundi', seances: [
+      S('2026-09-13', '19:00', 'Salle 1'),
+      S('2026-09-14', '19:00', 'Salle 1'), S('2026-09-14', '21:00', 'Salle 2'),
+      S('2026-09-15', '21:00', 'Salle 1', 'annule'),
+      S(DEBUT, '19:00', 'Salle 1')]}),
+    film({_id: 'mardi', titre: 'Le Mardi', seances: [S('2026-09-15', '19:00', 'Salle 2')]}),
+  ]
+  const html = construire(lundiMardi, [])
+  const enTete = avantLaCaseBleue(html)
+  verifier(
+    "le lundi et le mardi de l'envoi passent au-dessus de la case bleue",
+    enTete.includes('>lundi 14 septembre<') && enTete.includes('>mardi 15 septembre<'),
+  )
+  verifier(
+    "leurs séances s'y lisent dans l'ordre du programme",
+    JSON.stringify(titresDe(enTete)) === JSON.stringify(['Le Lundi', 'Le Lundi', 'Le Mardi']),
+    titresDe(enTete).join(' | '),
+  )
+  verifier(
+    "ni le dimanche d'avant, ni la séance annulée du mardi",
+    !enTete.includes('dimanche 13 septembre') && titresDe(enTete).length === 3,
+    titresDe(enTete).join(' | '),
+  )
+  /* Pas de rouge ni de jaune au-dessus de la case bleue : le bleu, lui, y
+     est forcément — c'est le style de la case bleue elle-même. */
+  verifier(
+    'les barres de ces deux jours sont grises, pas aux couleurs de la semaine',
+    /background-color:#807d76;color:#ffffff;[^"]*">lundi 14 septembre</.test(enTete) &&
+      /background-color:#807d76;color:#ffffff;[^"]*">mardi 15 septembre</.test(enTete) &&
+      !/background-color:#(c22a1d|f7c600)/.test(enTete),
+  )
+  verifier(
+    'leurs heures, titres et salles sont en gris, liens compris',
+    !/color:#100f0c;padding:10px 12px/.test(enTete) &&
+      (enTete.match(/color:#807d76;padding:10px 12px;/g) ?? []).length === 9 &&
+      enTete.includes('style="color:#807d76;text-decoration:none;">Le Mardi</a>'),
+  )
+  verifier(
+    'à la même taille que le programme de la semaine',
+    (enTete.match(/font-size:15px;line-height:1\.3;font-weight:bold;/g) ?? []).length ===
+      2 + 3 * 3,
+  )
+  verifier(
+    'le programme de la semaine garde ses couleurs et son encre',
+    /background-color:#c22a1d;color:#ffffff;[^"]*">mercredi 16 septembre</.test(html) &&
+      /color:#100f0c;padding:10px 12px;/.test(programmeDeLaSemaine(html)) &&
+      !programmeDeLaSemaine(html).includes('#807d76'),
+  )
+  verifier(
+    "un film qui ne joue que le lundi ou le mardi n'a pas de bloc parmi les films de la semaine",
+    !html.split('>Les films de la semaine<')[1].includes('>Le Mardi<'),
+  )
+  const sansLundi = construire(
+    [film({_id: 'mercredi', titre: 'Le Mercredi', seances: [S(DEBUT, '19:00', 'Salle 1')]})],
+    [],
+  )
+  verifier(
+    "sans séance le lundi ni le mardi, rien ne s'ajoute au-dessus de la case bleue",
+    !avantLaCaseBleue(sansLundi).includes('#807d76') && titresDe(avantLaCaseBleue(sansLundi)).length === 0,
+  )
 }
 
 console.log("\nL'en-tête")

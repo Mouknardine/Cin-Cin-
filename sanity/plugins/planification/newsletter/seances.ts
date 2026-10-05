@@ -15,9 +15,14 @@ import {ENCRE, TAILLE, TRAIT, echapper} from './html'
 /** Du lundi de l'envoi au mercredi qui ouvre la semaine : deux jours. */
 const JOURS_ENTRE_ENVOI_ET_SEMAINE = 2
 
+/** Le lundi où part la newsletter, deux jours avant la semaine qu'elle annonce. */
+export function jourDeLEnvoi(debutSemaine: string): string {
+  return ajouterJours(debutSemaine, -JOURS_ENTRE_ENVOI_ET_SEMAINE)
+}
+
 /** Les séances non annulées, du lundi de l'envoi au mardi de la semaine annoncée. */
 export function seancesAnnoncees(seances: SeanceNewsletter[], debutSemaine: string, finSemaine: string): SeanceNewsletter[] {
-  const envoi = ajouterJours(debutSemaine, -JOURS_ENTRE_ENVOI_ET_SEMAINE)
+  const envoi = jourDeLEnvoi(debutSemaine)
   return seances.filter(
     (seance) => seance.statut !== 'annule' && seance.date >= envoi && seance.date <= finSemaine,
   )
