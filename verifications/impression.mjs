@@ -142,6 +142,80 @@ verifier('Une séance complète le dit', piege.includes('· Complet'))
 const vide = construireFeuille({debutSemaine: DEBUT, finSemaine: FIN, programme: []}, 'logo.png')
 verifier('Une semaine sans séance le dit', vide.includes('Aucune séance cette semaine.'))
 
+/* ---- Le lundi et le mardi en grisé, demandés le 5 octobre 2026 ---- */
+/* « Pour faire apparaître les projections des lundis et mardis de la
+   semaine précédente en grisé en haut de la newsletter et du programme à
+   imprimer, c'est OK ? » */
+const LUNDI = '2026-09-28'
+const MARDI = '2026-09-29'
+const avant = [LUNDI, LUNDI, MARDI, MARDI].map((date, i) => ({
+  date, heure: i % 2 ? '21:00' : '19:00', salle: i % 2 ? 'Salle 2' : 'Salle 1', statut: 'disponible',
+  filmId: `avant-${i}`, titre: `Film d'avant ${i}`, slug: null,
+}))
+{
+  const feuille = construireFeuille(
+    {debutSemaine: DEBUT, finSemaine: FIN, programme: semaine(4), lundiEtMardi: avant},
+    'logo.png',
+  )
+  const [dessus, dessous] = feuille.split('<div class="titre-semaine">')
+  verifier(
+    'Le lundi et le mardi passent au-dessus du bandeau noir',
+    dessus.includes('lundi 28 septembre') && dessus.includes('mardi 29 septembre') &&
+      (dessus.match(/<tr class="seance">/g) ?? []).length === 4,
+  )
+  verifier(
+    'La semaine, sous le bandeau, commence toujours le mercredi',
+    !dessous.includes('lundi 28 septembre') &&
+      dessous.indexOf('mercredi 30 septembre') < dessous.indexOf('jeudi 1 octobre') &&
+      (dessous.match(/<tr class="seance">/g) ?? []).length === 28,
+  )
+  verifier(
+    'Ils sont en grisé : leur tableau, et seulement le leur',
+    /<table class="grise"/.test(dessus) && !/class="grise"/.test(dessous) &&
+      /table\.grise td \{ color: #807d76; \}/.test(feuille) &&
+      /table\.grise tr\.jour td \{ background: #807d76; color: #ffffff; \}/.test(feuille),
+  )
+  verifier(
+    'À la même taille de caractère que le reste',
+    new Set(feuille.match(/font-size: [\d.]+mm/g)).size === 1,
+    String(feuille.match(/font-size: [\d.]+mm/g)),
+  )
+  /* Les deux tableaux se partagent la hauteur au prorata de leurs lignes :
+     6 lignes grisées (2 jours, 4 séances), 35 pour la semaine. */
+  const hauteurs = [...feuille.matchAll(/<table[^>]*style="height: ([\d.]+)mm;"/g)].map((m) => Number(m[1]))
+  const mesures = mesuresDeLaFeuille(6 + 35)
+  verifier(
+    'Les lignes grisées ont la même hauteur que celles de la semaine',
+    hauteurs.length === 2 && Math.abs(hauteurs[0] / 6 - hauteurs[1] / 35) < 0.02,
+    hauteurs.join(' | '),
+  )
+  verifier(
+    'Les deux tableaux ensemble ne dépassent pas la place du tableau',
+    hauteurs[0] + hauteurs[1] <= mesures.hauteurTableau,
+    `${hauteurs[0] + hauteurs[1]} > ${mesures.hauteurTableau}`,
+  )
+}
+for (const parJour of [4, 5, 6]) {
+  verifier(
+    `${parJour * 7} séances et le lundi-mardi tiennent encore sur une page`,
+    tientSurUnePage(semaine(parJour), avant),
+  )
+}
+/* 42 séances font 49 lignes ; le lundi-mardi en ajoute 6 (55, la limite
+   d'une page), ou 10 quand il est chargé (59, une de trop). */
+verifier(
+  'Le lundi et le mardi comptent dans le calcul de la page',
+  tientSurUnePage(semaine(6)) && tientSurUnePage(semaine(6), avant) &&
+    !tientSurUnePage(semaine(6), [...avant, ...avant]),
+)
+{
+  const sans = construireFeuille({debutSemaine: DEBUT, finSemaine: FIN, programme: semaine(4), lundiEtMardi: []}, 'logo.png')
+  verifier(
+    "Sans séance le lundi ni le mardi, rien ne s'ajoute au-dessus du bandeau",
+    !sans.includes('class="grise"') && sans.split('<div class="titre-semaine">')[0].indexOf('<table') === -1,
+  )
+}
+
 console.log(
   `\n${reussites} vérification${reussites > 1 ? 's' : ''} passée${reussites > 1 ? 's' : ''}` +
     (echecs ? `, ${echecs} en échec.\n` : '.\n'),

@@ -6,7 +6,11 @@
  * Une seule taille de texte, et une règle pour la graisse : les titres
  * (la semaine, les jours) en gras, les séances en maigre — tout est déjà
  * en capitales (demande du cinéma, 29 septembre 2026).
+ *
+ * Le lundi et le mardi qui précèdent la semaine passent en grisé, à la même
+ * taille : le même gris que dans la newsletter.
  */
+import {GRIS_CLAIR} from '../newsletter/html'
 import {
   BLANC, ENCRE, ESPACE_SOUS_LOGO, GRIS_JOUR, HAUTEUR_A4, HAUTEUR_LOGO, HAUTEUR_TITRE, MARGE,
   type MesuresFeuille, TRAIT,
@@ -51,9 +55,10 @@ export function stylesDeLaFeuille(mesures: MesuresFeuille): string {
       text-transform: uppercase;
       letter-spacing: 0.02em;
     }
+    /* La hauteur de chaque tableau est posée sur le tableau lui-même : le
+       lundi et le mardi en grisé, puis la semaine, se partagent la page. */
     table {
       width: 100%;
-      height: ${mesures.hauteurTableau}mm;
       border-collapse: collapse;
       table-layout: fixed;
     }
@@ -74,6 +79,8 @@ export function stylesDeLaFeuille(mesures: MesuresFeuille): string {
       font-weight: bold;
       text-transform: uppercase;
     }
+    table.grise td { color: ${GRIS_CLAIR}; }
+    table.grise tr.jour td { background: ${GRIS_CLAIR}; color: ${BLANC}; }
     col.col-heure { width: 17mm; }
     col.col-salle { width: 30mm; }
     td.heure { font-variant-numeric: tabular-nums; }

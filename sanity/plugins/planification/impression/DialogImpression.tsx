@@ -59,7 +59,7 @@ export function DialogImpression({debutSemaine, onFermer}: Props): React.JSX.Ele
   }, [client, debutSemaine])
 
   const feuille = useMemo(() => (donnees ? construireFeuille(donnees, adresseDuLogo()) : ''), [donnees])
-  const tientSurUneFeuille = donnees ? tientSurUnePage(donnees.programme) : true
+  const tientSurUneFeuille = donnees ? tientSurUnePage(donnees.programme, donnees.lundiEtMardi) : true
 
   const imprimer = useCallback(() => {
     const fenetre = cadre.current?.contentWindow
