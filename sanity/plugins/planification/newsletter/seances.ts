@@ -27,7 +27,7 @@
  */
 import {ajouterJours, formatJourAbrege, numeroDuJour} from '../utils/dates'
 import type {SeanceNewsletter} from './donnees'
-import {ENCRE, POLICE, TAILLE, TRAIT, echapper} from './html'
+import {ENCRE, POLICE, TAILLE, TRAIT, capitales, echapper} from './html'
 
 /** Du lundi de l'envoi au mercredi qui ouvre la semaine : deux jours. */
 const JOURS_ENTRE_ENVOI_ET_SEMAINE = 2
@@ -64,7 +64,7 @@ const MARGE_PASTILLE = '5px 8px'
  */
 function puceHoraire(seance: SeanceNewsletter, lien: string | null): string {
   const contenu =
-    `${echapper(formatJourAbrege(seance.date))}&nbsp;${echapper(numeroDuJour(seance.date))}` +
+    `${echapper(capitales(formatJourAbrege(seance.date)))}&nbsp;${echapper(numeroDuJour(seance.date))}` +
     `&nbsp;&nbsp;<span style="font-weight:normal;">${echapper(seance.heure)}</span>`
   const interieur = lien
     ? `<a href="${lien}" style="display:block;padding:${MARGE_PASTILLE};${TEXTE_PASTILLE}text-decoration:none;">${contenu}</a>`

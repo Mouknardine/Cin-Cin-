@@ -10,7 +10,7 @@
  */
 import {formatJourLong} from '../utils/dates'
 import type {SeanceProgramme} from './donnees'
-import {BLANC, BLEU, ENCRE, GRIS_CLAIR, JAUNE, ROUGE, TAILLE, cellule, echapper, lienDuFilm} from './html'
+import {BLANC, BLEU, ENCRE, GRIS_CLAIR, JAUNE, ROUGE, TAILLE, capitales, cellule, echapper, lienDuFilm} from './html'
 
 interface Couleur {
   fond: string
@@ -46,7 +46,7 @@ const GRISE: Couleur = {fond: GRIS_CLAIR, encre: BLANC}
 /** « MERCREDI 16 SEPTEMBRE », sur toute la largeur, dans la couleur du jour. */
 function barreDuJour(date: string, couleur: Couleur): string {
   return `<tr>${cellule(
-    echapper(formatJourLong(date)),
+    echapper(capitales(formatJourLong(date))),
     `background-color:${couleur.fond};color:${couleur.encre};padding:8px 12px;` +
       `font-size:${TAILLE.texte};line-height:1.3;font-weight:bold;text-transform:uppercase;`,
     'colspan="3"',
@@ -58,8 +58,8 @@ function barreDuJour(date: string, couleur: Couleur): string {
 function ligneDeSeance(seance: SeanceProgramme, encre: string): string {
   const lien = lienDuFilm(seance.slug)
   const titre = lien
-    ? `<a href="${lien}" style="color:${encre};text-decoration:none;">${echapper(seance.titre)}</a>`
-    : echapper(seance.titre)
+    ? `<a href="${lien}" style="color:${encre};text-decoration:none;">${echapper(capitales(seance.titre))}</a>`
+    : echapper(capitales(seance.titre))
   return (
     '<tr>' +
     cellule(
@@ -74,7 +74,7 @@ function ligneDeSeance(seance: SeanceProgramme, encre: string): string {
       'valign="middle"',
     ) +
     cellule(
-      echapper(seance.salle),
+      echapper(capitales(seance.salle)),
       `color:${encre};padding:10px 12px;width:${LARGEUR_SALLE}px;font-size:${TAILLE.texte};line-height:1.3;font-weight:bold;` +
         `text-transform:uppercase;white-space:nowrap;text-align:right;`,
       `width="${LARGEUR_SALLE}" valign="middle" align="right"`,

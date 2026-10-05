@@ -94,6 +94,16 @@ jobs:
         if: steps.jeton.outputs.pret == 'oui'
         run: npm test
 
+      # La newsletter part chez les abonnés par Outlook : on ne publie pas
+      # un Studio dont la newsletter se casserait une fois collée dedans.
+      - name: Le navigateur des vérifications
+        if: steps.jeton.outputs.pret == 'oui'
+        run: npx playwright install --with-deps chromium
+
+      - name: La newsletter tient dans les messageries
+        if: steps.jeton.outputs.pret == 'oui'
+        run: npm run test:messageries
+
       # Le projet et l'adresse du Studio (cincin-zinema) sont fixés dans
       # sanity.cli.ts, pas ici : aucune variable d'environnement ne peut
       # faire publier ailleurs par mégarde.

@@ -144,12 +144,12 @@ function verifier(intitule, condition, detail = '') {
     l'envoi en grisé. On coupe sur son texte, pas sur sa couleur : les barres
     des jours tournent rouge, jaune, bleu, et le vendredi porte le même bleu. */
 function avantLaCaseBleue(html) {
-  return html.split('>Programme du ')[0]
+  return html.split('>PROGRAMME DU ')[0]
 }
 
 /** Le programme de la semaine annoncée : de la case bleue à la case verte. */
 function programmeDeLaSemaine(html) {
-  return html.split('>Programme du ')[1].split('https://www.zinema.ch/agenda/')[0]
+  return html.split('>PROGRAMME DU ')[1].split('https://www.zinema.ch/agenda/')[0]
 }
 
 /** Les titres de films d'un morceau de grille, dans l'ordre où le gabarit les
@@ -197,13 +197,13 @@ console.log("\nLe programme, dans l'ordre du programme")
   verifier(
     'le vendredi décalé se lit Salle 1 puis Salle 2, comme les autres jours',
     JSON.stringify(vendredi) ===
-      JSON.stringify(['The North', 'De la Comédie Française', 'Les Matins merveilleux', 'Notre argent']),
+      JSON.stringify(['THE NORTH', 'DE LA COMÉDIE FRANÇAISE', 'LES MATINS MERVEILLEUX', 'NOTRE ARGENT']),
     vendredi.join(' | '),
   )
   verifier(
     'le mercredi, où les deux salles partent ensemble, ne bouge pas',
     JSON.stringify(titres.slice(0, 4)) ===
-      JSON.stringify(['Mélodie', 'Le Dernier pour la route', 'Les Matins merveilleux', 'Notre argent']),
+      JSON.stringify(['MÉLODIE', 'LE DERNIER POUR LA ROUTE', 'LES MATINS MERVEILLEUX', 'NOTRE ARGENT']),
     titres.slice(0, 4).join(' | '),
   )
 }
@@ -213,27 +213,27 @@ console.log('\nLes étiquettes, calculées et non saisies')
   const lues = etiquettes(construire())
   verifier(
     'six films en sont à leur deuxième semaine',
-    lues.filter((e) => e === '2ème semaine').length === 6,
+    lues.filter((e) => e === '2ÈME SEMAINE').length === 6,
     lues.join(' | '),
   )
   verifier(
     'un film sorti il y a des mois est annoncé en reprise',
-    lues.includes('Reprise'),
+    lues.includes('REPRISE'),
     lues.join(' | '),
   )
   verifier(
     "une sortie à venir porte sa date en toutes lettres",
-    lues.includes('Sortie le mercredi 23 septembre'),
+    lues.includes('SORTIE LE MERCREDI 23 SEPTEMBRE'),
     lues.join(' | '),
   )
   verifier(
     "un film qui revient plus tard est annoncé comme une reprise datée",
-    lues.includes('Reprise dès le mercredi 30 septembre'),
+    lues.includes('REPRISE DÈS LE MERCREDI 30 SEPTEMBRE'),
     lues.join(' | '),
   )
   verifier(
     "une sortie lointaine est annoncée elle aussi",
-    lues.includes('Sortie le mercredi 16 décembre'),
+    lues.includes('SORTIE LE MERCREDI 16 DÉCEMBRE'),
     lues.join(' | '),
   )
 }
@@ -274,7 +274,7 @@ console.log('\nCe qui ramène les abonnés sur le site')
   }
   verifier(
     'les titres du programme sont cliquables sans se déguiser en liens',
-    html.includes(`text-decoration:none;">Mélodie</a>`),
+    html.includes(`text-decoration:none;">MÉLODIE</a>`),
   )
   verifier(
     "un film sans adresse de page ne fabrique pas de lien vide",
@@ -289,11 +289,11 @@ console.log('\nCe que le cinéma a demandé le 15 septembre 2026')
   const programme = programmeDeLaSemaine(html)
   verifier(
     'le programme de la semaine, sous la case bleue, commence le mercredi',
-    programme.includes('mercredi 16 septembre') && !programme.includes('lundi 14 septembre'),
+    programme.includes('MERCREDI 16 SEPTEMBRE') && !programme.includes('LUNDI 14 SEPTEMBRE'),
   )
   verifier(
     "les pastilles d'un film reprennent le lundi de l'envoi",
-    html.includes('lun&nbsp;14&nbsp;'),
+    html.includes('LUN&nbsp;14&nbsp;'),
   )
   const avecPassee = construire(
     [film({_id: 'passe', titre: 'Déjà passé', synopsis: 'Un synopsis témoin.',
@@ -303,12 +303,12 @@ console.log('\nCe que le cinéma a demandé le 15 septembre 2026')
   )
   verifier(
     "une séance déjà passée le lundi de l'envoi n'est plus annoncée",
-    !avecPassee.includes('sam&nbsp;12&nbsp;') && avecPassee.includes('mar&nbsp;15&nbsp;') &&
+    !avecPassee.includes('SAM&nbsp;12&nbsp;') && avecPassee.includes('MAR&nbsp;15&nbsp;') &&
       !/Semaine dernière/.test(avecPassee),
   )
   verifier(
     "le synopsis passe sous l'affiche et les séances, en pleine largeur",
-    /mar&nbsp;15&nbsp;[\s\S]*?<\/tr><tr><td colspan="2"[^>]*><p [^>]*>Un synopsis témoin/.test(avecPassee),
+    /MAR&nbsp;15&nbsp;[\s\S]*?<\/tr><tr><td colspan="2"[^>]*><p [^>]*>Un synopsis témoin/.test(avecPassee),
   )
   verifier(
     "aucun fond d'encre derrière l'affiche : si le texte la dépasse, c'est du papier qui continue",
@@ -327,12 +327,12 @@ console.log('\nCe que le cinéma a demandé le 15 septembre 2026')
   )
   verifier(
     "la date de sortie d'un film prochainement n'est plus encadrée",
-    /letter-spacing:0\.08em;text-transform:uppercase;color:#100f0c;padding-bottom:4px;">Sortie le mercredi 7 octobre</.test(avecLiens),
+    /letter-spacing:0\.08em;text-transform:uppercase;color:#100f0c;padding-bottom:4px;">SORTIE LE MERCREDI 7 OCTOBRE</.test(avecLiens),
   )
-  verifier("l'appel au site dit « acheter un billet »", html.includes('Acheter un billet') && !/[Pp]renez votre place/.test(html))
+  verifier("l'appel au site dit « acheter un billet »", html.includes('ACHETER UN BILLET') && !/[Pp]renez votre place/.test(html))
   verifier('les rubriques s\'appellent « Prochainement » et « Infos »',
-    html.includes('>Prochainement<') && html.includes('>Infos<') &&
-      !html.includes('>À venir<') && !html.includes('>Pratique<'))
+    html.includes('>PROCHAINEMENT<') && html.includes('>INFOS<') &&
+      !html.includes('>À VENIR<') && !html.includes('>PRATIQUE<'))
   verifier(
     'les parrains des salles sont nommés sans parenthèses',
     html.includes('Salle 1</b> — Thierry Jobin — 18 places') &&
@@ -363,31 +363,31 @@ console.log('\nCe que le cinéma a demandé le 5 octobre 2026')
   const enTete = avantLaCaseBleue(html)
   verifier(
     "le lundi et le mardi de l'envoi passent au-dessus de la case bleue",
-    enTete.includes('>lundi 14 septembre<') && enTete.includes('>mardi 15 septembre<'),
+    enTete.includes('>LUNDI 14 SEPTEMBRE<') && enTete.includes('>MARDI 15 SEPTEMBRE<'),
   )
   verifier(
     "leurs séances s'y lisent dans l'ordre du programme",
-    JSON.stringify(titresDe(enTete)) === JSON.stringify(['Le Lundi', 'Le Lundi', 'Le Mardi']),
+    JSON.stringify(titresDe(enTete)) === JSON.stringify(['LE LUNDI', 'LE LUNDI', 'LE MARDI']),
     titresDe(enTete).join(' | '),
   )
   verifier(
     "ni le dimanche d'avant, ni la séance annulée du mardi",
-    !enTete.includes('dimanche 13 septembre') && titresDe(enTete).length === 3,
+    !enTete.includes('DIMANCHE 13 SEPTEMBRE') && titresDe(enTete).length === 3,
     titresDe(enTete).join(' | '),
   )
   /* Pas de rouge ni de jaune au-dessus de la case bleue : le bleu, lui, y
      est forcément — c'est le style de la case bleue elle-même. */
   verifier(
     'les barres de ces deux jours sont grises, pas aux couleurs de la semaine',
-    /background-color:#807d76;color:#ffffff;[^"]*">lundi 14 septembre</.test(enTete) &&
-      /background-color:#807d76;color:#ffffff;[^"]*">mardi 15 septembre</.test(enTete) &&
+    /background-color:#807d76;color:#ffffff;[^"]*">LUNDI 14 SEPTEMBRE</.test(enTete) &&
+      /background-color:#807d76;color:#ffffff;[^"]*">MARDI 15 SEPTEMBRE</.test(enTete) &&
       !/background-color:#(c22a1d|f7c600)/.test(enTete),
   )
   verifier(
     'leurs heures, titres et salles sont en gris, liens compris',
     !/color:#100f0c;padding:10px 12px/.test(enTete) &&
       (enTete.match(/color:#807d76;padding:10px 12px;/g) ?? []).length === 9 &&
-      enTete.includes('style="color:#807d76;text-decoration:none;">Le Mardi</a>'),
+      enTete.includes('style="color:#807d76;text-decoration:none;">LE MARDI</a>'),
   )
   verifier(
     'à la même taille que le programme de la semaine',
@@ -396,13 +396,13 @@ console.log('\nCe que le cinéma a demandé le 5 octobre 2026')
   )
   verifier(
     'le programme de la semaine garde ses couleurs et son encre',
-    /background-color:#c22a1d;color:#ffffff;[^"]*">mercredi 16 septembre</.test(html) &&
+    /background-color:#c22a1d;color:#ffffff;[^"]*">MERCREDI 16 SEPTEMBRE</.test(html) &&
       /color:#100f0c;padding:10px 12px;/.test(programmeDeLaSemaine(html)) &&
       !programmeDeLaSemaine(html).includes('#807d76'),
   )
   verifier(
     "un film qui ne joue que le lundi ou le mardi n'a pas de bloc parmi les films de la semaine",
-    !html.split('>Les films de la semaine<')[1].includes('>Le Mardi<'),
+    !html.split('>LES FILMS DE LA SEMAINE<')[1].includes('>LE MARDI<'),
   )
   const sansLundi = construire(
     [film({_id: 'mercredi', titre: 'Le Mercredi', seances: [S(DEBUT, '19:00', 'Salle 1')]})],
@@ -469,27 +469,27 @@ console.log('\nLa semaine de chaque film, demandée le 5 octobre 2026')
   )
   verifier(
     'sans date de sortie, la semaine se compte depuis la première séance chez nous',
-    lues[1] === '3ème semaine',
+    lues[1] === '3ÈME SEMAINE',
     lues.join(' | '),
   )
   verifier(
-    'elle s\'écrit « 3ème semaine », comme un film qui a sa date de sortie',
-    lues[0] === '3ème semaine',
+    'elle s\'écrit « 3ÈME SEMAINE », comme un film qui a sa date de sortie',
+    lues[0] === '3ÈME SEMAINE',
     lues.join(' | '),
   )
   verifier(
-    'la première semaine s\'écrit « 1ère semaine »',
-    lues[2] === '1ère semaine' && !html.includes('Première semaine'),
+    'la première semaine s\'écrit « 1ÈRE SEMAINE »',
+    lues[2] === '1ÈRE SEMAINE' && !html.includes('PREMIÈRE SEMAINE'),
     lues.join(' | '),
   )
   verifier(
     'quand la date de sortie existe, elle passe avant la première séance',
-    lues[3] === '2ème semaine',
+    lues[3] === '2ÈME SEMAINE',
     lues.join(' | '),
   )
   verifier(
     'en capitales, dans la case jaune : « 3ÈME SEMAINE »',
-    /text-transform:uppercase;display:inline-block;padding:3px 8px;background-color:#f7c600;color:#100f0c;">3ème semaine</.test(html),
+    /<td style="[^"]*text-transform:uppercase;padding:3px 8px;[^"]*background-color:#f7c600;color:#100f0c;">3ÈME SEMAINE<\/td>/.test(html),
   )
   verifier(
     'plus aucun « ᵉ » en exposant',
@@ -508,7 +508,7 @@ console.log('\nLes pastilles dans Outlook, signalées le 5 octobre 2026')
     S('2026-09-14', '19:00', 'Salle 1'), S(DEBUT, '19:00', 'Salle 1'),
     S('2026-09-18', '21:00', 'Salle 2'), S('2026-09-20', '17:00', 'Salle 1')]})
   const html = construire([unFilm], [])
-  const bloc = html.split('>Les films de la semaine<')[1]
+  const bloc = html.split('>LES FILMS DE LA SEMAINE<')[1]
   const pastilles = [...bloc.matchAll(/<table role="presentation" align="left"[\s\S]*?<\/table><\/td><\/tr><\/table>/g)].map((m) => m[0])
   verifier(
     'chaque séance est son propre petit tableau, aligné à gauche',
@@ -533,12 +533,33 @@ console.log('\nLes pastilles dans Outlook, signalées le 5 octobre 2026')
   )
   verifier(
     "« LUN 14 19:00 » ne se coupe jamais : ses espaces sont insécables",
-    pastilles[0].includes('>lun&nbsp;14&nbsp;&nbsp;<span style="font-weight:normal;">19:00</span>'),
+    pastilles[0].includes('>LUN&nbsp;14&nbsp;&nbsp;<span style="font-weight:normal;">19:00</span>'),
     pastilles[0],
   )
   verifier(
     'après les pastilles, la suite repart dessous',
     bloc.includes('</table><div style="clear:both;font-size:0;line-height:0;"></div></div>'),
+  )
+}
+
+console.log('\nLes deux règles qui évitent les pastilles fondues')
+{
+  /* Le nouvel Outlook fusionne deux liens voisins qui mènent au même
+     endroit ; Word, sous l'Outlook classique, fond les cadres de deux
+     textes en ligne qui se suivent. Les deux ont fait des pastilles des
+     séances un seul bloc, le 5 octobre 2026. On l'interdit partout. */
+  const html = construire()
+  const voisins = [...html.matchAll(/<a href="([^"]+)"[^>]*>(?:(?!<\/a>)[\s\S])*<\/a>(?:\s|&nbsp;)*<a href="\1"/g)]
+  verifier(
+    'jamais deux liens voisins vers la même adresse',
+    voisins.length === 0,
+    voisins.map((v) => v[1]).join(' | '),
+  )
+  const encadres = [...html.matchAll(/<(a|span|b|strong|em)\b[^>]*style="[^"]*border(?:-[a-z]+)?:\s*\d*[1-9]/g)]
+  verifier(
+    'aucun texte en ligne ne porte de cadre : les cadres sont sur des cases',
+    encadres.length === 0,
+    encadres.map((e) => e[0].slice(0, 80)).join(' | '),
   )
 }
 
@@ -569,15 +590,15 @@ console.log('\nCe que le cinéma a demandé le 15 septembre au soir')
   const html = construire()
   verifier(
     "le titre noir « Le programme » a disparu",
-    !html.includes('>Le programme<'),
+    !html.includes('>Le programme<') && !html.includes('>LE PROGRAMME<'),
   )
   verifier(
     "la case bleue dit tout, sur une case : « Programme du … au … (38) »",
-    html.includes('>Programme du mercredi 16 septembre au mardi 22 septembre 2026 (38)</td>'),
+    html.includes('>PROGRAMME DU MERCREDI 16 SEPTEMBRE AU MARDI 22 SEPTEMBRE 2026 (38)</td>'),
   )
   verifier(
     "elle est en majuscules",
-    /background-color:#2f49c2;[^"]*text-transform:uppercase;">Programme du/.test(html),
+    /background-color:#2f49c2;[^"]*text-transform:uppercase;">PROGRAMME DU/.test(html),
   )
   verifier(
     "le numéro de semaine ne fait plus une ligne à lui seul",
@@ -585,7 +606,7 @@ console.log('\nCe que le cinéma a demandé le 15 septembre au soir')
   )
   verifier(
     'les salles du programme sont en gras et en majuscules',
-    /font-weight:bold;text-transform:uppercase;white-space:nowrap;text-align:right;">Salle 1</.test(html),
+    /font-weight:bold;text-transform:uppercase;white-space:nowrap;text-align:right;">SALLE 1</.test(html),
   )
   verifier(
     'la case verte est en majuscules',
@@ -593,7 +614,7 @@ console.log('\nCe que le cinéma a demandé le 15 septembre au soir')
   )
   verifier(
     "l'adresse et la flèche ne se séparent jamais",
-    html.includes('<span style="white-space:nowrap;">zinema.ch &rarr;</span>'),
+    html.includes('<span style="white-space:nowrap;">ZINEMA.CH &rarr;</span>'),
   )
   verifier(
     'le Hall-Bar a son parrain, comme les deux salles',
@@ -611,7 +632,7 @@ console.log('\nCe qui ne doit jamais partir aux abonnés')
   const titres = titresDuProgramme(construire(annulee))
   verifier(
     "une séance annulée n'est pas annoncée",
-    !titres.includes('The North'),
+    !titres.includes('THE NORTH'),
     titres.join(' | '),
   )
 }
@@ -629,7 +650,7 @@ console.log('\nCe qui ne doit jamais partir aux abonnés')
   ]
   const html = construire(piege, [])
   verifier("un titre piégé n'ouvre aucune balise", !html.includes('<script>'))
-  verifier('il est échappé au lieu d\'être exécuté', html.includes('&lt;script&gt;'))
+  verifier('il est échappé au lieu d\'être exécuté', html.includes('&lt;SCRIPT&gt;') && !/<script/i.test(html))
   verifier('les guillemets et les esperluettes du synopsis passent', html.includes('&quot;guillemet&quot; &amp; une &lt;balise&gt;'))
 }
 {
@@ -638,7 +659,7 @@ console.log('\nCe qui ne doit jamais partir aux abonnés')
     film({_id: 'nu', titre: 'Film sans rien', seances: [S(DEBUT, '19:00', 'Salle 1')]}),
   ]
   const html = construire(nu, [])
-  verifier('un film sans affiche, sans durée ni synopsis se compose quand même', html.includes('Film sans rien'))
+  verifier('un film sans affiche, sans durée ni synopsis se compose quand même', html.includes('FILM SANS RIEN'))
   verifier("aucune image cassée n'est écrite", !html.includes('<img src="null'))
   verifier('sans date de sortie ni séance connue, aucune étiquette inventée', etiquettes(html).length === 0)
 }

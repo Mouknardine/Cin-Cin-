@@ -36,7 +36,7 @@ import type {DonneesNewsletter, ReglagesNewsletter} from './donnees'
 import {blocFilm, type ProjetSanity} from './film'
 import {
   BLANC, BLEU, ENCRE, LARGEUR, PAPIER, POLICE, SITE, TAILLE, VERT,
-  bandeau, cellule, echapper, tableau,
+  bandeau, capitales, cellule, echapper, tableau,
 } from './html'
 import {blocPratique} from './pratique'
 import {lignesDuProgramme} from './programme'
@@ -85,9 +85,12 @@ function entete(): string {
  */
 function bandeDeLaSemaine(donnees: DonneesNewsletter): string {
   return `<tr>${cellule(
-    `Programme du ${echapper(formatJourLong(donnees.debutSemaine))} au ` +
-      `${echapper(formatJourLongAvecAnnee(donnees.finSemaine))} ` +
-      `(${numeroDeSemaine(donnees.debutSemaine)})`,
+    echapper(
+      capitales(
+        `Programme du ${formatJourLong(donnees.debutSemaine)} au ` +
+          `${formatJourLongAvecAnnee(donnees.finSemaine)} (${numeroDeSemaine(donnees.debutSemaine)})`,
+      ),
+    ),
     `background-color:${BLEU};color:${BLANC};padding:10px 14px;` +
       `font-size:${TAILLE.titre};line-height:1.25;font-weight:bold;text-transform:uppercase;`,
   )}</tr>`
@@ -99,7 +102,7 @@ function appelAuSite(): string {
     /* « ZINEMA.CH &rarr; » ne se coupe pas : l'adresse et la flèche restent
        ensemble, sur la même ligne, quelle que soit la largeur. */
     `<a href="${SITE}/agenda/" style="display:block;color:${BLANC};text-decoration:none;">` +
-      `Acheter un billet sur <span style="white-space:nowrap;">zinema.ch &rarr;</span></a>`,
+      `ACHETER UN BILLET SUR <span style="white-space:nowrap;">ZINEMA.CH &rarr;</span></a>`,
     `background-color:${VERT};color:${BLANC};padding:13px 14px;font-size:${TAILLE.titre};` +
       `line-height:1.25;font-weight:bold;text-transform:uppercase;`,
   )}</tr>`

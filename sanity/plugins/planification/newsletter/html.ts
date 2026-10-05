@@ -58,6 +58,21 @@ export const SEPARATEUR = '&nbsp;· '
    les abonnés ailleurs. */
 export const SITE = 'https://www.zinema.ch'
 
+/**
+ * Les capitales, écrites dans le texte lui-même.
+ *
+ * Le CSS text-transform ne suffit pas : collée dans le nouvel Outlook,
+ * la newsletter passe par son éditeur (Roosterjs), qui retire cette
+ * propriété dans sa configuration par défaut — « 3ÈME SEMAINE » y
+ * redevenait « 3ème semaine », et tous les titres passaient en minuscules.
+ * Le texte est donc déjà en capitales quand il arrive ; text-transform
+ * reste dans les styles, sans plus rien changer. À appeler AVANT echapper :
+ * les entités (&nbsp;, &amp;) ne supportent pas les majuscules.
+ */
+export function capitales(texte: unknown): string {
+  return String(texte ?? '').toLocaleUpperCase('fr-CH')
+}
+
 /** Tout texte venu de Sanity passe par là avant d'entrer dans le HTML. */
 export function echapper(valeur: unknown): string {
   return String(valeur ?? '')
@@ -109,7 +124,7 @@ export function tableau(lignes: string, style = ''): string {
 /** Le bandeau noir qui ouvre une rubrique. Toutes les rubriques ont la même taille. */
 export function bandeau(titre: string): string {
   return `<tr>${cellule(
-    echapper(titre),
+    echapper(capitales(titre)),
     `background-color:${ENCRE};color:${BLANC};padding:10px 14px;font-size:${TAILLE.titre};` +
       `line-height:1.25;font-weight:bold;text-transform:uppercase;`,
   )}</tr>`

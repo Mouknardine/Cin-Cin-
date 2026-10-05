@@ -351,6 +351,8 @@ npm run studio:deploy   # Met en ligne https://cincin-zinema.sanity.studio
 npm run typecheck       # Vérifie les schémas
 npm test                # Vérifie l'ordre du programme, la newsletter
                         # et le tirage au sort d'une semaine
+npm run test:messageries  # Rejoue la newsletter dans les messageries
+                          # (il faut Chromium : npx playwright install chromium)
 ```
 
 `npm test` lit `verifications/ordre-des-seances.mjs`. L'ordre du programme
@@ -359,6 +361,15 @@ existe forcément en deux exemplaires — `sanity/salles.ts` pour le Studio,
 fichier passe chaque cas dans les deux copies et refuse qu'elles diffèrent.
 Le workflow **Vérifier** lance `npm run typecheck` et `npm test` à chaque
 envoi, sur toutes les branches.
+
+`npm run test:messageries` lit `verifications/messageries.mjs`. La newsletter
+ne s'affiche pas chez l'abonné comme dans l'aperçu du Studio : le cinéma la
+colle dans Outlook, qui la réécrit. Le fichier la rejoue donc de trois façons
+— telle quelle (Apple Mail, Gmail), collée dans Roosterjs, l'éditeur du
+nouvel Outlook, et privée de ce que Word ignore (l'Outlook classique) — à la
+largeur d'un téléphone et d'un ordinateur. Il vérifie que chaque séance garde
+sa pastille, que les capitales tiennent et que le texte arrive mot pour mot.
+Il tourne dans **Vérifier** et barre la route au déploiement du Studio.
 
 ### Le Studio se publie tout seul
 

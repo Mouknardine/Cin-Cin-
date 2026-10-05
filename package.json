@@ -7,7 +7,8 @@
     "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON verifications/ordre-des-seances.mjs && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON verifications/newsletter.mjs && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON verifications/impression.mjs && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON verifications/historique.mjs && node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON verifications/repartition.mjs",
     "studio:dev": "sanity dev",
     "studio:deploy": "sanity deploy",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:messageries": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON verifications/messageries.mjs"
   },
   "dependencies": {
     "@sanity/client": "^6.24.1",
@@ -20,6 +21,8 @@
   "devDependencies": {
     "@types/node": "^20.16.11",
     "esbuild": "^0.25.6",
+    "playwright": "1.56.1",
+    "roosterjs": "9.60.0",
     "typescript": "^5.6.3"
   }
 }

@@ -17,8 +17,8 @@
 import type {DonneesNewsletter, FilmNewsletter} from './donnees'
 import {etiquetteDuFilm, type Etiquette, type TonEtiquette} from './etiquette'
 import {
-  BLANC, BLEU, ENCRE, GRIS, JAUNE, PAPIER, ROUGE, SEPARATEUR, TAILLE,
-  cellule, echapper, lienDuFilm, paragraphes, tableau,
+  BLANC, BLEU, ENCRE, GRIS, JAUNE, PAPIER, POLICE, ROUGE, SEPARATEUR, TAILLE,
+  capitales, cellule, echapper, lienDuFilm, paragraphes, tableau,
 } from './html'
 import {urlImage} from './image'
 import {pastillesDesSeances, seancesAnnoncees} from './seances'
@@ -43,17 +43,23 @@ const STYLE_ETIQUETTE =
   `font-size:${TAILLE.petit};line-height:1.4;font-weight:bold;letter-spacing:0.08em;text-transform:uppercase;`
 
 /**
- * L'étiquette du film. À l'affiche, une pastille de couleur : « 3ème semaine ».
+ * L'étiquette du film. À l'affiche, une pastille de couleur : « 3ÈME SEMAINE ».
  * Prochainement, la date de sortie en simple texte, sans encadré.
+ *
+ * La pastille de couleur est une case de tableau, comme les pastilles des
+ * séances : Word, qui dessine l'Outlook classique, ignore la marge
+ * intérieure d'un texte en ligne, et collait le texte au bord du fond jaune.
  */
 function etiquette({texte, ton}: Etiquette, alAffiche: boolean): string {
+  const texteEnCapitales = echapper(capitales(texte))
   if (!alAffiche) {
-    return `<div style="${STYLE_ETIQUETTE}color:${ENCRE};padding-bottom:4px;">${echapper(texte)}</div>`
+    return `<div style="${STYLE_ETIQUETTE}color:${ENCRE};padding-bottom:4px;">${texteEnCapitales}</div>`
   }
   const {fond, encre} = COULEURS_ETIQUETTE[ton]
   return (
-    `<span style="${STYLE_ETIQUETTE}display:inline-block;padding:3px 8px;` +
-    `background-color:${fond};color:${encre};">${echapper(texte)}</span>`
+    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">` +
+    `<tr><td style="font-family:${POLICE};${STYLE_ETIQUETTE}padding:3px 8px;mso-line-height-rule:exactly;` +
+    `background-color:${fond};color:${encre};">${texteEnCapitales}</td></tr></table>`
   )
 }
 
@@ -83,9 +89,11 @@ function caseAffiche(film: FilmNewsletter, projet: ProjetSanity, lien: string | 
       `style="display:block;width:100%;max-width:${LARGEUR_AFFICHE}px;height:auto;border:0;">`
     : /* Sans affiche, une case d'encre plutôt qu'une image cassée. */
       `<div style="height:${HAUTEUR_SANS_AFFICHE}px;line-height:${HAUTEUR_SANS_AFFICHE}px;background-color:${ENCRE};` +
-      `text-align:center;color:#6d6a62;font-size:${TAILLE.petit};text-transform:uppercase;">Affiche</div>`
+      `text-align:center;color:#6d6a62;font-size:${TAILLE.petit};text-transform:uppercase;">AFFICHE</div>`
+  /* La couleur du lien est écrite : sans elle, le nouvel Outlook peint en
+     bleu de lien le mot « AFFICHE » d'un film qui n'en a pas encore. */
   return lien
-    ? `<a href="${lien}" style="display:block;line-height:0;text-decoration:none;">${image}</a>`
+    ? `<a href="${lien}" style="display:block;line-height:0;text-decoration:none;color:#6d6a62;">${image}</a>`
     : image
 }
 
@@ -102,8 +110,8 @@ export function blocFilm(
     `<div style="font-size:${TAILLE.titre};line-height:1.15;font-weight:bold;text-transform:uppercase;` +
     `padding-top:${etiquetteCalculee && alAffiche ? '8px' : '0'};">` +
     (lien
-      ? `<a href="${lien}" style="color:${ENCRE};text-decoration:none;">${echapper(film.titre)}</a>`
-      : echapper(film.titre)) +
+      ? `<a href="${lien}" style="color:${ENCRE};text-decoration:none;">${echapper(capitales(film.titre))}</a>`
+      : echapper(capitales(film.titre))) +
     `</div>`
   const entete =
     (etiquetteCalculee ? etiquette(etiquetteCalculee, alAffiche) : '') +
