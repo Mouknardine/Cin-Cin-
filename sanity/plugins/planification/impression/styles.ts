@@ -12,7 +12,7 @@
  */
 import {GRIS_CLAIR} from '../newsletter/html'
 import {
-  BLANC, ENCRE, ESPACE_SOUS_LOGO, GRIS_JOUR, HAUTEUR_A4, HAUTEUR_LOGO, HAUTEUR_TITRE, MARGE,
+  BLANC, ENCRE, ESPACE_SOUS_LOGO, GRIS_AVANT, GRIS_JOUR, HAUTEUR_A4, HAUTEUR_LOGO, HAUTEUR_TITRE, MARGE,
   type MesuresFeuille, TRAIT,
 } from './mesures'
 
@@ -75,12 +75,12 @@ export function stylesDeLaFeuille(mesures: MesuresFeuille): string {
     }
     tr.jour td {
       background: ${GRIS_JOUR};
-      color: ${BLANC};
+      color: ${ENCRE};
       font-weight: bold;
       text-transform: uppercase;
     }
     table.grise td { color: ${GRIS_CLAIR}; }
-    table.grise tr.jour td { background: ${GRIS_CLAIR}; color: ${BLANC}; }
+    table.grise tr.jour td { background: ${GRIS_AVANT}; color: ${GRIS_CLAIR}; }
     col.col-heure { width: 17mm; }
     col.col-salle { width: 30mm; }
     td.heure { font-variant-numeric: tabular-nums; }

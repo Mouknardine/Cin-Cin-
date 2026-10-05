@@ -36,9 +36,20 @@ const PLACE_DU_TABLEAU = HAUTEUR_A4 - 2 * MARGE - HAUTEUR_LOGO - ESPACE_SOUS_LOG
    qui compterait les traits autrement n'a donc jamais de quoi déborder. */
 const HAUTEUR_DU_TABLEAU = PLACE_DU_TABLEAU - RESERVE
 
-/* ---- Les couleurs : celles du site, en noir et blanc pour l'imprimante ---- */
+/* ---- Les couleurs : celles du site, en noir et blanc pour l'imprimante ----
+
+   Trois paliers, du plus fort au plus faible, qui se distinguent encore
+   une fois imprimés en noir et blanc :
+     - la semaine : noir, texte blanc ;
+     - les jours : gris clair, texte noir ;
+     - le lundi et le mardi qui précèdent : gris plus clair, texte gris.
+   Les jours étaient en gris presque noir : sous le bandeau de la semaine,
+   le mercredi faisait avec lui « une grosse barre noire au milieu du
+   programme » (demande du cinéma, 5 octobre 2026). */
 export const ENCRE = '#100f0c'
-export const GRIS_JOUR = '#3d3b37'
+export const GRIS_JOUR = '#cfcdc8'
+/** Le bandeau d'un jour du lundi-mardi en grisé : plus pâle que ceux de la semaine. */
+export const GRIS_AVANT = '#ebeae6'
 export const BLANC = '#ffffff'
 
 /** Les mesures d'une feuille, en millimètres. */

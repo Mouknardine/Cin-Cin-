@@ -173,7 +173,7 @@ const avant = [LUNDI, LUNDI, MARDI, MARDI].map((date, i) => ({
     'Ils sont en grisé : leur tableau, et seulement le leur',
     /<table class="grise"/.test(dessus) && !/class="grise"/.test(dessous) &&
       /table\.grise td \{ color: #807d76; \}/.test(feuille) &&
-      /table\.grise tr\.jour td \{ background: #807d76; color: #ffffff; \}/.test(feuille),
+      /table\.grise tr\.jour td \{ background: #ebeae6; color: #807d76; \}/.test(feuille),
   )
   verifier(
     'À la même taille de caractère que le reste',
@@ -203,6 +203,50 @@ for (const parJour of [4, 5, 6]) {
 }
 /* 42 séances font 49 lignes ; le lundi-mardi en ajoute 6 (55, la limite
    d'une page), ou 10 quand il est chargé (59, une de trop). */
+/* ---- Le bandeau de la semaine et les jours, demandés le 5 octobre 2026 ---- */
+/* « Ça serait bien de mieux distinguer graphiquement les deux couleurs du
+   programme et des jours qui suivent : là ça fait comme une grosse barre
+   noire au milieu du programme. » Les contrastes sont mesurés comme pour
+   l'écran (WCAG) : une imprimante noir et blanc ne garde que la clarté. */
+{
+  const feuille = construireFeuille(
+    {debutSemaine: DEBUT, finSemaine: FIN, programme: semaine(4), lundiEtMardi: avant},
+    'logo.png',
+  )
+  const fond = (regle) => new RegExp(`${regle} \\{[^}]*background: (#[0-9a-f]{6});`).exec(feuille)?.[1]
+  const semaineFond = fond('\\.titre-semaine')
+  const jourFond = fond('tr\\.jour td')
+  const avantFond = /table\.grise tr\.jour td \{ background: (#[0-9a-f]{6});/.exec(feuille)?.[1]
+  const clarte = (hex) => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+      .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+  }
+  const contraste = (a, b) => {
+    const [x, y] = [clarte(a), clarte(b)].sort((m, n) => n - m)
+    return (x + 0.05) / (y + 0.05)
+  }
+  verifier(
+    'Le bandeau de la semaine et les jours ne font plus une seule barre noire',
+    semaineFond && jourFond && contraste(semaineFond, jourFond) >= 7,
+    `${semaineFond} / ${jourFond} : ${semaineFond && jourFond ? contraste(semaineFond, jourFond).toFixed(1) : '?'}:1`,
+  )
+  verifier(
+    'Les jours se détachent encore des lignes des séances, sur fond blanc',
+    jourFond && contraste(jourFond, '#ffffff') >= 1.5,
+    jourFond,
+  )
+  verifier(
+    'Le nom des jours se lit en noir sur leur gris',
+    /tr\.jour td \{[^}]*color: #100f0c;/.test(feuille),
+  )
+  verifier(
+    'Le lundi et le mardi restent plus pâles que les jours de la semaine',
+    avantFond && jourFond && clarte(avantFond) > clarte(jourFond),
+    `${avantFond} / ${jourFond}`,
+  )
+}
+
 verifier(
   'Le lundi et le mardi comptent dans le calcul de la page',
   tientSurUnePage(semaine(6)) && tientSurUnePage(semaine(6), avant) &&
