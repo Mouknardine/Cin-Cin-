@@ -37,7 +37,9 @@ async function chargerModule(chemin) {
 const {construireNewsletter, objetDeLaNewsletter} = await chargerModule(
   '../sanity/plugins/planification/newsletter/gabarit.ts',
 )
-const {programmeEntre} = await chargerModule('../sanity/plugins/planification/newsletter/donnees.ts')
+const {chargerNewsletter, programmeEntre} = await chargerModule(
+  '../sanity/plugins/planification/newsletter/donnees.ts',
+)
 
 /* ------------------------------------------------------------------
    Le programme réellement envoyé par le cinéma, semaine 38 de 2026.
@@ -405,6 +407,33 @@ console.log('\nCe que le cinéma a demandé le 5 octobre 2026')
   const sansLundi = construire(
     [film({_id: 'mercredi', titre: 'Le Mercredi', seances: [S(DEBUT, '19:00', 'Salle 1')]})],
     [],
+  )
+  /* Le vrai chargement du Studio, de la requête au tri : seul le client
+     Sanity est remplacé par un faux, qui rend les films tels quels. Le
+     Studio passe le mercredi de la semaine affichée. */
+  let fenetre = null
+  const fauxClient = {
+    fetch: async (_requete, parametres) => {
+      fenetre = parametres
+      return {films: lundiMardi, reglages: REGLAGES, iban: null}
+    },
+  }
+  const chargees = await chargerNewsletter(fauxClient, DEBUT)
+  verifier(
+    'la requête lit assez loin en arrière pour attraper le lundi de l\'envoi',
+    fenetre.fenetreDebut <= '2026-09-14',
+    fenetre.fenetreDebut,
+  )
+  verifier(
+    "le chargement du Studio retient le lundi 14 et le mardi 15, rien d'autre",
+    JSON.stringify(chargees.lundiEtMardi.map((x) => `${x.date} ${x.heure} ${x.titre}`)) ===
+      JSON.stringify(['2026-09-14 19:00 Le Lundi', '2026-09-14 21:00 Le Lundi', '2026-09-15 19:00 Le Mardi']),
+    chargees.lundiEtMardi.map((x) => `${x.date} ${x.heure} ${x.titre}`).join(' | '),
+  )
+  verifier(
+    'et le programme de la semaine ne les contient pas',
+    chargees.programme.every((x) => x.date >= DEBUT && x.date <= FIN) &&
+      chargees.filmsDeLaSemaine.map((f) => f._id).join() === 'lundi',
   )
   verifier(
     "sans séance le lundi ni le mardi, rien ne s'ajoute au-dessus de la case bleue",
