@@ -293,7 +293,7 @@ console.log('\nCe que le cinéma a demandé le 15 septembre 2026')
   )
   verifier(
     "les pastilles d'un film reprennent le lundi de l'envoi",
-    html.includes('lun 14&nbsp;'),
+    html.includes('lun&nbsp;14&nbsp;'),
   )
   const avecPassee = construire(
     [film({_id: 'passe', titre: 'Déjà passé', synopsis: 'Un synopsis témoin.',
@@ -303,12 +303,12 @@ console.log('\nCe que le cinéma a demandé le 15 septembre 2026')
   )
   verifier(
     "une séance déjà passée le lundi de l'envoi n'est plus annoncée",
-    !avecPassee.includes('sam 12&nbsp;') && avecPassee.includes('mar 15&nbsp;') &&
+    !avecPassee.includes('sam&nbsp;12&nbsp;') && avecPassee.includes('mar&nbsp;15&nbsp;') &&
       !/Semaine dernière/.test(avecPassee),
   )
   verifier(
     "le synopsis passe sous l'affiche et les séances, en pleine largeur",
-    /mar 15&nbsp;[\s\S]*?<\/tr><tr><td colspan="2"[^>]*><p [^>]*>Un synopsis témoin/.test(avecPassee),
+    /mar&nbsp;15&nbsp;[\s\S]*?<\/tr><tr><td colspan="2"[^>]*><p [^>]*>Un synopsis témoin/.test(avecPassee),
   )
   verifier(
     "aucun fond d'encre derrière l'affiche : si le texte la dépasse, c'est du papier qui continue",
@@ -494,6 +494,51 @@ console.log('\nLa semaine de chaque film, demandée le 5 octobre 2026')
   verifier(
     'plus aucun « ᵉ » en exposant',
     !html.includes('ᵉ'),
+  )
+}
+
+console.log('\nLes pastilles dans Outlook, signalées le 5 octobre 2026')
+{
+  /* « La newsletter que je viens d'envoyer avait un problème avec les
+     cellules de pré-achat des différents films : c'est devenu un seul bloc
+     et on ne voit plus quel film on achète ! » Outlook lit le HTML avec
+     Word, qui ignore inline-block et les marges : des liens encadrés et
+     collés s'y fondaient en un seul cadre. */
+  const unFilm = film({_id: 'pastilles', titre: 'Pastilles', seances: [
+    S('2026-09-14', '19:00', 'Salle 1'), S(DEBUT, '19:00', 'Salle 1'),
+    S('2026-09-18', '21:00', 'Salle 2'), S('2026-09-20', '17:00', 'Salle 1')]})
+  const html = construire([unFilm], [])
+  const bloc = html.split('>Les films de la semaine<')[1]
+  const pastilles = [...bloc.matchAll(/<table role="presentation" align="left"[\s\S]*?<\/table><\/td><\/tr><\/table>/g)].map((m) => m[0])
+  verifier(
+    'chaque séance est son propre petit tableau, aligné à gauche',
+    pastilles.length === 4,
+    `${pastilles.length} trouvées`,
+  )
+  verifier(
+    "plus aucune pastille ne compte sur inline-block ni sur une marge, que Word ignore",
+    pastilles.every((p) => !/inline-block|margin:/.test(p)),
+  )
+  verifier(
+    "l'écart entre deux pastilles est une marge intérieure de case, que Word respecte",
+    pastilles.every((p) => p.includes('<tr><td style="padding:0 6px 6px 0;">')),
+  )
+  verifier(
+    'le cadre est sur une case, avec sa marge intérieure pour Word',
+    pastilles.every((p) => /<td nowrap style="border:3px solid #100f0c;padding:0;mso-padding-alt:5px 8px;/.test(p)),
+  )
+  verifier(
+    'toute la pastille se clique, et mène à la fiche du film',
+    pastilles.every((p) => /<a href="https:\/\/www\.zinema\.ch\/film\/\?s=pastilles" style="display:block;padding:5px 8px;/.test(p)),
+  )
+  verifier(
+    "« LUN 14 19:00 » ne se coupe jamais : ses espaces sont insécables",
+    pastilles[0].includes('>lun&nbsp;14&nbsp;&nbsp;<span style="font-weight:normal;">19:00</span>'),
+    pastilles[0],
+  )
+  verifier(
+    'après les pastilles, la suite repart dessous',
+    bloc.includes('</table><div style="clear:both;font-size:0;line-height:0;"></div></div>'),
   )
 }
 
