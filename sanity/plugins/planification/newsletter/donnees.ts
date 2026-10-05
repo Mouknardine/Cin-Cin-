@@ -51,6 +51,9 @@ export interface FilmNewsletter {
   genres: string[] | null
   synopsis: string | null
   dateDeSortie: string | null
+  /** Sa toute première séance chez nous, annulées exclues, à n'importe quelle
+      date : c'est d'elle que partent ses semaines quand la date de sortie manque. */
+  premiereProjection: string | null
   statut: string | null
   bandeAnnonce: string | null
   presse: string | null
@@ -100,6 +103,8 @@ const CHAMPS_FILM = `
   genres,
   synopsis,
   "dateDeSortie": releaseDate,
+  "premiereProjection": *[_type == "screening" && film._ref == ^._id && status != "annule"]
+    | order(date asc)[0].date,
   "statut": status,
   "bandeAnnonce": trailerUrl,
   "presse": presseUrl,

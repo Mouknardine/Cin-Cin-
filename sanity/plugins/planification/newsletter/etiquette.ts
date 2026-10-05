@@ -1,6 +1,7 @@
 /**
- * L'étiquette d'un film dans la newsletter : « 2ᵉ semaine », « Reprise »,
- * « Sortie le mercredi 30 septembre ».
+ * L'étiquette d'un film dans la newsletter : « 3ème semaine », « Reprise »,
+ * « Sortie le mercredi 30 septembre ». La case la passe en capitales :
+ * « 3ÈME SEMAINE », comme le cinéma l'écrit (demande du 5 octobre 2026).
  *
  * ---------------------------------------------------------------------------
  * ELLE SE CALCULE, ELLE NE SE SAISIT PAS.
@@ -13,6 +14,14 @@
  * Elle se déduit donc de deux choses déjà présentes dans Sanity : la date de
  * sortie du film, et ses séances. Il n'y a aucun champ à remplir en plus, et
  * rien ne peut se démentir.
+ *
+ * TOUT FILM À L'AFFICHE A SA SEMAINE.
+ *
+ * La date de sortie ne se saisit que pour un film « Prochainement » : un film
+ * créé directement « À l'affiche » n'en a jamais, et restait sans étiquette
+ * — certains films avaient leur semaine, d'autres non. Sans date de sortie,
+ * la semaine se compte donc depuis sa première séance chez nous : c'est ce
+ * que la fiche appelle « le jour où le film arrive chez nous ».
  * ---------------------------------------------------------------------------
  */
 import {finDeSemaine, formatJourLong, semainesEntre} from '../utils/dates'
@@ -23,7 +32,7 @@ import type {FilmNewsletter} from './donnees'
  * continuation » : c'est une reprise.
  *
  * Deux mois : au Zinéma, un film tient l'affiche quelques semaines. Annoncer
- * une « 34ᵉ semaine » serait exact et absurde — personne n'a suivi le film
+ * une « 34ème semaine » serait exact et absurde — personne n'a suivi le film
  * sans interruption depuis huit mois. Passé ce seuil, l'information juste
  * n'est plus le décompte, c'est qu'il revient.
  */
@@ -46,8 +55,7 @@ function joueDansLaSemaine(film: FilmNewsletter, debut: string, fin: string): bo
 
 /**
  * L'étiquette du film pour la semaine donnée, ou null s'il n'y a rien à dire
- * — un film à l'affiche dont la date de sortie n'a pas été renseignée
- * s'annonce sans étiquette plutôt qu'avec un décompte inventé.
+ * — ce qui n'arrive plus à un film à l'affiche : il a forcément une séance.
  */
 export function etiquetteDuFilm(film: FilmNewsletter, debutSemaine: string): Etiquette | null {
   const fin = finDeSemaine(debutSemaine)
@@ -71,12 +79,14 @@ export function etiquetteDuFilm(film: FilmNewsletter, debutSemaine: string): Eti
   }
 
   /* ---- Les films à l'affiche cette semaine ---- */
-  if (!sortie) return null
-  if (sortieAVenir) return {texte: `Sortie le ${formatJourLong(sortie)}`, ton: 'avenir'}
+  if (sortie && sortieAVenir) return {texte: `Sortie le ${formatJourLong(sortie)}`, ton: 'avenir'}
 
-  /* La semaine de la sortie compte pour la première. */
-  const semaines = semainesEntre(sortie, debutSemaine) + 1
-  if (semaines <= 1) return {texte: 'Première semaine', ton: 'affiche'}
+  const arrivee = sortie ?? film.premiereProjection
+  if (!arrivee) return null
+
+  /* La semaine de l'arrivée compte pour la première. */
+  const semaines = semainesEntre(arrivee, debutSemaine) + 1
+  if (semaines <= 1) return {texte: '1ère semaine', ton: 'affiche'}
   if (semaines > SEUIL_REPRISE_SEMAINES) return {texte: 'Reprise', ton: 'reprise'}
-  return {texte: `${semaines}ᵉ semaine`, ton: 'affiche'}
+  return {texte: `${semaines}ème semaine`, ton: 'affiche'}
 }

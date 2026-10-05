@@ -43,7 +43,7 @@ const STYLE_ETIQUETTE =
   `font-size:${TAILLE.petit};line-height:1.4;font-weight:bold;letter-spacing:0.08em;text-transform:uppercase;`
 
 /**
- * L'étiquette du film. À l'affiche, une pastille de couleur : « 2ᵉ semaine ».
+ * L'étiquette du film. À l'affiche, une pastille de couleur : « 3ème semaine ».
  * Prochainement, la date de sortie en simple texte, sans encadré.
  */
 function etiquette({texte, ton}: Etiquette, alAffiche: boolean): string {

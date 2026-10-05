@@ -51,7 +51,7 @@ const S = (date, heure, salle, statut = 'disponible') => ({date, heure, salle, s
 const film = (o) => ({
   typeDeFilm: null, genres: [], realisation: null, pays: null, annee: null, duree: null,
   version: null, sousTitres: null, age: null, synopsis: null, dateDeSortie: null,
-  statut: 'a-laffiche', bandeAnnonce: null, presse: null, afficheRef: null,
+  premiereProjection: null, statut: 'a-laffiche', bandeAnnonce: null, presse: null, afficheRef: null,
   seances: [], slug: o._id, ...o,
 })
 
@@ -213,7 +213,7 @@ console.log('\nLes étiquettes, calculées et non saisies')
   const lues = etiquettes(construire())
   verifier(
     'six films en sont à leur deuxième semaine',
-    lues.filter((e) => e === '2ᵉ semaine').length === 6,
+    lues.filter((e) => e === '2ème semaine').length === 6,
     lues.join(' | '),
   )
   verifier(
@@ -441,6 +441,62 @@ console.log('\nCe que le cinéma a demandé le 5 octobre 2026')
   )
 }
 
+console.log('\nLa semaine de chaque film, demandée le 5 octobre 2026')
+{
+  /* « La semaine d'exploitation est indiquée dans une case jaune pour
+     certains films mais pas d'autres : ça serait bien de l'indiquer pour
+     chaque film, de la manière suivante : 3ÈME SEMAINE. »
+
+     La date de sortie ne se saisit que pour un film « Prochainement » : un
+     film créé directement « À l'affiche » n'en a pas. Il se compte alors
+     depuis sa première séance chez nous. */
+  const melange = [
+    film({_id: 'avec-date', titre: 'Avec date', dateDeSortie: '2026-09-02',
+      seances: [S(DEBUT, '19:00', 'Salle 1')]}),
+    film({_id: 'sans-date', titre: 'Sans date', premiereProjection: '2026-09-02',
+      seances: [S(DEBUT, '21:00', 'Salle 1')]}),
+    film({_id: 'nouveau', titre: 'Nouveau', premiereProjection: '2026-09-17',
+      seances: [S('2026-09-17', '19:00', 'Salle 2')]}),
+    film({_id: 'avant-premiere', titre: 'Avant-première', dateDeSortie: '2026-09-09',
+      premiereProjection: '2026-08-26', seances: [S('2026-09-18', '19:00', 'Salle 2')]}),
+  ]
+  const html = construire(melange, [])
+  const lues = etiquettes(html)
+  verifier(
+    'chaque film de la semaine a son étiquette',
+    lues.length === melange.length,
+    lues.join(' | '),
+  )
+  verifier(
+    'sans date de sortie, la semaine se compte depuis la première séance chez nous',
+    lues[1] === '3ème semaine',
+    lues.join(' | '),
+  )
+  verifier(
+    'elle s\'écrit « 3ème semaine », comme un film qui a sa date de sortie',
+    lues[0] === '3ème semaine',
+    lues.join(' | '),
+  )
+  verifier(
+    'la première semaine s\'écrit « 1ère semaine »',
+    lues[2] === '1ère semaine' && !html.includes('Première semaine'),
+    lues.join(' | '),
+  )
+  verifier(
+    'quand la date de sortie existe, elle passe avant la première séance',
+    lues[3] === '2ème semaine',
+    lues.join(' | '),
+  )
+  verifier(
+    'en capitales, dans la case jaune : « 3ÈME SEMAINE »',
+    /text-transform:uppercase;display:inline-block;padding:3px 8px;background-color:#f7c600;color:#100f0c;">3ème semaine</.test(html),
+  )
+  verifier(
+    'plus aucun « ᵉ » en exposant',
+    !html.includes('ᵉ'),
+  )
+}
+
 console.log("\nL'en-tête")
 {
   const html = construire()
@@ -539,7 +595,7 @@ console.log('\nCe qui ne doit jamais partir aux abonnés')
   const html = construire(nu, [])
   verifier('un film sans affiche, sans durée ni synopsis se compose quand même', html.includes('Film sans rien'))
   verifier("aucune image cassée n'est écrite", !html.includes('<img src="null'))
-  verifier('sans date de sortie, aucune étiquette inventée', etiquettes(html).length === 0)
+  verifier('sans date de sortie ni séance connue, aucune étiquette inventée', etiquettes(html).length === 0)
 }
 {
   const html = construire()
