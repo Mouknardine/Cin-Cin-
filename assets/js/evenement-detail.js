@@ -25,8 +25,8 @@
   var R = global.ZinemaRender;
   var C = global.ZinemaCouleurs;
 
-  /* Le type d'un événement : le nom choisi dans le Studio (fiches
-     « Type d'événement », que le cinéma nomme lui-même) ; sinon,
+  /* Le type d'un événement : celui que le cinéma écrit dans le
+     Studio (champ « Type d'événement ») ; sinon,
      pour les événements saisis avant, l'ancien type de la liste
      fermée ; sinon rien. Même règle que sanity/typesEvenement.ts. */
   var anciensTypes = {

@@ -42,28 +42,29 @@ export const evenement = defineType({
         "L'image qui représente l'événement sur la page Événements, et sur l'accueil pendant toute sa durée. Format libre ; une image large (paysage) rend le mieux. Sans image, l'événement s'affiche en texte seul — c'est très bien aussi.",
     }),
 
-    /* Le type se choisit parmi les fiches « Type d'événement », que
-       le cinéma crée et renomme lui-même. Pas obligatoire : sans type,
-       le site n'affiche simplement pas de libellé. */
+    /* Le type s'écrit en toutes lettres, comme le cinéma veut le voir
+       sur le site : un simple champ texte, rien à créer ailleurs
+       (demande du cinéma, 7 octobre 2026). Pas obligatoire : sans
+       type, le site n'affiche simplement pas de libellé. */
     defineField({
       name: "typeEvenement",
       title: "Type d'événement",
-      type: "reference",
-      to: [{ type: "typeEvenement" }],
+      type: "string",
       description:
-        "Choisissez un type existant, ou créez-en un nouveau avec « Créer ». Son nom s'affiche sur le site.",
+        "Écrivez-le tel qu'il doit s'afficher sur le site : Festival, Première, Soirée, Brunch… Laissez vide pour ne rien afficher.",
+      validation: (Rule) => Rule.max(60).warning("Un type court se lit mieux (60 signes au plus)."),
     }),
     /* L'ancienne liste fermée, gardée en lecture seule pour les
        événements saisis avant les types libres : le site affiche ce
-       type tant qu'aucun nouveau n'est choisi au-dessus. Invisible
-       sur les nouveaux événements. */
+       type tant qu'aucun n'est écrit au-dessus. Invisible sur les
+       nouveaux événements. */
     defineField({
       name: "category",
       title: "Ancien type (avant les types libres)",
       type: "string",
       readOnly: true,
       description:
-        "Affiché sur le site tant qu'aucun « Type d'événement » n'est choisi ci-dessus. Il suffit d'en choisir un pour le remplacer.",
+        "Affiché sur le site tant que le champ « Type d'événement » ci-dessus est vide. Il suffit d'y écrire un type pour le remplacer.",
       hidden: ({ document }) => !document?.category || Boolean(document?.typeEvenement),
       options: {
         list: [
@@ -171,7 +172,7 @@ export const evenement = defineType({
     select: {
       title: "title",
       category: "category",
-      typeNom: "typeEvenement.nom",
+      typeNom: "typeEvenement",
       debut: "dateDebut",
       fin: "dateFin",
       media: "image",

@@ -2,12 +2,12 @@
    Le nom du type d'un événement, tel que le Studio l'affiche dans
    la liste des événements.
 
-   Le cinéma nomme lui-même ses types (fiches « Type d'événement »).
+   Le cinéma écrit lui-même le type (champ « Type d'événement »).
    Avant cela, le type se choisissait dans une liste fermée : les
    événements saisis à cette époque gardent ce choix tant que
    personne ne leur a donné un nouveau type. D'où l'ordre :
 
-     1. le nom du type choisi ;
+     1. le type écrit ;
      2. sinon, l'ancien type, avec son ancien libellé ;
      3. sinon, rien — jamais « undefined ».
 

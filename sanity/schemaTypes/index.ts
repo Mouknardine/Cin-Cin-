@@ -3,7 +3,6 @@ import { imageZinema } from "./objects/imageZinema";
 import { film } from "./film";
 import { screening } from "./screening";
 import { evenement } from "./evenement";
-import { typeEvenement } from "./typeEvenement";
 import { histoire } from "./histoire";
 import { siteSettings } from "./siteSettings";
 import { abonnements } from "./abonnements";
@@ -18,7 +17,6 @@ export const schemaTypes = [
   film,
   screening,
   evenement,
-  typeEvenement,
 
   // Documents uniques (une seule fiche pour tout le site)
   siteSettings,
