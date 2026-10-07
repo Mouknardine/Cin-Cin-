@@ -73,7 +73,7 @@ console.log('\nLa feuille A4 du programme')
    événement au Hall-Bar ; six par jour laisse de la marge. */
 for (const parJour of [1, 2, 4, 5, 6]) {
   const programme = semaine(parJour)
-  const lignes = programme.length + JOURS.length
+  const lignes = 1 + programme.length + JOURS.length
   const mesures = mesuresDeLaFeuille(lignes)
   verifier(
     `${programme.length} séances tiennent sur une page`,
@@ -183,16 +183,40 @@ const avant = [LUNDI, LUNDI, MARDI, MARDI].map((date, i) => ({
   /* Les deux tableaux se partagent la hauteur au prorata de leurs lignes :
      6 lignes grisées (2 jours, 4 séances), 35 pour la semaine. */
   const hauteurs = [...feuille.matchAll(/<table[^>]*style="height: ([\d.]+)mm;"/g)].map((m) => Number(m[1]))
-  const mesures = mesuresDeLaFeuille(6 + 35)
+  const mesures = mesuresDeLaFeuille(6 + 1 + 35)
   verifier(
     'Les lignes grisées ont la même hauteur que celles de la semaine',
     hauteurs.length === 2 && Math.abs(hauteurs[0] / 6 - hauteurs[1] / 35) < 0.02,
     hauteurs.join(' | '),
   )
   verifier(
-    'Les deux tableaux ensemble ne dépassent pas la place du tableau',
-    hauteurs[0] + hauteurs[1] <= mesures.hauteurTableau,
-    `${hauteurs[0] + hauteurs[1]} > ${mesures.hauteurTableau}`,
+    'Les deux tableaux et le bandeau ensemble ne dépassent pas la place du tableau',
+    hauteurs[0] + hauteurs[1] + mesures.hauteurBandeau <= mesures.hauteurTableau,
+    `${hauteurs[0] + hauteurs[1] + mesures.hauteurBandeau} > ${mesures.hauteurTableau}`,
+  )
+  /* « Si tu arrives à rétrécir cette barre mahouse, c'est bien : qu'elle
+     ait la même taille que les autres » (demande du cinéma, 7 octobre 2026). */
+  verifier(
+    'Le bandeau de la semaine a la hauteur d’une ligne, pas plus',
+    /\.titre-semaine \{[^}]*height: ([\d.]+)mm;/.test(feuille) &&
+      Math.abs(Number(/\.titre-semaine \{[^}]*height: ([\d.]+)mm;/.exec(feuille)[1]) - hauteurs[1] / 35) < 0.02,
+    `${/\.titre-semaine \{[^}]*height: ([\d.]+)mm;/.exec(feuille)?.[1]} / ${hauteurs[1] / 35}`,
+  )
+}
+/* L'hiver : 15 h, 17 h, 19 h et 21 h dans les deux salles le samedi et le
+   dimanche, deux vagues les autres jours, et le lundi-mardi au-dessus. */
+{
+  const hiver = JOURS.flatMap((date) => {
+    const weekEnd = date === '2026-10-03' || date === '2026-10-04'
+    return (weekEnd ? ['15:00', '17:00', '19:00', '21:00'] : ['19:00', '21:00']).flatMap((heure) =>
+      ['Salle 1', 'Hall-Bar'].map((salle) => ({
+        date, heure, salle, statut: 'disponible', filmId: 'f', titre: 'Un film d’hiver', slug: null,
+      })),
+    )
+  })
+  verifier(
+    `Une semaine d'hiver (${hiver.length} séances) et le lundi-mardi tiennent sur une page`,
+    tientSurUnePage(hiver, avant),
   )
 }
 for (const parJour of [4, 5, 6]) {

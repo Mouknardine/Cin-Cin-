@@ -250,7 +250,7 @@
     '"film":film->{_id,"slug":coalesce(slug.current,_id),title,director,duration,language,subtitles,poster}';
 
   var CHAMPS_EVENEMENT =
-    '_id,title,"slug":coalesce(slug.current,_id),category,dateDebut,dateFin,image,excerpt,body,' +
+    '_id,title,"slug":coalesce(slug.current,_id),"typeNom":typeEvenement->nom,category,dateDebut,dateFin,image,excerpt,body,' +
     'linkUrl,linkLabel,"films":films[]->{_id,"slug":coalesce(slug.current,_id),title,poster}';
 
   var CHAMPS_REGLAGES =

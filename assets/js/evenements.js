@@ -1,29 +1,27 @@
 /* ============================================================
    Zinéma — page Événements, en tableau « Mondrian » comme le
    reste du site : des cases blanches séparées par des traits
-   noirs, dont la largeur suit la longueur du texte, et dont la
-   couleur est tirée au hasard à chaque affichage.
+   noirs, dont la couleur est tirée au hasard à chaque affichage.
 
-   L'événement épinglé ouvre la page en grand :
+   Chaque événement n'y est montré QUE par son affiche :
 
-     ┌──────────┬───────────────────────────────────┐
-     │ VISUEL   │ LE TITRE DE L'ÉVÉNEMENT           │
-     ├──────────┴──────────┬────────────┬───────────┤
-     │ ÉVÉNEMENT · DATE    │ Le texte…  │ EN SAVOIR │
-     └─────────────────────┴────────────┴───────────┘
+     ┌──────────────┬──────────────┬──────────────┐
+     │   AFFICHE    │   AFFICHE    │   AFFICHE    │
+     └──────────────┴──────────────┴──────────────┘
 
-   Les événements suivants tiennent chacun sur une bande :
-   période & type, titre, texte, lien.
+   Un clic sur l'affiche ouvre l'événement en détail (type, date,
+   texte, films, lien) — evenements/?e=…, voir evenement-detail.js.
+   Quatre cases par événement, comme avant, se lisaient comme un
+   même bloc avec les films annoncés juste dessous.
 
    La page n'affiche que les événements en cours ou à venir : ceux
    dont le dernier jour est passé s'archivent tout seuls dans le
    Studio, sans rien décocher.
 
-   Sous les événements saisis à la main viennent les films que la
-   page annonce d'elle-même — ceux qui sortent prochainement, et
-   ceux qui passent en présence de quelqu'un. Ils sont construits
-   à partir des fiches de film, sans rien à ressaisir : voir
-   evenements-films.js.
+   Sous les affiches viennent les films que la page annonce
+   d'elle-même — ceux qui sortent prochainement, et ceux qui passent
+   en présence de quelqu'un. Ils sont construits à partir des fiches
+   de film, sans rien à ressaisir : voir evenements-films.js.
    ============================================================ */
 (function () {
   "use strict";
@@ -32,104 +30,32 @@
   var R = window.ZinemaRender;
   var C = window.ZinemaCouleurs;
   var Films = window.ZinemaEvenementsFilms;
-
-  var categoryLabels = {
-    cycle: "Cycle",
-    "cine-club": "Ciné-club",
-    brunch: "Brunch",
-    "seance-speciale": "Séance spéciale",
-    festival: "Festival",
-    info: "Information",
-  };
-
-  function categorie(a) {
-    return categoryLabels[a.category] || "Événement";
-  }
-
-  /* « du 3 au 19 juillet » si l'événement dure, « 3 juillet » sinon. */
-  function periode(a) {
-    if (a.dateFin && a.dateFin !== a.dateDebut) {
-      return "du " + R.formatLongDate(a.dateDebut) + " au " + R.formatLongDate(a.dateFin);
-    }
-    return R.formatLongDate(a.dateDebut);
-  }
+  var Detail = window.ZinemaEvenementDetail;
+  var D = window.ZinemaData;
 
   function bande(classe, contenu) {
     return '<div class="m-bande ' + classe + '">' + contenu + "</div>";
   }
 
-  /* La case date & catégorie, commune à toutes les annonces. */
-  function quandHTML(a) {
+  /* Une affiche, et rien d'autre : c'est elle le lien. Le type et la
+     date ne s'affichent pas, mais sont lus par les lecteurs d'écran
+     avec le titre — le lien dit où il mène. Sans visuel déposé dans
+     le Studio, le titre prend la place de l'image, sur un fond de
+     couleur. La première affiche se charge tout de suite : c'est
+     elle qu'on voit en arrivant. */
+  function vignetteHTML(a, index) {
+    var racine = document.body.dataset.root || "";
+    var src = R.sanityImageUrl(a.image, 900);
+    var contenu = src
+      ? '<img src="' + R.escapeHtml(src) + '" alt="' + R.escapeHtml(a.title) +
+        '" loading="' + (index === 0 ? "eager" : "lazy") + '">'
+      : '<span class="m-vignette__titre">' + R.escapeHtml(a.title) + "</span>";
     return (
-      '<div class="m-cell m-annonce__quand m-cell--ligne ' + C.classe() + '">' +
-      '<p class="m-cell__label">' + categorie(a) + "</p>" +
-      '<p class="m-cell__value">' + R.escapeHtml(periode(a)) + "</p></div>"
-    );
-  }
-
-  function texteHTML(a) {
-    if (!a.excerpt) return "";
-    return '<div class="m-cell m-annonce__texte ' + C.classe() + '">' + R.escapeHtml(a.excerpt) + "</div>";
-  }
-
-  /* Le lien « En savoir plus » n'existe que si l'annonce en a un :
-     jamais de case vide dans le tableau. */
-  function lienHTML(a) {
-    if (!a.linkUrl) return "";
-    return (
-      '<a class="m-cell m-annonce__lien ' + C.classe() + '" href="' +
-      R.escapeHtml(a.linkUrl) + '" target="_blank" rel="noopener noreferrer">' +
-      "<span>" + R.escapeHtml(a.linkLabel || "En savoir plus") + "</span></a>"
-    );
-  }
-
-  /* Les films reliés à l'événement dans le Studio : leurs affiches
-     apparaissent ici sans qu'on ait rien à recopier. */
-  function filmsHTML(a) {
-    if (!a.films || !a.films.length) return "";
-    return a.films
-      .map(function (f) {
-        var src = R.afficheUrl(f.poster, 600);
-        if (!src) return "";
-        return (
-          '<a class="m-affiche m-affiche--film m-annonce__film" href="../film/?s=' +
-          encodeURIComponent(f.slug) + '"><div class="poster"><img src="' +
-          R.escapeHtml(src) + '" alt="' + R.altDeLImage(f.poster, "Affiche de " + f.title) +
-          '" loading="lazy"></div></a>'
-        );
-      })
-      .join("");
-  }
-
-  /* L'événement épinglé : deux bandes, le visuel en grand. */
-  function uneHTML(a) {
-    var src = R.sanityImageUrl(a.image, 1200);
-    var visuelHTML = src
-      ? '<div class="m-affiche m-annonce__visuel"><div class="poster">' +
-        '<img src="' + R.escapeHtml(src) + '" alt="' +
-        R.altDeLImage(a.image, a.title) + '" loading="eager"></div></div>'
-      : "";
-
-    var titreHTML =
-      '<div class="m-cell m-annonce__une-titre ' + C.classe() + '">' +
-      "<h2>" + R.escapeHtml(a.title) + "</h2></div>";
-
-    var films = filmsHTML(a);
-    return (
-      bande("m-bande--une", visuelHTML + titreHTML) +
-      bande("m-bande--une-infos", quandHTML(a) + texteHTML(a) + lienHTML(a)) +
-      (films ? bande("m-bande--une-films", films) : "")
-    );
-  }
-
-  /* Les annonces suivantes : une bande chacune. */
-  function annonceHTML(a) {
-    return bande(
-      "m-bande--annonce",
-      quandHTML(a) +
-        '<div class="m-cell m-annonce__titre ' + C.classe() + '">' + R.escapeHtml(a.title) + "</div>" +
-        texteHTML(a) +
-        lienHTML(a)
+      '<a class="m-cell m-vignette' + (src ? "" : " m-vignette--texte") + " " + C.classe() +
+      '" href="' + racine + "evenements/?e=" + encodeURIComponent(a.slug) + '">' + contenu +
+      '<span class="visually-hidden">, ' +
+      R.escapeHtml([Detail.categorie(a), Detail.periode(a)].filter(Boolean).join(", ")) +
+      "</span></a>"
     );
   }
 
@@ -142,47 +68,75 @@
     );
   }
 
-  var D = window.ZinemaData;
+  /* La liste : les affiches des événements, puis les films. */
+  function afficherLaListe() {
+    /* Les deux sources arrivent ensemble : les événements saisis dans
+       le Studio, et les films que la page déduit toute seule. La page
+       ne s'affiche qu'une fois, avec tout — plutôt que de sauter sous
+       les yeux du visiteur quand la seconde réponse arrive. */
+    Promise.all([D.getEvenements(), D.getFilmsAnnonces()]).then(function (reponses) {
+      var evenements = reponses[0];
+      var films = reponses[1];
 
-  app.innerHTML = R.etatChargement("des événements");
+      /* Une seule des deux sources en panne suffit à fausser la page :
+         on le dit, on n'affiche pas la moitié d'un programme en
+         laissant croire que c'est tout. */
+      if (D.estUneErreur(evenements) || D.estUneErreur(films)) {
+        app.innerHTML = R.etatErreur();
+        return;
+      }
 
-  /* Les deux sources arrivent ensemble : les événements saisis dans
-     le Studio, et les films que la page déduit toute seule. La page
-     ne s'affiche qu'une fois, avec tout — plutôt que de sauter sous
-     les yeux du visiteur quand la seconde réponse arrive. */
-  Promise.all([D.getEvenements(), D.getFilmsAnnonces()]).then(function (reponses) {
-    var evenements = reponses[0];
-    var films = reponses[1];
+      /* Sanity a répondu qu'il n'y a rien : une liste vide, pas une
+         panne. Les deux se distinguent plus haut. */
+      evenements = evenements || [];
 
-    /* Une seule des deux sources en panne suffit à fausser la page :
-       on le dit, on n'affiche pas la moitié d'un programme en
-       laissant croire que c'est tout. */
-    if (D.estUneErreur(evenements) || D.estUneErreur(films)) {
-      app.innerHTML = R.etatErreur();
-      return;
-    }
+      var bandesFilms = Films.bandes(films);
 
-    /* Sanity a répondu qu'il n'y a rien : une liste vide, pas une
-       panne. Les deux se distinguent plus haut. */
-    evenements = evenements || [];
+      /* Rien à annoncer : on n'annonce rien. Une case qui dit « il n'y
+         a rien » occupe autant de place qu'une vraie annonce et n'en
+         apprend aucune. */
+      if (!evenements.length && !bandesFilms) {
+        app.innerHTML = "";
+        return;
+      }
 
-    var bandesFilms = Films.bandes(films);
+      /* Toutes les affiches sur une même bande, séparée des films
+         par un trait : on ne peut plus croire qu'elles vont avec. */
+      var affiches = evenements.length
+        ? bande("m-bande--vignettes", evenements.map(vignetteHTML).join(""))
+        : "";
 
-    /* Rien à annoncer : on n'annonce rien. Une case qui dit « il n'y
-       a rien » occupe autant de place qu'une vraie annonce et n'en
-       apprend aucune. */
-    if (!evenements.length && !bandesFilms) {
-      app.innerHTML = "";
-      return;
-    }
+      app.innerHTML = cadre(affiches + bandesFilms);
+    });
+  }
 
-    /* Sans événement saisi, ce sont les films qui ouvrent la page :
-       la grande mise en page de l'événement épinglé n'a alors
-       personne à mettre en avant. */
-    var annonces = evenements.length
-      ? uneHTML(evenements[0]) + evenements.slice(1).map(annonceHTML).join("")
-      : "";
+  /* Un événement en détail, retrouvé parmi ceux de la page : un
+     événement terminé n'y est plus, et l'adresse le dit. */
+  function afficherLEvenement(adresse) {
+    D.getEvenements().then(function (evenements) {
+      if (D.estUneErreur(evenements)) {
+        app.innerHTML = R.etatErreur();
+        return;
+      }
+      var evenement = (evenements || []).filter(function (a) {
+        return a && (a.slug === adresse || a._id === adresse);
+      })[0];
+      if (!evenement) {
+        app.innerHTML = Detail.introuvable();
+        return;
+      }
+      document.title = evenement.title + " — Zinéma";
+      app.innerHTML = Detail.html(evenement);
+    });
+  }
 
-    app.innerHTML = cadre(annonces + bandesFilms);
-  });
+  var adresse = new URLSearchParams(window.location.search).get("e");
+
+  if (adresse) {
+    app.innerHTML = R.etatChargement("de l'événement");
+    afficherLEvenement(adresse);
+  } else {
+    app.innerHTML = R.etatChargement("des événements");
+    afficherLaListe();
+  }
 })();

@@ -23,13 +23,21 @@
        - à statut égal, celui dont la prochaine séance est la plus
          proche passe devant ;
        - les événements en cours ou à venir qui ont un visuel.
-     Publier un film ou un événement suffit donc à le voir apparaître. */
+     Publier un film ou un événement suffit donc à le voir apparaître.
+
+     Et l'inverse : un film qui n'a plus aucune séance à venir (les
+     séances annulées ne comptent pas) quitte le mur tout seul, sans
+     qu'on ait à le passer sur « Terminé » dans le Studio. Seuls les
+     films annoncés — « Prochainement », pas encore sortis — restent
+     sans séance : on les annonce justement avant leur programmation. */
   var RANG_STATUT = { "a-laffiche": 0, "avant-premiere": 1, cycle: 2, prochainement: 3 };
 
+  /* La prochaine séance non annulée de chaque film, « AAAA-MM-JJ HH:MM ».
+     Un film absent de la liste n'a plus rien de programmé. */
   function prochaineSeanceParFilm(seances) {
     var parFilm = {};
     (seances || []).forEach(function (s) {
-      if (!s.film || !s.film._id) return;
+      if (!s.film || !s.film._id || s.status === "annule") return;
       var cle = s.film._id;
       var quand = s.date + " " + (s.time || "");
       if (!parFilm[cle] || quand < parFilm[cle]) parFilm[cle] = quand;
@@ -37,12 +45,23 @@
     return parFilm;
   }
 
+  /* Le film a-t-il encore sa place sur le mur ? « seancesConnues »
+     est faux quand l'agenda n'a pas pu être chargé : on ne retire
+     alors aucun film, plutôt que de vider le mur sur une panne. */
+  function estEncoreProgramme(film, prochaine, seancesConnues) {
+    if (film.status === "passe") return false;
+    if (!seancesConnues || film.status === "prochainement") return true;
+    return Boolean(prochaine[film._id]);
+  }
+
+  /* « seances » vaut null si l'agenda est indisponible. */
   function selection(films, evenements, seances) {
+    var seancesConnues = Array.isArray(seances);
     var prochaine = prochaineSeanceParFilm(seances);
 
     var filmItems = (films || [])
       .filter(function (f) {
-        return f.status !== "passe";
+        return estEncoreProgramme(f, prochaine, seancesConnues);
       })
       .sort(function (a, b) {
         /* Les films dont l'affiche est déposée passent devant : le

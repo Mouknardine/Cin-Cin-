@@ -1,4 +1,5 @@
 import { defineField, defineType } from "sanity";
+import { libelleDuTypeEvenement } from "../typesEvenement";
 
 /* ============================================================
    Un événement : cycle, brunch, ciné-club, séance spéciale,
@@ -41,10 +42,29 @@ export const evenement = defineType({
         "L'image qui représente l'événement sur la page Événements, et sur l'accueil pendant toute sa durée. Format libre ; une image large (paysage) rend le mieux. Sans image, l'événement s'affiche en texte seul — c'est très bien aussi.",
     }),
 
+    /* Le type se choisit parmi les fiches « Type d'événement », que
+       le cinéma crée et renomme lui-même. Pas obligatoire : sans type,
+       le site n'affiche simplement pas de libellé. */
+    defineField({
+      name: "typeEvenement",
+      title: "Type d'événement",
+      type: "reference",
+      to: [{ type: "typeEvenement" }],
+      description:
+        "Choisissez un type existant, ou créez-en un nouveau avec « Créer ». Son nom s'affiche sur le site.",
+    }),
+    /* L'ancienne liste fermée, gardée en lecture seule pour les
+       événements saisis avant les types libres : le site affiche ce
+       type tant qu'aucun nouveau n'est choisi au-dessus. Invisible
+       sur les nouveaux événements. */
     defineField({
       name: "category",
-      title: "Type d'événement",
+      title: "Ancien type (avant les types libres)",
       type: "string",
+      readOnly: true,
+      description:
+        "Affiché sur le site tant qu'aucun « Type d'événement » n'est choisi ci-dessus. Il suffit d'en choisir un pour le remplacer.",
+      hidden: ({ document }) => !document?.category || Boolean(document?.typeEvenement),
       options: {
         list: [
           { title: "Cycle / rétrospective", value: "cycle" },
@@ -55,8 +75,6 @@ export const evenement = defineType({
           { title: "Information du cinéma", value: "info" },
         ],
       },
-      initialValue: "seance-speciale",
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: "dateDebut",
@@ -153,24 +171,17 @@ export const evenement = defineType({
     select: {
       title: "title",
       category: "category",
+      typeNom: "typeEvenement.nom",
       debut: "dateDebut",
       fin: "dateFin",
       media: "image",
     },
-    prepare({ title, category, debut, fin, media }) {
-      const types: Record<string, string> = {
-        cycle: "Cycle",
-        "cine-club": "Ciné-club",
-        brunch: "Brunch",
-        "seance-speciale": "Séance spéciale",
-        festival: "Festival",
-        info: "Information",
-      };
+    prepare({ title, category, typeNom, debut, fin, media }) {
       const periode = fin && fin !== debut ? `${debut} → ${fin}` : debut;
       const termine = fin && fin < new Date().toISOString().slice(0, 10);
       return {
         title: title || "Événement sans titre",
-        subtitle: [types[category as string], periode, termine ? "terminé" : null]
+        subtitle: [libelleDuTypeEvenement(typeNom, category), periode, termine ? "terminé" : null]
           .filter(Boolean)
           .join(" · "),
         media,

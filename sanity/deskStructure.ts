@@ -8,6 +8,7 @@ import {
   HomeIcon,
   PlayIcon,
   SparklesIcon,
+  TagIcon,
   UsersIcon,
 } from "@sanity/icons";
 
@@ -118,7 +119,12 @@ export const deskStructure: StructureResolver = (S) =>
 
          Le filtre des films reprend exactement celui du site
          (getFilmsAnnonces dans assets/js/data.js) : le jour de sa
-         sortie, un film quitte la liste tout seul. */
+         sortie, un film quitte la liste tout seul.
+
+         Sous un trait, les types d'événements (« Festival »,
+         « Brunch »…) : le cinéma les nomme lui-même, puis les choisit
+         dans chaque événement. Ils ne s'affichent pas seuls sur le
+         site, d'où leur place à part. */
       S.listItem()
         .id("evenements")
         .title("Événements")
@@ -153,6 +159,16 @@ export const deskStructure: StructureResolver = (S) =>
                     )
                     .params({ today: aujourdhuiLocal() })
                     .defaultOrdering([{ field: "releaseDate", direction: "asc" }])
+                ),
+              S.divider(),
+              S.listItem()
+                .id("evenements-types")
+                .title("Types d'événements")
+                .icon(TagIcon)
+                .child(
+                  S.documentTypeList("typeEvenement")
+                    .title("Types d'événements")
+                    .defaultOrdering([{ field: "nom", direction: "asc" }])
                 ),
             ])
         ),

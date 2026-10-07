@@ -161,10 +161,12 @@
       return;
     }
 
+    /* Agenda injoignable : null, et non une liste vide, pour que
+       home-choix.js ne prenne pas tous les films pour déprogrammés. */
     var items = C.selection(
       films,
       D.estUneErreur(evenements) ? [] : evenements,
-      D.estUneErreur(seances) ? [] : seances
+      D.estUneErreur(seances) ? null : seances
     );
 
     /* Aucune affiche : le mur reste vide, sans phrase pour le dire. */

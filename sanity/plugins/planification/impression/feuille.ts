@@ -82,6 +82,9 @@ function nombreDeLignes(programme: readonly SeanceProgramme[]): number {
   return programme.length + parJour(programme).size
 }
 
+/** Le bandeau de la semaine : une ligne comme les autres, de la même hauteur. */
+const LIGNE_DU_BANDEAU = 1
+
 /** Les lignes de la semaine : une semaine vide en garde une, qui le dit. */
 function lignesDeLaSemaine(programme: readonly SeanceProgramme[]): number {
   return Math.max(nombreDeLignes(programme), 1)
@@ -97,7 +100,9 @@ export function tientSurUnePage(
   programme: readonly SeanceProgramme[],
   lundiEtMardi: readonly SeanceProgramme[] = [],
 ): boolean {
-  const mesures = mesuresDeLaFeuille(lignesDeLaSemaine(programme) + nombreDeLignes(lundiEtMardi))
+  const mesures = mesuresDeLaFeuille(
+    LIGNE_DU_BANDEAU + lignesDeLaSemaine(programme) + nombreDeLignes(lundiEtMardi),
+  )
   return mesures.hauteurTotale <= mesures.place
 }
 
@@ -129,10 +134,10 @@ export function construireFeuille(donnees: DonneesFeuille, logo: string): string
   const lundiEtMardi = donnees.lundiEtMardi ?? []
   const lignesGrisees = nombreDeLignes(lundiEtMardi)
   const lignesSemaine = lignesDeLaSemaine(donnees.programme)
-  const total = lignesGrisees + lignesSemaine
+  const total = lignesGrisees + LIGNE_DU_BANDEAU + lignesSemaine
   /* Toutes les lignes se partagent la page : celles du lundi et du mardi
-     comptent comme les autres, et chaque tableau reçoit sa part de la
-     hauteur — leurs lignes ont donc toutes la même taille. */
+     comptent comme les autres, le bandeau de la semaine aussi, et chacun
+     reçoit sa part de la hauteur — elles ont donc toutes la même taille. */
   const mesures = mesuresDeLaFeuille(total)
   const titre = titreDeLaFeuille(donnees.debutSemaine, donnees.finSemaine)
   return (

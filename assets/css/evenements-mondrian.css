@@ -3,10 +3,11 @@
    S'appuie sur film-mondrian.css (quadrillage, cases, visuels) :
    les deux feuilles sont chargées ensemble sur cette page.
 
-   L'événement épinglé ouvre la page : son visuel à gauche, son
-   titre en grand à droite, puis une bande d'informations.
-   Les annonces suivantes tiennent chacune sur une bande, dont
-   les cases se partagent la largeur au prorata de leur texte.
+   La liste ne montre de chaque événement que son affiche, qui
+   mène à l'événement en détail (evenements/?e=…) : son visuel à
+   gauche, son titre en grand à droite, puis une bande
+   d'informations, dont les cases se partagent la largeur au
+   prorata de leur texte.
    ============================================================ */
 
 /* ---------- Mobile : chaque case prend toute la largeur ----------
@@ -25,7 +26,46 @@
   }
 }
 
-/* ---------- L'événement épinglé ----------
+/* ---------- Les affiches de la liste ----------
+   Une case par événement, l'affiche posée au milieu, ENTIÈRE —
+   jamais recadrée, quel que soit son format. Autour, le papier de
+   la case se remplit de sa couleur au survol et au clavier : c'est
+   ce qui dit que l'affiche s'ouvre. Sur téléphone, une affiche par
+   ligne ; sur ordinateur, elles se partagent la bande. */
+.m-vignette {
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: inherit;
+}
+.m-vignette img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 80svh;
+  object-fit: contain;
+}
+
+/* Sans visuel déposé dans le Studio : le titre, sur le fond de
+   couleur de la case — jamais une case vide. Il s'écrit comme le
+   titre des autres annonces : en grand, un titre de trois mots
+   se coupait au milieu de chacun. */
+.m-vignette--texte {
+  min-height: 14rem;
+  background: var(--case-fond);
+  color: var(--case-texte);
+}
+.m-vignette__titre {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  text-align: center;
+  overflow-wrap: break-word;
+}
+
+/* ---------- L'événement en détail ----------
    Le visuel est montré ENTIER, jamais recadré — c'est une affiche.
    Sur mobile il occupe toute la largeur ; sur ordinateur il tient
    la gauche et le titre s'installe à côté. */
@@ -33,7 +73,7 @@
   justify-content: center;
   padding: 1.25rem 1rem;
 }
-.m-annonce__une-titre h2 {
+.m-annonce__une-titre h1 {
   font-family: var(--font-display);
   font-weight: 900;
   text-transform: uppercase;
@@ -64,6 +104,11 @@
   font-weight: 800;
   text-transform: uppercase;
   line-height: 1.2;
+}
+
+/* Le texte complet de l'événement, paragraphe par paragraphe. */
+.m-annonce__corps p + p {
+  margin-top: 0.75em;
 }
 
 /* ---------- Les films que la page annonce d'elle-même ----------
@@ -131,6 +176,22 @@
 /* ---------- Ordinateur ---------- */
 
 @media (min-width: 900px) {
+  /* Les affiches gardent toutes la même hauteur, quel que soit leur
+     format : la bande reste droite. Seule, une affiche occupe toute
+     la largeur et se pose au milieu de sa case. */
+  .m-bande--vignettes > .m-vignette {
+    flex: 1 1 18rem;
+  }
+  .m-vignette img {
+    width: auto;
+    max-width: 100%;
+    height: clamp(20rem, 32vw, 34rem);
+    max-height: none;
+  }
+  .m-vignette--texte {
+    min-height: clamp(20rem, 32vw, 34rem);
+  }
+
   /* Le visuel tient un tiers de la bande, le titre prend le reste
      et se cale exactement sur sa hauteur. */
   .m-annonce__visuel {

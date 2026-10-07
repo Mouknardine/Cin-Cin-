@@ -12,7 +12,7 @@
  */
 import {GRIS_CLAIR} from '../newsletter/html'
 import {
-  BLANC, ENCRE, ESPACE_SOUS_LOGO, GRIS_AVANT, GRIS_JOUR, HAUTEUR_A4, HAUTEUR_LOGO, HAUTEUR_TITRE, MARGE,
+  BLANC, ENCRE, ESPACE_SOUS_LOGO, GRIS_AVANT, GRIS_JOUR, HAUTEUR_A4, HAUTEUR_LOGO, MARGE,
   type MesuresFeuille, TRAIT,
 } from './mesures'
 
@@ -44,7 +44,7 @@ export function stylesDeLaFeuille(mesures: MesuresFeuille): string {
       margin: 0 auto ${ESPACE_SOUS_LOGO}mm;
     }
     .titre-semaine {
-      height: ${HAUTEUR_TITRE}mm;
+      height: ${mesures.hauteurBandeau}mm;
       display: flex;
       align-items: center;
       padding: 0 3mm;
