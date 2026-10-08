@@ -3,8 +3,9 @@
    S'appuie sur film-mondrian.css (quadrillage, cases, visuels) :
    les deux feuilles sont chargées ensemble sur cette page.
 
-   La liste ne montre de chaque événement que son affiche, qui
-   mène à l'événement en détail (evenements/?e=…) : son visuel à
+   La liste montre chaque événement en carte, aux proportions de
+   son affiche, qui se retourne au clic : voir
+   evenements-cartes.css. Le détail (evenements/?e=…) : son visuel à
    gauche, son titre en grand à droite, puis une bande
    d'informations, dont les cases se partagent la largeur au
    prorata de leur texte.
@@ -24,45 +25,6 @@
   .mondrian--evenements .m-bande > * {
     flex: 1 1 100%;
   }
-}
-
-/* ---------- Les affiches de la liste ----------
-   Une case par événement, l'affiche posée au milieu, ENTIÈRE —
-   jamais recadrée, quel que soit son format. Autour, le papier de
-   la case se remplit de sa couleur au survol et au clavier : c'est
-   ce qui dit que l'affiche s'ouvre. Sur téléphone, une affiche par
-   ligne ; sur ordinateur, elles se partagent la bande. */
-.m-vignette {
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  color: inherit;
-}
-.m-vignette img {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: 80svh;
-  object-fit: contain;
-}
-
-/* Sans visuel déposé dans le Studio : le titre, sur le fond de
-   couleur de la case — jamais une case vide. Il s'écrit comme le
-   titre des autres annonces : en grand, un titre de trois mots
-   se coupait au milieu de chacun. */
-.m-vignette--texte {
-  min-height: 14rem;
-  background: var(--case-fond);
-  color: var(--case-texte);
-}
-.m-vignette__titre {
-  font-family: var(--font-display);
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  line-height: 1.15;
-  text-align: center;
-  overflow-wrap: break-word;
 }
 
 /* ---------- L'événement en détail ----------
@@ -176,22 +138,6 @@
 /* ---------- Ordinateur ---------- */
 
 @media (min-width: 900px) {
-  /* Les affiches gardent toutes la même hauteur, quel que soit leur
-     format : la bande reste droite. Seule, une affiche occupe toute
-     la largeur et se pose au milieu de sa case. */
-  .m-bande--vignettes > .m-vignette {
-    flex: 1 1 18rem;
-  }
-  .m-vignette img {
-    width: auto;
-    max-width: 100%;
-    height: clamp(20rem, 32vw, 34rem);
-    max-height: none;
-  }
-  .m-vignette--texte {
-    min-height: clamp(20rem, 32vw, 34rem);
-  }
-
   /* Le visuel tient un tiers de la bande, le titre prend le reste
      et se cale exactement sur sa hauteur. */
   .m-annonce__visuel {

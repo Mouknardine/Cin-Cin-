@@ -3,16 +3,17 @@
    reste du site : des cases blanches séparées par des traits
    noirs, dont la couleur est tirée au hasard à chaque affichage.
 
-   Chaque événement n'y est montré QUE par son affiche :
+   Chaque événement y est une carte aux proportions exactes de
+   son affiche, en portrait comme en paysage :
 
-     ┌──────────────┬──────────────┬──────────────┐
-     │   AFFICHE    │   AFFICHE    │   AFFICHE    │
-     └──────────────┴──────────────┴──────────────┘
+     ┌────────┬──────────────────┬──────────┬─────────┐
+     │ AFFI-  │     AFFICHE      │  AFFI-   │ (case   │
+     │ CHE    │     paysage      │  CHE     │  libre) │
+     └────────┴──────────────────┴──────────┴─────────┘
 
-   Un clic sur l'affiche ouvre l'événement en détail (type, date,
-   texte, films, lien) — evenements/?e=…, voir evenement-detail.js.
-   Quatre cases par événement, comme avant, se lisaient comme un
-   même bloc avec les films annoncés juste dessous.
+   Un clic sur l'affiche la retourne : l'information est derrière
+   (type, date, titre, texte, liens) — voir evenement-carte.js. Le
+   détail complet reste à evenements/?e=…, voir evenement-detail.js.
 
    La page n'affiche que les événements en cours ou à venir : ceux
    dont le dernier jour est passé s'archivent tout seuls dans le
@@ -31,31 +32,23 @@
   var C = window.ZinemaCouleurs;
   var Films = window.ZinemaEvenementsFilms;
   var Detail = window.ZinemaEvenementDetail;
+  var Carte = window.ZinemaEvenementCarte;
   var D = window.ZinemaData;
 
   function bande(classe, contenu) {
     return '<div class="m-bande ' + classe + '">' + contenu + "</div>";
   }
 
-  /* Une affiche, et rien d'autre : c'est elle le lien. Le type et la
-     date ne s'affichent pas, mais sont lus par les lecteurs d'écran
-     avec le titre — le lien dit où il mène. Sans visuel déposé dans
-     le Studio, le titre prend la place de l'image, sur un fond de
-     couleur. La première affiche se charge tout de suite : c'est
-     elle qu'on voit en arrivant. */
-  function vignetteHTML(a, index) {
-    var racine = document.body.dataset.root || "";
-    var src = R.sanityImageUrl(a.image, 900);
-    var contenu = src
-      ? '<img src="' + R.escapeHtml(src) + '" alt="' + R.escapeHtml(a.title) +
-        '" loading="' + (index === 0 ? "eager" : "lazy") + '">'
-      : '<span class="m-vignette__titre">' + R.escapeHtml(a.title) + "</span>";
-    return (
-      '<a class="m-cell m-vignette' + (src ? "" : " m-vignette--texte") + " " + C.classe() +
-      '" href="' + racine + "evenements/?e=" + encodeURIComponent(a.slug) + '">' + contenu +
-      '<span class="visually-hidden">, ' +
-      R.escapeHtml([Detail.categorie(a), Detail.periode(a)].filter(Boolean).join(", ")) +
-      "</span></a>"
+  /* Les cartes se partagent la rangée au prorata de leur format :
+     toutes ont la même hauteur et gardent leurs proportions. La
+     case libre finale absorbe ce qui reste au bout de la dernière
+     rangée — sans elle, une affiche seule s'étirerait sur toute la
+     largeur, et sa hauteur avec. */
+  function bandeDesCartes(evenements) {
+    return bande(
+      "m-bande--cartes",
+      evenements.map(Carte.html).join("") +
+        '<div class="m-carte-libre ' + C.classe() + '" aria-hidden="true"></div>'
     );
   }
 
@@ -100,13 +93,11 @@
         return;
       }
 
-      /* Toutes les affiches sur une même bande, séparée des films
+      /* Toutes les cartes sur une même bande, séparée des films
          par un trait : on ne peut plus croire qu'elles vont avec. */
-      var affiches = evenements.length
-        ? bande("m-bande--vignettes", evenements.map(vignetteHTML).join(""))
-        : "";
+      var cartes = evenements.length ? bandeDesCartes(evenements) : "";
 
-      app.innerHTML = cadre(affiches + bandesFilms);
+      app.innerHTML = cadre(cartes + bandesFilms);
     });
   }
 
@@ -131,6 +122,8 @@
   }
 
   var adresse = new URLSearchParams(window.location.search).get("e");
+
+  Carte.activer(app);
 
   if (adresse) {
     app.innerHTML = R.etatChargement("de l'événement");

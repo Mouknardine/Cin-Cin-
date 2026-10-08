@@ -1,0 +1,227 @@
+/* ============================================================
+   Zinéma — les cartes de la page Événements (evenement-carte.js).
+
+   Chaque case a la forme EXACTE de son affiche : sa largeur
+   divisée par sa hauteur arrive dans la variable --r. Un clic la
+   retourne ; derrière, l'information, sur le fond de la couleur
+   tirée pour la case.
+
+   Sur ordinateur, les cartes d'une rangée ont toutes la même
+   hauteur : chacune part d'une largeur « --r × hauteur voulue » et
+   grandit au même prorata. La case libre finale prend ce qui reste
+   au bout de la dernière rangée.
+   ============================================================ */
+
+.m-bande--cartes {
+  --hauteur-carte: clamp(20rem, 32vw, 34rem);
+}
+
+.m-bande--cartes > .m-carte {
+  position: relative;
+  align-self: flex-start;
+  aspect-ratio: var(--r);
+  padding: 0;
+  perspective: 1800px;
+  /* Les textes de la carte se mesurent à SA largeur (unité cqi),
+     pas à celle de l'écran : une carte étroite écrit plus petit. */
+  container-type: inline-size;
+}
+
+/* La case libre : un aplat de la couleur tirée, comme dans un
+   tableau de Mondrian. Laissée blanche, une grande case vide à côté
+   d'une affiche seule donnait l'impression qu'il manquait quelque
+   chose. Sur téléphone, chaque carte a sa ligne : elle n'existe pas. */
+.m-bande--cartes > .m-carte-libre {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .m-bande--cartes > .m-carte {
+    flex: var(--r) 1 calc(var(--r) * var(--hauteur-carte));
+  }
+  .m-bande--cartes > .m-carte-libre {
+    display: block;
+    flex: 1000 1 0;
+    background: var(--case-fond);
+  }
+}
+
+/* ---------- Le retournement ---------- */
+
+.m-carte__pivot {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.7s cubic-bezier(0.2, 0.75, 0.2, 1);
+}
+.m-carte.est-retournee .m-carte__pivot {
+  transform: rotateY(180deg);
+}
+
+.m-carte__face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* ---------- Le recto : l'affiche, entière ---------- */
+
+.m-carte__recto {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--paper);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.m-carte__recto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* La case a les proportions de l'image : rien n'est recadré,
+     « cover » ne fait qu'absorber un pixel d'arrondi. */
+  object-fit: cover;
+}
+
+/* Sans visuel : le titre, sur le fond de couleur de la case. */
+.m-carte__titre-seul {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 1.5rem;
+  background: var(--case-fond);
+  color: var(--case-texte);
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(1.1rem, 12cqi, var(--taille-titre));
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  text-align: center;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.m-carte__recto:focus-visible {
+  outline: var(--ligne) solid var(--case-fond);
+  outline-offset: calc(-1 * var(--ligne));
+}
+
+/* Le coin de couleur : il dit qu'il y a quelque chose derrière,
+   même sur un téléphone, où rien ne se passe au survol. */
+.m-carte__coin {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-top: var(--ligne) solid var(--ink);
+  border-left: var(--ligne) solid var(--ink);
+  background: var(--case-fond);
+  color: var(--case-texte);
+  font-weight: 900;
+  font-size: 1.6rem;
+  line-height: 1;
+  transition: width 0.2s ease-out, height 0.2s ease-out;
+}
+.m-carte__recto:hover .m-carte__coin,
+.m-carte__recto:focus-visible .m-carte__coin {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+/* ---------- Le verso : l'information ---------- */
+
+.m-carte__verso {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transform: rotateY(180deg);
+  background: var(--case-fond);
+  color: var(--case-texte);
+  /* Une affiche en paysage, sur un téléphone, ne fait que quelques
+     centimètres de haut : le dos s'écrit plus petit pour que tout y
+     tienne. Si le texte est long, il défile dans la carte. */
+  font-size: 0.9rem;
+  line-height: 1.3;
+  cursor: pointer;
+}
+.m-carte__verso > .m-cell__label {
+  font-size: 0.8rem;
+}
+.m-carte__verso:focus-visible {
+  outline: var(--ligne) solid var(--case-texte);
+  outline-offset: calc(-1 * var(--ligne));
+}
+.m-carte__verso .m-carte__coin {
+  top: 0;
+  bottom: auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-bottom: var(--ligne) solid currentColor;
+  border-left: var(--ligne) solid currentColor;
+  background: transparent;
+  font-size: 1.3rem;
+}
+/* La première ligne laisse la place au « × » du coin. */
+.m-carte__verso > .m-cell__label {
+  padding-right: 2.25rem;
+}
+
+.m-carte__titre {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(1.15rem, 0.8rem + 1.4vw, 2.2rem);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  overflow-wrap: break-word;
+}
+
+.m-carte__liens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin-top: auto;
+}
+.m-carte__lien {
+  color: inherit;
+  font-weight: 800;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 2px;
+}
+.m-carte__lien:hover,
+.m-carte__lien:focus-visible {
+  text-decoration-thickness: 4px;
+}
+
+@media (min-width: 900px) {
+  .m-carte__verso {
+    gap: 1rem;
+    padding: 1.5rem;
+    font-size: var(--taille-texte);
+    line-height: 1.35;
+  }
+  .m-carte__verso > .m-cell__label {
+    font-size: inherit;
+    padding-right: 3rem;
+  }
+  .m-carte__verso .m-carte__coin {
+    width: 3rem;
+    height: 3rem;
+  }
+}
