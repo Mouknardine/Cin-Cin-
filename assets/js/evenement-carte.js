@@ -50,8 +50,14 @@
     if (!src) {
       return '<span class="m-carte__titre-seul">' + R.escapeHtml(a.title) + "</span>";
     }
+    /* Une affiche seule sur sa rangée occupe toute la largeur de
+       l'écran : le navigateur choisit la taille qu'il lui faut. */
+    var tailles = [600, 1000, 1600, 2400]
+      .map(function (l) { return R.escapeHtml(R.sanityImageUrl(a.image, l)) + " " + l + "w"; })
+      .join(", ");
     return (
-      '<img src="' + R.escapeHtml(src) + '" alt="' + R.altDeLImage(a.image, a.title) +
+      '<img src="' + R.escapeHtml(src) + '" srcset="' + tailles +
+      '" sizes="100vw" alt="' + R.altDeLImage(a.image, a.title) +
       '" loading="' + (index === 0 ? "eager" : "lazy") + '" decoding="async">'
     );
   }

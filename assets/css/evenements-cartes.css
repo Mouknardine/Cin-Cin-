@@ -8,8 +8,9 @@
 
    Sur ordinateur, les cartes d'une rangée ont toutes la même
    hauteur : chacune part d'une largeur « --r × hauteur voulue » et
-   grandit au même prorata. La case libre finale prend ce qui reste
-   au bout de la dernière rangée.
+   grandit au même prorata, si bien que chaque rangée remplit toute
+   la largeur, sans case vide. Une affiche seule sur sa rangée
+   s'étend d'un bord à l'autre : c'est voulu par le cinéma.
    ============================================================ */
 
 .m-bande--cartes {
@@ -27,22 +28,9 @@
   container-type: inline-size;
 }
 
-/* La case libre : un aplat de la couleur tirée, comme dans un
-   tableau de Mondrian. Laissée blanche, une grande case vide à côté
-   d'une affiche seule donnait l'impression qu'il manquait quelque
-   chose. Sur téléphone, chaque carte a sa ligne : elle n'existe pas. */
-.m-bande--cartes > .m-carte-libre {
-  display: none;
-}
-
 @media (min-width: 900px) {
   .m-bande--cartes > .m-carte {
     flex: var(--r) 1 calc(var(--r) * var(--hauteur-carte));
-  }
-  .m-bande--cartes > .m-carte-libre {
-    display: block;
-    flex: 1000 1 0;
-    background: var(--case-fond);
   }
 }
 
@@ -143,22 +131,27 @@
 .m-carte__verso {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem;
+  /* Centré en hauteur : sur une grande affiche, le texte apparaît
+     là où l'on vient de cliquer, pas tout en haut. « safe » : un
+     texte plus haut que la carte repart du haut et défile. */
+  justify-content: safe center;
+  gap: 0.75em;
+  padding: clamp(1rem, 5cqi, 4rem);
   overflow-y: auto;
   overscroll-behavior: contain;
   transform: rotateY(180deg);
   background: var(--case-fond);
   color: var(--case-texte);
-  /* Une affiche en paysage, sur un téléphone, ne fait que quelques
-     centimètres de haut : le dos s'écrit plus petit pour que tout y
-     tienne. Si le texte est long, il défile dans la carte. */
-  font-size: 0.9rem;
+  /* Le texte grandit avec la carte (cqi = % de SA largeur) : petit
+     sur une affiche paysage de téléphone, pour que tout y tienne,
+     grand sur une affiche qui occupe tout l'écran. Si le texte est
+     long, il défile dans la carte. */
+  font-size: clamp(0.9rem, 2.3cqi, 1.75rem);
   line-height: 1.3;
   cursor: pointer;
 }
 .m-carte__verso > .m-cell__label {
-  font-size: 0.8rem;
+  font-size: 0.85em;
 }
 .m-carte__verso:focus-visible {
   outline: var(--ligne) solid var(--case-texte);
@@ -183,18 +176,22 @@
 .m-carte__titre {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: clamp(1.15rem, 0.8rem + 1.4vw, 2.2rem);
+  font-size: clamp(1.15rem, 6cqi, 5rem);
   text-transform: uppercase;
   letter-spacing: -0.01em;
   line-height: 1;
   overflow-wrap: break-word;
 }
 
+.m-carte__texte {
+  max-width: 38em;
+}
+
 .m-carte__liens {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1.25rem;
-  margin-top: auto;
+  margin-top: 0.5em;
 }
 .m-carte__lien {
   color: inherit;
@@ -210,14 +207,7 @@
 }
 
 @media (min-width: 900px) {
-  .m-carte__verso {
-    gap: 1rem;
-    padding: 1.5rem;
-    font-size: var(--taille-texte);
-    line-height: 1.35;
-  }
   .m-carte__verso > .m-cell__label {
-    font-size: inherit;
     padding-right: 3rem;
   }
   .m-carte__verso .m-carte__coin {

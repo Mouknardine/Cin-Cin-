@@ -6,10 +6,10 @@
    Chaque événement y est une carte aux proportions exactes de
    son affiche, en portrait comme en paysage :
 
-     ┌────────┬──────────────────┬──────────┬─────────┐
-     │ AFFI-  │     AFFICHE      │  AFFI-   │ (case   │
-     │ CHE    │     paysage      │  CHE     │  libre) │
-     └────────┴──────────────────┴──────────┴─────────┘
+     ┌────────┬────────────────────────┬──────────┐
+     │ AFFI-  │        AFFICHE         │  AFFI-   │
+     │ CHE    │        paysage         │  CHE     │
+     └────────┴────────────────────────┴──────────┘
 
    Un clic sur l'affiche la retourne : l'information est derrière
    (type, date, titre, texte, liens) — voir evenement-carte.js. Le
@@ -29,7 +29,6 @@
 
   var app = document.getElementById("evenements-app");
   var R = window.ZinemaRender;
-  var C = window.ZinemaCouleurs;
   var Films = window.ZinemaEvenementsFilms;
   var Detail = window.ZinemaEvenementDetail;
   var Carte = window.ZinemaEvenementCarte;
@@ -40,16 +39,12 @@
   }
 
   /* Les cartes se partagent la rangée au prorata de leur format :
-     toutes ont la même hauteur et gardent leurs proportions. La
-     case libre finale absorbe ce qui reste au bout de la dernière
-     rangée — sans elle, une affiche seule s'étirerait sur toute la
-     largeur, et sa hauteur avec. */
+     toutes ont la même hauteur, gardent leurs proportions et
+     remplissent la largeur. Une affiche seule sur sa rangée prend
+     donc toute la largeur — le cinéma ne veut aucun vide à côté
+     (8 octobre 2026). */
   function bandeDesCartes(evenements) {
-    return bande(
-      "m-bande--cartes",
-      evenements.map(Carte.html).join("") +
-        '<div class="m-carte-libre ' + C.classe() + '" aria-hidden="true"></div>'
-    );
+    return bande("m-bande--cartes", evenements.map(Carte.html).join(""));
   }
 
   /* La page se ferme sur le chemin des séances : une annonce donne
