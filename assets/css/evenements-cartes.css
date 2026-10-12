@@ -101,32 +101,6 @@
   outline-offset: calc(-1 * var(--ligne));
 }
 
-/* Le coin de couleur : il dit qu'il y a quelque chose derrière,
-   même sur un téléphone, où rien ne se passe au survol. Le verso
-   n'en a pas : un clic sur la carte la remet à l'endroit. */
-.m-carte__coin {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  display: grid;
-  place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-top: var(--ligne) solid var(--ink);
-  border-left: var(--ligne) solid var(--ink);
-  background: var(--case-fond);
-  color: var(--case-texte);
-  font-weight: 900;
-  font-size: 1.6rem;
-  line-height: 1;
-  transition: width 0.2s ease-out, height 0.2s ease-out;
-}
-.m-carte__recto:hover .m-carte__coin,
-.m-carte__recto:focus-visible .m-carte__coin {
-  width: 3.5rem;
-  height: 3.5rem;
-}
-
 /* ---------- Le verso : l'information ---------- */
 
 .m-carte__verso {

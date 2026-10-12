@@ -21,9 +21,9 @@
    la carte prend le format d'une affiche de cinéma, titre écrit.
 
    Un clic (ou Entrée, Espace) retourne la carte ; un second clic,
-   ou Échap, la remet à l'endroit. Le verso n'a pas de « × » : le
-   cinéma l'a retiré le 12 octobre 2026, un clic sur la carte
-   suffit. Le côté caché est « inert » :
+   ou Échap, la remet à l'endroit. Ni « + » au recto ni « × » au
+   verso : le cinéma les a retirés le 12 octobre 2026, un clic sur
+   la carte suffit. Le côté caché est « inert » :
    ses liens ne reçoivent pas le focus et les lecteurs d'écran ne
    le lisent pas.
    ============================================================ */
@@ -118,7 +118,6 @@
       '<div class="m-carte__pivot">' +
       '<button type="button" class="m-carte__face m-carte__recto" aria-expanded="false" ' +
       'aria-controls="' + id + '">' + rectoHTML(a, index) +
-      '<span class="m-carte__coin" aria-hidden="true">+</span>' +
       '<span class="visually-hidden">, voir les informations</span></button>' +
       '<div class="m-carte__face m-carte__verso" id="' + id + '" tabindex="-1" inert>' +
       versoHTML(a) +
