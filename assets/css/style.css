@@ -818,16 +818,6 @@ body:not([data-page="home"]) .main-area {
   margin-bottom: 0.2rem;
 }
 
-/* Les affiches des films rattachés à un événement. */
-.m-bande--une-films {
-  display: flex;
-  flex-wrap: wrap;
-}
-.m-annonce__film {
-  flex: 0 0 auto;
-  width: clamp(6rem, 18vw, 10rem);
-}
-
 /* Les coordonnées bancaires : une ligne par information, pour
    qu'un IBAN reste lisible et copiable. */
 .m-banque__ligne {

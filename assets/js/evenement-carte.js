@@ -11,8 +11,8 @@
      ┌──────────────┐           ┌──────────────┐
      │              │           │ TYPE · DATE  │
      │   AFFICHE    │   ───▶    │ LE TITRE     │
-     │   entière    │           │ Le texte…    │
-     │              │           │ EN SAVOIR +  │
+     │   entière    │           │ Le texte     │
+     │              │           │ complet      │
      └──────────────┘           └──────────────┘
 
    La case a EXACTEMENT les proportions de l'affiche : on les lit
@@ -21,7 +21,9 @@
    la carte prend le format d'une affiche de cinéma, titre écrit.
 
    Un clic (ou Entrée, Espace) retourne la carte ; un second clic,
-   ou Échap, la remet à l'endroit. Le côté caché est « inert » :
+   ou Échap, la remet à l'endroit. Le verso n'a pas de « × » : le
+   cinéma l'a retiré le 12 octobre 2026, un clic sur la carte
+   suffit. Le côté caché est « inert » :
    ses liens ne reçoivent pas le focus et les lecteurs d'écran ne
    le lisent pas.
    ============================================================ */
@@ -31,6 +33,7 @@
   var R = global.ZinemaRender;
   var C = global.ZinemaCouleurs;
   var Detail = global.ZinemaEvenementDetail;
+  var TexteRiche = global.ZinemaTexteRiche;
 
   /* Le format d'une affiche de cinéma (largeur / hauteur), le même
      que --format-affiche dans style.css. */
@@ -62,8 +65,10 @@
     );
   }
 
-  /* « Tout lire » mène au détail (texte complet, films reliés),
-     seulement s'il y a plus à lire que ce que dit le verso. */
+  /* Les liens du verso : le lien externe de l'événement, puis les
+     films reliés dans le Studio, chacun vers sa page. Plus de
+     « Tout lire » : le texte complet est déjà là, comme au dos d'un
+     flyer (demande du cinéma, 12 octobre 2026). */
   function liensHTML(a) {
     var racine = document.body.dataset.root || "";
     var liens = "";
@@ -73,13 +78,21 @@
         '" target="_blank" rel="noopener noreferrer">' +
         R.escapeHtml(a.linkLabel || "En savoir plus") + "</a>";
     }
-    var plusALire = (Array.isArray(a.body) && a.body.length) || (a.films && a.films.length);
-    if (plusALire) {
+    (a.films || []).forEach(function (f) {
+      if (!f || !f.slug || !f.title) return;
       liens +=
-        '<a class="m-carte__lien" href="' + racine + "evenements/?e=" +
-        encodeURIComponent(a.slug) + '">Tout lire</a>';
-    }
+        '<a class="m-carte__lien" href="' + racine + "film/?s=" +
+        encodeURIComponent(f.slug) + '">' + R.escapeHtml(f.title) + "</a>";
+    });
     return liens ? '<p class="m-carte__liens">' + liens + "</p>" : "";
+  }
+
+  /* Le texte complet s'il existe — il reprend et détaille le
+     résumé, les deux à la suite se répéteraient ; sinon le résumé. */
+  function texteHTML(a) {
+    var complet = TexteRiche.html(a.body);
+    if (complet) return '<div class="m-carte__texte">' + complet + "</div>";
+    return a.excerpt ? '<p class="m-carte__texte">' + R.escapeHtml(a.excerpt) + "</p>" : "";
   }
 
   function versoHTML(a) {
@@ -88,7 +101,7 @@
       '<p class="m-cell__label">' +
       R.escapeHtml([type, Detail.periode(a)].filter(Boolean).join(" · ")) + "</p>" +
       '<h2 class="m-carte__titre">' + R.escapeHtml(a.title) + "</h2>" +
-      (a.excerpt ? '<p class="m-carte__texte">' + R.escapeHtml(a.excerpt) + "</p>" : "") +
+      texteHTML(a) +
       liensHTML(a)
     );
   }
@@ -108,7 +121,7 @@
       '<span class="m-carte__coin" aria-hidden="true">+</span>' +
       '<span class="visually-hidden">, voir les informations</span></button>' +
       '<div class="m-carte__face m-carte__verso" id="' + id + '" tabindex="-1" inert>' +
-      versoHTML(a) + '<span class="m-carte__coin" aria-hidden="true">×</span>' +
+      versoHTML(a) +
       "</div></div></div>"
     );
   }

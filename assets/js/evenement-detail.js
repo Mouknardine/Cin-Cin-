@@ -2,28 +2,26 @@
    Zinéma — un événement en détail, à l'adresse
    evenements/?e=<adresse de l'événement>.
 
-   Sur la page Événements, chaque événement n'est plus montré que
-   par son affiche : quatre cases par événement (visuel, titre,
-   date, texte) se lisaient comme un seul bloc avec les films
-   annoncés juste en dessous. Un clic sur l'affiche mène ici, où
-   l'événement retrouve toutes ses informations :
+   Deux cases, pas plus (demande du cinéma, 12 octobre 2026 : les
+   cinq cases d'avant « faisaient beaucoup ») :
 
      ┌──────────┬───────────────────────────────────┐
-     │ VISUEL   │ LE TITRE DE L'ÉVÉNEMENT           │
-     ├──────────┴──────────┬────────────┬───────────┤
-     │ ÉVÉNEMENT · DATE    │ Le texte…  │ EN SAVOIR │
-     ├─────────────────────┴────────────┴───────────┤
-     │ Les films reliés, puis le texte complet       │
-     └───────────────────────────────────────────────┘
+     │          │ TYPE · DATE                       │
+     │ FLYER    │ LE TITRE DE L'ÉVÉNEMENT           │
+     │          │ Le texte complet, mis en forme…   │
+     │          │ LIEN EXTERNE · FILMS RELIÉS       │
+     └──────────┴───────────────────────────────────┘
 
-   Le type et la période s'écrivent ici une seule fois : la liste
-   des affiches s'en sert aussi, pour le libellé lu à voix haute.
+   Sans visuel, la case de texte occupe seule toute la largeur.
+   Le type et la période s'écrivent ici une seule fois : le dos des
+   cartes (evenement-carte.js) s'en sert aussi.
    ============================================================ */
 (function (global) {
   "use strict";
 
   var R = global.ZinemaRender;
   var C = global.ZinemaCouleurs;
+  var TexteRiche = global.ZinemaTexteRiche;
 
   /* Le type d'un événement : celui que le cinéma écrit dans le
      Studio (champ « Type d'événement ») ; sinon,
@@ -62,66 +60,43 @@
     return '<div class="m-bande ' + classe + '">' + contenu + "</div>";
   }
 
-  /* La case date & catégorie. Sans type, la date reste seule. */
-  function quandHTML(a) {
-    var type = categorie(a);
-    return (
-      '<div class="m-cell m-annonce__quand m-cell--ligne ' + C.classe() + '">' +
-      (type ? '<p class="m-cell__label">' + R.escapeHtml(type) + "</p>" : "") +
-      '<p class="m-cell__value">' + R.escapeHtml(periode(a)) + "</p></div>"
-    );
-  }
-
+  /* Le texte complet s'il existe — il reprend et détaille le
+     résumé ; sinon le résumé. */
   function texteHTML(a) {
-    if (!a.excerpt) return "";
-    return '<div class="m-cell m-annonce__texte ' + C.classe() + '">' + R.escapeHtml(a.excerpt) + "</div>";
+    var complet = TexteRiche.html(a.body);
+    if (complet) return complet;
+    return a.excerpt ? '<p class="m-annonce__resume">' + R.escapeHtml(a.excerpt) + "</p>" : "";
   }
 
-  /* Le lien « En savoir plus » n'existe que si l'annonce en a un :
-     jamais de case vide dans le tableau. */
-  function lienHTML(a) {
-    if (!a.linkUrl) return "";
+  /* Le lien externe de l'événement, puis les films reliés dans le
+     Studio, chacun vers sa page. */
+  function liensHTML(a) {
+    var racine = document.body.dataset.root || "";
+    var liens = "";
+    if (a.linkUrl) {
+      liens +=
+        '<a href="' + R.escapeHtml(a.linkUrl) + '" target="_blank" rel="noopener noreferrer">' +
+        R.escapeHtml(a.linkLabel || "En savoir plus") + "</a>";
+    }
+    (a.films || []).forEach(function (f) {
+      if (!f || !f.slug || !f.title) return;
+      liens +=
+        '<a href="' + racine + "film/?s=" + encodeURIComponent(f.slug) + '">' +
+        R.escapeHtml(f.title) + "</a>";
+    });
+    return liens ? '<p class="m-annonce__liens">' + liens + "</p>" : "";
+  }
+
+  /* La case de droite : tout ce qu'il faut savoir, d'un seul tenant.
+     Sans type, la date reste seule. */
+  function infosHTML(a) {
+    var quand = [categorie(a), periode(a)].filter(Boolean).join(" · ");
     return (
-      '<a class="m-cell m-annonce__lien ' + C.classe() + '" href="' +
-      R.escapeHtml(a.linkUrl) + '" target="_blank" rel="noopener noreferrer">' +
-      "<span>" + R.escapeHtml(a.linkLabel || "En savoir plus") + "</span></a>"
+      '<div class="m-cell m-annonce__infos ' + C.classe() + '">' +
+      '<p class="m-cell__label">' + R.escapeHtml(quand) + "</p>" +
+      "<h1>" + R.escapeHtml(a.title) + "</h1>" +
+      texteHTML(a) + liensHTML(a) + "</div>"
     );
-  }
-
-  /* Les films reliés à l'événement dans le Studio : leurs affiches
-     apparaissent ici sans qu'on ait rien à recopier. */
-  function filmsHTML(a) {
-    if (!a.films || !a.films.length) return "";
-    return a.films
-      .map(function (f) {
-        var src = R.afficheUrl(f.poster, 600);
-        if (!src) return "";
-        return (
-          '<a class="m-affiche m-affiche--film m-annonce__film" href="../film/?s=' +
-          encodeURIComponent(f.slug) + '"><div class="poster"><img src="' +
-          R.escapeHtml(src) + '" alt="' + R.altDeLImage(f.poster, "Affiche de " + f.title) +
-          '" loading="lazy"></div></a>'
-        );
-      })
-      .join("");
-  }
-
-  /* Le « Texte complet » du Studio, paragraphe par paragraphe. On
-     n'en garde que les mots : le tableau a sa propre typographie. */
-  function corpsHTML(a) {
-    if (!Array.isArray(a.body)) return "";
-    var paragraphes = a.body
-      .map(function (bloc) {
-        return ((bloc && bloc.children) || [])
-          .map(function (enfant) { return (enfant && enfant.text) || ""; })
-          .join("")
-          .trim();
-      })
-      .filter(Boolean)
-      .map(function (p) { return "<p>" + R.escapeHtml(p) + "</p>"; })
-      .join("");
-    if (!paragraphes) return "";
-    return '<div class="m-cell m-annonce__corps ' + C.classe() + '">' + paragraphes + "</div>";
   }
 
   /* Le retour à toutes les affiches, à côté du chemin des séances. */
@@ -134,9 +109,8 @@
     );
   }
 
-  /* L'événement en entier : le visuel en grand et son titre, la
-     bande d'informations, les films reliés, le texte complet. Sans
-     visuel, le titre occupe seul la première bande. */
+  /* L'événement en entier : le flyer à gauche, ENTIER, jamais
+     recadré ; tout le reste à droite. */
   function html(a) {
     var src = R.sanityImageUrl(a.image, 1200);
     var visuelHTML = src
@@ -144,19 +118,9 @@
         '<img src="' + R.escapeHtml(src) + '" alt="' +
         R.altDeLImage(a.image, a.title) + '" loading="eager"></div></div>'
       : "";
-
-    var titreHTML =
-      '<div class="m-cell m-annonce__une-titre ' + C.classe() + '">' +
-      "<h1>" + R.escapeHtml(a.title) + "</h1></div>";
-
-    var films = filmsHTML(a);
-    var corps = corpsHTML(a);
     return (
       '<article class="mondrian mondrian--evenements">' +
-      bande("m-bande--une", visuelHTML + titreHTML) +
-      bande("m-bande--une-infos", quandHTML(a) + texteHTML(a) + lienHTML(a)) +
-      (films ? bande("m-bande--une-films", films) : "") +
-      (corps ? bande("m-bande--corps", corps) : "") +
+      bande("m-bande--une", visuelHTML + infosHTML(a)) +
       actionsHTML() +
       "</article>"
     );

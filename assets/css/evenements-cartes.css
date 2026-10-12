@@ -102,7 +102,8 @@
 }
 
 /* Le coin de couleur : il dit qu'il y a quelque chose derrière,
-   même sur un téléphone, où rien ne se passe au survol. */
+   même sur un téléphone, où rien ne se passe au survol. Le verso
+   n'en a pas : un clic sur la carte la remet à l'endroit. */
 .m-carte__coin {
   position: absolute;
   right: 0;
@@ -157,21 +158,6 @@
   outline: var(--ligne) solid var(--case-texte);
   outline-offset: calc(-1 * var(--ligne));
 }
-.m-carte__verso .m-carte__coin {
-  top: 0;
-  bottom: auto;
-  width: 2.25rem;
-  height: 2.25rem;
-  border: 0;
-  border-bottom: var(--ligne) solid currentColor;
-  border-left: var(--ligne) solid currentColor;
-  background: transparent;
-  font-size: 1.3rem;
-}
-/* La première ligne laisse la place au « × » du coin. */
-.m-carte__verso > .m-cell__label {
-  padding-right: 2.25rem;
-}
 
 .m-carte__titre {
   font-family: var(--font-display);
@@ -185,6 +171,30 @@
 
 .m-carte__texte {
   max-width: 38em;
+}
+
+/* Le texte complet, au dos de la carte (texte-riche.js). */
+.texte-riche > * + * {
+  margin-top: 0.6em;
+}
+.texte-riche__titre {
+  font-size: 1em;
+  font-weight: 800;
+}
+.texte-riche ul,
+.texte-riche ol {
+  padding-left: 1.25em;
+}
+.texte-riche ul { list-style: disc; }
+.texte-riche ol { list-style: decimal; }
+.texte-riche blockquote {
+  padding-left: 0.75em;
+  border-left: var(--ligne) solid currentColor;
+}
+.texte-riche a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
 .m-carte__liens {
@@ -206,12 +216,3 @@
   text-decoration-thickness: 4px;
 }
 
-@media (min-width: 900px) {
-  .m-carte__verso > .m-cell__label {
-    padding-right: 3rem;
-  }
-  .m-carte__verso .m-carte__coin {
-    width: 3rem;
-    height: 3rem;
-  }
-}

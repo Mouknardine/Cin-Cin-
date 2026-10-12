@@ -117,7 +117,7 @@ function chargerLeDetailDUnEvenement() {
   };
   fenetre.window = fenetre;
   vm.createContext(fenetre);
-  for (const fichier of ["couleurs.js", "render.js", "evenement-detail.js"]) {
+  for (const fichier of ["couleurs.js", "render.js", "texte-riche.js", "evenement-detail.js"]) {
     const code = readFileSync(new URL(`../assets/js/${fichier}`, import.meta.url), "utf8");
     vm.runInContext(code, fenetre, { filename: fichier });
   }
@@ -184,6 +184,48 @@ const pageSansType = Detail.html({ title: "Soirée", slug: "soiree", dateDebut: 
 verifier(
   "sans type, la case de la date n'a ni libellé vide ni « undefined »",
   [pageSansType.includes("undefined"), pageSansType.includes('<p class="m-cell__label"></p>')],
+  [false, false],
+);
+
+/* Le « Texte complet » du Studio, écrit avec sa mise en forme
+   (texte-riche.js), au dos des cartes comme sur le détail. */
+const morceau = (text, marks = []) => ({ _type: "span", text, marks });
+const pageAvecTexte = Detail.html({
+  title: "Soirée",
+  slug: "soiree",
+  dateDebut: "2026-10-16",
+  body: [
+    {
+      _type: "block",
+      style: "normal",
+      markDefs: [
+        { _key: "piege", _type: "link", href: "javascript:alert(1)" },
+        { _key: "site", _type: "link", href: "raphaelverona.com" },
+      ],
+      children: [
+        morceau("Entrée libre", ["strong"]),
+        morceau(" <script>alert(1)</script>"),
+        morceau(" piège", ["piege"]),
+        morceau(" DJ", ["site"]),
+      ],
+    },
+    { _type: "block", listItem: "bullet", level: 1, children: [morceau("22:00 - 02:00")] },
+    { _type: "block", style: "normal", children: [morceau("   ")] },
+  ],
+});
+verifier(
+  "le texte complet garde son gras, ses listes et ses liens",
+  [
+    pageAvecTexte.includes("<strong>Entrée libre</strong>"),
+    pageAvecTexte.includes("<ul><li>22:00 - 02:00</li></ul>"),
+    pageAvecTexte.includes('href="https://raphaelverona.com"'),
+    pageAvecTexte.includes("<p></p>"),
+  ],
+  [true, true, true, false],
+);
+verifier(
+  "le texte complet est échappé, et un lien « javascript: » n'est jamais écrit",
+  [pageAvecTexte.includes("<script>"), pageAvecTexte.includes("javascript:")],
   [false, false],
 );
 

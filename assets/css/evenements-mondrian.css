@@ -5,10 +5,8 @@
 
    La liste montre chaque événement en carte, aux proportions de
    son affiche, qui se retourne au clic : voir
-   evenements-cartes.css. Le détail (evenements/?e=…) : son visuel à
-   gauche, son titre en grand à droite, puis une bande
-   d'informations, dont les cases se partagent la largeur au
-   prorata de leur texte.
+   evenements-cartes.css. Le détail (evenements/?e=…) : deux cases,
+   le flyer à gauche, et à droite le titre suivi de tout le texte.
    ============================================================ */
 
 /* ---------- Mobile : chaque case prend toute la largeur ----------
@@ -30,12 +28,13 @@
 /* ---------- L'événement en détail ----------
    Le visuel est montré ENTIER, jamais recadré — c'est une affiche.
    Sur mobile il occupe toute la largeur ; sur ordinateur il tient
-   la gauche et le titre s'installe à côté. */
-.m-annonce__une-titre {
+   la gauche et la case de texte s'installe à côté. */
+.m-annonce__infos {
   justify-content: center;
+  gap: 0.9rem;
   padding: 1.25rem 1rem;
 }
-.m-annonce__une-titre h1 {
+.m-annonce__infos h1 {
   font-family: var(--font-display);
   font-weight: 900;
   text-transform: uppercase;
@@ -56,21 +55,28 @@
   overflow-wrap: anywhere;
 }
 
-.m-annonce__texte {
+.m-annonce__infos .texte-riche,
+.m-annonce__resume {
+  max-width: 42em;
   font-weight: 400;
+  line-height: 1.4;
 }
-
-.m-annonce__lien {
-  flex-direction: row;
-  align-items: center;
+.m-annonce__liens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+}
+.m-annonce__liens a {
+  color: inherit;
   font-weight: 800;
   text-transform: uppercase;
-  line-height: 1.2;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 2px;
 }
-
-/* Le texte complet de l'événement, paragraphe par paragraphe. */
-.m-annonce__corps p + p {
-  margin-top: 0.75em;
+.m-annonce__liens a:hover,
+.m-annonce__liens a:focus-visible {
+  text-decoration-thickness: 4px;
 }
 
 /* ---------- Les films que la page annonce d'elle-même ----------
@@ -146,22 +152,15 @@
     align-items: center;
   }
   .m-annonce__visuel .poster { width: 100%; height: auto; }
-  .m-annonce__une-titre { flex: 1 1 0; }
+  .m-annonce__infos { flex: 1 1 0; padding: 2rem 2.5rem; }
 
   /* La date et la catégorie : une case étroite, calée sur son
-     texte. Les cases de texte se partagent la largeur restante
-     plutôt que de réclamer celle de leur plus longue ligne — le
-     texte de l'annonce en prend deux fois plus que son titre. */
+     texte ; le titre prend la largeur restante. */
   .m-annonce__quand {
     flex: 0 1 auto;
     min-width: 12rem;
   }
   .m-annonce__titre { flex: 1 1 0; }
-  .m-annonce__texte { flex: 2 1 0; }
-  .m-annonce__lien {
-    flex: 0 1 auto;
-    white-space: nowrap;
-  }
 
   /* Les trois cases de texte partent de zéro et se partagent la
      largeur restante — le titre en prend le double. Parties de leur
@@ -187,7 +186,7 @@
 /* ---------- Grand écran ----------
    Le visuel garde ses proportions : plus l'écran est large, plus
    il serait haut. On lui reprend un peu de largeur pour que la
-   première bande tienne dans l'écran, titre compris. */
+   première bande tienne dans l'écran. */
 
 @media (min-width: 1440px) {
   .m-annonce__visuel {

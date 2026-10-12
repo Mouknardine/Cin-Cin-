@@ -202,11 +202,11 @@
       bande("m-bande--pages", [
         R.caseVoirLesSeances(),
         casePetiteInterne("Notre histoire", root + "histoire/"),
-        /* « Merci !!! » avec ses trois points d'exclamation (demande du
-           cinéma, 12 octobre), et une espace fine insécable devant : à
-           cette taille, des « !!! » renvoyés seuls à la ligne
-           suivante se liraient comme une coquille. */
-        aDesRemerciements(reglages) ? caseInterne("Merci !!!", root + "remerciements/") : "",
+        /* « Merci !!!!! » : cinq points d'exclamation, un par lettre
+           (demande du cinéma, 12 octobre), et une espace fine
+           insécable devant — à cette taille, des « ! » renvoyés seuls
+           à la ligne suivante se liraient comme une coquille. */
+        aDesRemerciements(reglages) ? caseInterne("Merci !!!!!", root + "remerciements/") : "",
       ]) +
       "</article>";
   });
