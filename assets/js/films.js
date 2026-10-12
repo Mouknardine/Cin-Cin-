@@ -12,6 +12,7 @@
   var root = document.body.dataset.root || "";
   var app = document.getElementById("films-app");
   var R = window.ZinemaRender;
+  var Reperes = window.ZinemaReperesFilm;
   var C = window.ZinemaCouleurs;
 
   var allFilms = [];
@@ -29,8 +30,8 @@
     var infos = [
       film.year ? String(film.year) : null,
       film.country || null,
-      film.duration ? film.duration + " min" : null,
-      [film.language, film.subtitles].filter(Boolean).join(" ") || null,
+      Reperes.duree(film.duration) || null,
+      Reperes.version(film.language, film.subtitles) || null,
       film.ageRating || null,
     ].filter(Boolean).join(" · ");
     /* Le statut n'est rappelé que s'il diffère du filtre actif :

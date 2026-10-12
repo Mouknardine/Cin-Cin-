@@ -38,6 +38,7 @@
   var app = document.getElementById("film-app");
   var reglages = null;
   var R = window.ZinemaRender;
+  var Reperes = window.ZinemaReperesFilm;
   var C = window.ZinemaCouleurs;
 
   var statusSeance = { disponible: "Places disponibles", complet: "Complet", annule: "Annulé" };
@@ -313,9 +314,9 @@
     var infosHTML =
       celluleInfo("Année", film.year ? String(film.year) : "") +
       celluleInfo("Pays", film.country) +
-      celluleInfo("Durée", film.duration ? film.duration + " min" : "") +
+      celluleInfo("Durée", Reperes.duree(film.duration)) +
       celluleInfo("Genre", typeDuFilm(film)) +
-      celluleInfo("Version", [film.language, film.subtitles].filter(Boolean).join(" ")) +
+      celluleInfo("Version", Reperes.version(film.language, film.subtitles)) +
       celluleInfo("Âge", film.ageRating) +
       /* L'invité·e annoncé dans le Studio. La même information qu'en
          page Événements, mais ici au moment où l'on choisit sa

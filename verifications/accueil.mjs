@@ -26,9 +26,9 @@ import { libelleDuTypeEvenement } from "../sanity/typesEvenement.ts";
 
 function chargerLeChoixDuSite() {
   const code = readFileSync(new URL("../assets/js/home-choix.js", import.meta.url), "utf8");
-  /* Toutes les affiches sont « vraies » ici : seul compte le tri
+  /* Toute affiche présente est « vraie » ici : seul compte le tri
      des films, pas le dessin des affiches. */
-  const fenetre = { ZinemaRender: { hasRealImage: () => true } };
+  const fenetre = { ZinemaRender: { hasRealImage: (image) => Boolean(image) } };
   fenetre.window = fenetre;
   vm.createContext(fenetre);
   vm.runInContext(code, fenetre);
@@ -104,6 +104,26 @@ verifier(
   "agenda injoignable : aucun film n'est retiré, le mur ne se vide pas sur une panne",
   titres([film("The North", "a-laffiche")], null),
   ["The North"],
+);
+
+console.log("\nLe visuel d'un événement sur le mur");
+
+const vertical = { asset: { _ref: "image-vertical-1478x2048-jpg" } };
+const paysage = { asset: { _ref: "image-paysage-2048x1478-jpg" } };
+verifier(
+  "un événement avec un visuel vertical le montre sur le mur",
+  selection([], [{ title: "Cumbia", image: paysage, imageAccueil: vertical }], []).map((i) => i.poster),
+  [vertical],
+);
+verifier(
+  "sans visuel vertical, le mur reprend le visuel de l'événement",
+  selection([], [{ title: "Cumbia", image: paysage }], []).map((i) => i.poster),
+  [paysage],
+);
+verifier(
+  "sans aucun visuel, l'événement ne monte pas sur le mur",
+  selection([], [{ title: "Info" }], []).length,
+  0,
 );
 
 /* ------------------------------------------------------------------

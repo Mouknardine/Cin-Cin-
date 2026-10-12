@@ -95,14 +95,17 @@
         };
       });
 
+    /* Le visuel vertical de l'événement s'il en a un — c'est le
+       format du mur —, sinon son visuel principal. */
     var eventItems = (evenements || [])
-      .filter(function (e) {
-        return isRealImage(e.image);
-      })
-      .slice(0, 3)
       .map(function (e) {
-        return { title: e.title, poster: e.image, href: "evenements/" };
-      });
+        var visuel = isRealImage(e.imageAccueil) ? e.imageAccueil : e.image;
+        return { title: e.title, poster: visuel, href: "evenements/" };
+      })
+      .filter(function (item) {
+        return isRealImage(item.poster);
+      })
+      .slice(0, 3);
 
     return filmItems.concat(eventItems);
   }

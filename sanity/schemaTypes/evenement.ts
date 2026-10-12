@@ -39,7 +39,19 @@ export const evenement = defineType({
       title: "Visuel de l'événement",
       type: "imageZinema",
       description:
-        "L'image qui représente l'événement sur la page Événements, et sur l'accueil pendant toute sa durée. Format libre ; une image large (paysage) rend le mieux. Sans image, l'événement s'affiche en texte seul — c'est très bien aussi.",
+        "L'image de l'événement sur la page Événements. Format libre ; une image large (paysage) rend le mieux. Sans image, l'événement s'affiche en texte seul — c'est très bien aussi.",
+    }),
+    /* Le mur de l'accueil est fait d'affiches verticales : un flyer en
+       paysage y est rogné, et le même flyer pivoté devient immense sur
+       la page Événements. D'où deux visuels (demande du cinéma,
+       12 octobre 2026). Facultatif : sans lui, l'accueil reprend le
+       visuel ci-dessus. */
+    defineField({
+      name: "imageAccueil",
+      title: "Visuel vertical pour l'accueil (facultatif)",
+      type: "imageZinema",
+      description:
+        "La version portrait (en hauteur) du visuel, pour le mur d'affiches de la page d'accueil, pendant toute la durée de l'événement. Laissez vide pour reprendre le visuel ci-dessus.",
     }),
 
     /* Le type s'écrit en toutes lettres, comme le cinéma veut le voir
