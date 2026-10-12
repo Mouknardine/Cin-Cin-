@@ -3,11 +3,10 @@
    reste du site : des cases blanches séparées par des traits
    noirs, dont la couleur est tirée au hasard à chaque affichage.
 
-   Chaque événement y est une rangée, comme les films annoncés en
-   dessous : le flyer, qui se retourne d'un clic pour montrer le
-   texte, le titre, le type et la date — voir evenement-rangee.js
-   et evenement-carte.js. Le flyer en grand
-   est à evenements/?e=…, voir evenement-detail.js.
+   Chaque événement y est une rangée de deux cases : le flyer à
+   gauche, toutes les informations à droite, sans rien à cliquer —
+   la même qu'à l'adresse evenements/?e=… d'un événement seul (voir
+   evenement-detail.js).
 
    La page n'affiche que les événements en cours ou à venir : ceux
    dont le dernier jour est passé s'archivent tout seuls dans le
@@ -25,8 +24,6 @@
   var R = window.ZinemaRender;
   var Films = window.ZinemaEvenementsFilms;
   var Detail = window.ZinemaEvenementDetail;
-  var Rangee = window.ZinemaEvenementRangee;
-  var Carte = window.ZinemaEvenementCarte;
   var D = window.ZinemaData;
 
   function bande(classe, contenu) {
@@ -74,7 +71,11 @@
         return;
       }
 
-      app.innerHTML = cadre(Rangee.bandes(evenements) + bandesFilms);
+      var rangees = evenements
+        .filter(function (a) { return a && a.title; })
+        .map(Detail.bandeHTML)
+        .join("");
+      app.innerHTML = cadre(rangees + bandesFilms);
     });
   }
 
@@ -99,8 +100,6 @@
   }
 
   var adresse = new URLSearchParams(window.location.search).get("e");
-
-  Carte.activer(app);
 
   if (adresse) {
     app.innerHTML = R.etatChargement("de l'événement");

@@ -137,20 +137,17 @@ function chargerLeDetailDUnEvenement() {
   };
   fenetre.window = fenetre;
   vm.createContext(fenetre);
-  for (const fichier of ["couleurs.js", "render.js", "texte-riche.js", "evenement-detail.js", "evenement-carte.js", "evenement-rangee.js"]) {
+  for (const fichier of ["couleurs.js", "render.js", "texte-riche.js", "evenement-detail.js"]) {
     const code = readFileSync(new URL(`../assets/js/${fichier}`, import.meta.url), "utf8");
     vm.runInContext(code, fenetre, { filename: fichier });
   }
   if (!fenetre.ZinemaEvenementDetail || typeof fenetre.ZinemaEvenementDetail.categorie !== "function") {
     throw new Error("assets/js/evenement-detail.js n'expose plus ZinemaEvenementDetail.categorie.");
   }
-  if (!fenetre.ZinemaEvenementRangee || typeof fenetre.ZinemaEvenementRangee.bandes !== "function") {
-    throw new Error("assets/js/evenement-rangee.js n'expose plus ZinemaEvenementRangee.bandes.");
-  }
-  return { Detail: fenetre.ZinemaEvenementDetail, Rangee: fenetre.ZinemaEvenementRangee };
+  return fenetre.ZinemaEvenementDetail;
 }
 
-const { Detail, Rangee } = chargerLeDetailDUnEvenement();
+const Detail = chargerLeDetailDUnEvenement();
 
 /* Le même événement passe dans le site ET dans le Studio : les deux
    doivent écrire le même libellé. */
@@ -211,7 +208,7 @@ verifier(
 );
 
 /* Le « Texte complet » du Studio, écrit avec sa mise en forme
-   (texte-riche.js), dans les rangées comme sur le détail. */
+   (texte-riche.js), dans la liste comme sur le détail. */
 const morceau = (text, marks = []) => ({ _type: "span", text, marks });
 const pageAvecTexte = Detail.html({
   title: "Soirée",
@@ -252,20 +249,20 @@ verifier(
   [false, false],
 );
 
-/* La page Événements : une rangée par événement, comme un film. */
-const rangees = Rangee.bandes([
-  { _id: "a1", slug: "cumbia", title: "Cumbia <b>del</b> Zinema", dateDebut: "2026-10-16", typeNom: "Soirée" },
-  { _id: "a2", slug: "info", title: "", dateDebut: "2026-10-16" },
-]);
+/* La page Événements : deux cases par événement, le flyer et les
+   informations ; le titre y est un h2, la page en garde un seul h1. */
+const rangee = Detail.bandeHTML(
+  { _id: "a1", title: "Cumbia <b>del</b> Zinema", dateDebut: "2026-10-16", typeNom: "Soirée" },
+  0,
+);
 verifier(
-  "une rangée par événement titré, le titre échappé et menant à sa page",
+  "dans la liste, un événement sans visuel tient en une case, titre échappé en h2",
   [
-    (rangees.match(/m-bande--evenement/g) || []).length,
-    rangees.includes("<b>del</b>"),
-    rangees.includes('href="../evenements/?e=cumbia"'),
-    rangees.includes("m-annonce__vignette"),
+    (rangee.match(/class="m-cell /g) || []).length,
+    rangee.includes("<b>del</b>"),
+    rangee.includes("<h2>Cumbia &lt;b&gt;del&lt;/b&gt; Zinema</h2>"),
   ],
-  [1, false, true, false],
+  [1, false, true],
 );
 
 console.log(

@@ -8,8 +8,7 @@
    n'est gardé que s'il mène vers le web, un e-mail ou un numéro
    de téléphone — jamais vers du « javascript: ».
 
-   Utilisé sur la page Événements (evenement-rangee.js) et sur le
-   détail d'un événement (evenement-detail.js).
+   Utilisé par les rangées d'événement (evenement-detail.js).
    ============================================================ */
 (function (global) {
   "use strict";

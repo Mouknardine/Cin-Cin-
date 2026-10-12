@@ -3,11 +3,9 @@
    S'appuie sur film-mondrian.css (quadrillage, cases, visuels) :
    les deux feuilles sont chargées ensemble sur cette page.
 
-   La liste montre chaque événement en rangée, comme un film
-   annoncé, avec son flyer qui se retourne d'un clic
-   (evenements-cartes.css). Le détail (evenements/?e=…) : deux
-   cases, le flyer à gauche, et à droite le titre suivi de tout le
-   texte.
+   Chaque événement, dans la liste comme à son adresse
+   (evenements/?e=…), tient en deux cases : le flyer à gauche, et à
+   droite le type, la date, le titre et tout le texte.
    ============================================================ */
 
 /* ---------- Mobile : chaque case prend toute la largeur ----------
@@ -49,15 +47,31 @@
   gap: 0.9rem;
   padding: 1.25rem 1rem;
 }
-.m-annonce__infos h1 {
+/* Le titre de l'événement reste à taille moyenne, dans la liste
+   comme sur sa page : en grand, il rendait la case de texte plus
+   haute que le flyer, qui se retrouvait rogné pour la remplir. */
+.m-annonce__infos h1,
+.m-annonce__infos h2 {
+  font-size: clamp(1.75rem, 1rem + 2.5vw, 3rem);
   font-family: var(--font-display);
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: -0.01em;
-  font-size: var(--taille-titre);
   line-height: 0.92;
   overflow-wrap: anywhere;
 }
+/* Le flyer, ENTIER sur téléphone, où il prend toute la largeur
+   au-dessus du texte. */
+.m-annonce__visuel {
+  padding: 0;
+  overflow: hidden;
+}
+.m-annonce__visuel img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 
 /* ---------- Les cases communes à toutes les annonces ---------- */
 
@@ -81,17 +95,28 @@
   flex-wrap: wrap;
   gap: 0.5rem 1.25rem;
 }
-.m-annonce__liens a {
+/* Pas de soulignement : il n'y en a nulle part ailleurs sur le site
+   (demande du cinéma, 12 octobre 2026). Un lien s'écrit en
+   majuscules grasses, comme « Voir les séances », et pâlit au
+   survol. */
+.m-annonce__liens a,
+.texte-riche a {
   color: inherit;
   font-weight: 800;
+  text-decoration: none;
+  transition: opacity 0.15s ease-out;
+}
+.m-annonce__liens a {
   text-transform: uppercase;
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-  text-decoration-thickness: 2px;
 }
 .m-annonce__liens a:hover,
-.m-annonce__liens a:focus-visible {
-  text-decoration-thickness: 4px;
+.texte-riche a:hover {
+  opacity: 0.65;
+}
+.m-annonce__liens a:focus-visible,
+.texte-riche a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
 /* ---------- Le texte complet (texte-riche.js) ---------- */
@@ -111,32 +136,6 @@
 .texte-riche blockquote {
   padding-left: 0.75em;
   border-left: var(--ligne) solid currentColor;
-}
-.texte-riche a {
-  color: inherit;
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
-}
-
-/* ---------- Un événement en rangée (evenement-rangee.js) ----------
-   Le flyer qui se retourne est décrit dans evenements-cartes.css. */
-.m-annonce__evenement {
-  gap: 0.75rem;
-}
-.m-annonce__evenement .m-annonce__titre {
-  color: inherit;
-  text-decoration: none;
-}
-.m-annonce__evenement .m-annonce__titre:hover,
-.m-annonce__evenement .m-annonce__titre:focus-visible {
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
-}
-
-@media (min-width: 900px) {
-  .m-bande--evenement > .m-annonce__evenement {
-    flex: 1 1 0;
-  }
 }
 
 /* ---------- Les films que la page annonce d'elle-même ----------
@@ -204,14 +203,20 @@
 /* ---------- Ordinateur ---------- */
 
 @media (min-width: 900px) {
-  /* Le visuel tient un tiers de la bande, le titre prend le reste
-     et se cale exactement sur sa hauteur. */
+  /* Le flyer tient la moitié de la bande, puis un peu moins sur
+     grand écran (plus bas) ; le texte prend le reste.
+     Les deux cases ont la même hauteur, sans bande vide au-dessus
+     ou au-dessous du flyer (demande du cinéma, 12 octobre 2026) :
+     la case du flyer prend la hauteur de l'image, et si le texte
+     est plus haut, l'image s'agrandit pour remplir sa case, rognée
+     sur les bords plutôt que flottant dans du vide. */
   .m-annonce__visuel {
-    flex: 0 0 34%;
-    display: flex;
-    align-items: center;
+    flex: 0 0 50%;
   }
-  .m-annonce__visuel .poster { width: 100%; height: auto; }
+  .m-annonce__visuel img {
+    min-height: 100%;
+    object-fit: cover;
+  }
   .m-annonce__infos { flex: 1 1 0; padding: 2rem 2.5rem; }
 
   /* La date et la catégorie : une case étroite, calée sur son
@@ -244,12 +249,20 @@
 }
 
 /* ---------- Grand écran ----------
-   Le visuel garde ses proportions : plus l'écran est large, plus
-   il serait haut. On lui reprend un peu de largeur pour que la
-   première bande tienne dans l'écran. */
+   Le flyer garde ses proportions : plus l'écran est large, plus
+   il serait haut. On lui reprend un peu de largeur. */
 
+/* La part du flyer diminue à mesure que l'écran s'élargit : la case
+   de texte, plus large, devient moins haute, et le flyer, plus
+   étroit, aussi — les deux restent proches, le flyer n'est presque
+   jamais rogné. */
+@media (min-width: 1200px) {
+  .m-annonce__visuel {
+    flex-basis: 42%;
+  }
+}
 @media (min-width: 1440px) {
   .m-annonce__visuel {
-    flex-basis: 28%;
+    flex-basis: 38%;
   }
 }

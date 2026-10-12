@@ -1,9 +1,7 @@
 /* ============================================================
-   Zinéma — un événement en détail, à l'adresse
-   evenements/?e=<adresse de l'événement>.
-
-   Deux cases, pas plus (demande du cinéma, 12 octobre 2026 : les
-   cinq cases d'avant « faisaient beaucoup ») :
+   Zinéma — un événement : le flyer à gauche, toutes les
+   informations à droite. Deux cases, pas plus, sans rien à
+   cliquer (demandes du cinéma, 12 octobre 2026).
 
      ┌──────────┬───────────────────────────────────┐
      │          │ TYPE · DATE                       │
@@ -12,10 +10,10 @@
      │          │ LIEN EXTERNE · FILMS RELIÉS       │
      └──────────┴───────────────────────────────────┘
 
-   Sans visuel, la case de texte occupe seule toute la largeur.
-   Le type, la période, le texte et les liens s'écrivent ici une
-   seule fois : les rangées de la page Événements
-   (evenement-rangee.js) s'en servent aussi.
+   La même rangée sert sur la page Événements (une par événement,
+   voir evenements.js) et à l'adresse evenements/?e=… d'un
+   événement seul. Sans visuel, la case de texte occupe seule toute
+   la largeur.
    ============================================================ */
 (function (global) {
   "use strict";
@@ -89,13 +87,14 @@
   }
 
   /* La case de droite : tout ce qu'il faut savoir, d'un seul tenant.
-     Sans type, la date reste seule. */
-  function infosHTML(a) {
+     Sans type, la date reste seule. Le titre est un h1 sur la page
+     de l'événement, un h2 dans la liste. */
+  function infosHTML(a, balise) {
     var quand = [categorie(a), periode(a)].filter(Boolean).join(" · ");
     return (
       '<div class="m-cell m-annonce__infos ' + C.classe() + '">' +
       '<p class="m-cell__label">' + R.escapeHtml(quand) + "</p>" +
-      "<h1>" + R.escapeHtml(a.title) + "</h1>" +
+      "<" + balise + ">" + R.escapeHtml(a.title) + "</" + balise + ">" +
       texteHTML(a) + liensHTML(a) + "</div>"
     );
   }
@@ -110,18 +109,36 @@
     );
   }
 
-  /* L'événement en entier : le flyer à gauche, ENTIER, jamais
-     recadré ; tout le reste à droite. */
-  function html(a) {
+  /* Le flyer, à gauche. Sa case et celle du texte ont toujours la
+     même hauteur (demande du cinéma, 12 octobre 2026) : si le texte
+     est plus haut que le flyer, celui-ci s'agrandit pour la remplir
+     (voir .m-annonce__visuel dans evenements-mondrian.css). */
+  function visuelHTML(a, chargement) {
     var src = R.sanityImageUrl(a.image, 1200);
-    var visuelHTML = src
-      ? '<div class="m-affiche m-annonce__visuel"><div class="poster">' +
-        '<img src="' + R.escapeHtml(src) + '" alt="' +
-        R.altDeLImage(a.image, a.title) + '" loading="eager"></div></div>'
-      : "";
+    if (!src) return "";
+    return (
+      '<div class="m-cell m-annonce__visuel"><img src="' + R.escapeHtml(src) + '" alt="' +
+      R.altDeLImage(a.image, a.title) + '" loading="' + chargement + '" decoding="async"></div>'
+    );
+  }
+
+  /** Deux cases : le flyer à gauche, toutes les informations à
+      droite. Sans visuel, la case de texte occupe toute la largeur.
+      La page Événements en pose une par événement (evenements.js). */
+  function bandeHTML(a, index) {
+    var dansLaListe = typeof index === "number";
+    var chargement = dansLaListe && index > 0 ? "lazy" : "eager";
+    return bande(
+      "m-bande--une",
+      visuelHTML(a, chargement) + infosHTML(a, dansLaListe ? "h2" : "h1")
+    );
+  }
+
+  /* L'événement seul, à son adresse. */
+  function html(a) {
     return (
       '<article class="mondrian mondrian--evenements">' +
-      bande("m-bande--une", visuelHTML + infosHTML(a)) +
+      bandeHTML(a) +
       actionsHTML() +
       "</article>"
     );
@@ -147,7 +164,6 @@
     introuvable: introuvable,
     categorie: categorie,
     periode: periode,
-    texteHTML: texteHTML,
-    liensHTML: liensHTML,
+    bandeHTML: bandeHTML,
   };
 })(window);
