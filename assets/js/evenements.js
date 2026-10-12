@@ -3,17 +3,10 @@
    reste du site : des cases blanches séparées par des traits
    noirs, dont la couleur est tirée au hasard à chaque affichage.
 
-   Chaque événement y est une carte aux proportions exactes de
-   son affiche, en portrait comme en paysage :
-
-     ┌────────┬────────────────────────┬──────────┐
-     │ AFFI-  │        AFFICHE         │  AFFI-   │
-     │ CHE    │        paysage         │  CHE     │
-     └────────┴────────────────────────┴──────────┘
-
-   Un clic sur l'affiche la retourne : l'information est derrière
-   (type, date, titre, texte, liens) — voir evenement-carte.js. Le
-   détail complet reste à evenements/?e=…, voir evenement-detail.js.
+   Chaque événement y est une rangée, comme les films annoncés en
+   dessous : une vignette en paysage, le titre et tout le texte, le
+   type et la date — voir evenement-rangee.js. Le flyer en grand
+   est à evenements/?e=…, voir evenement-detail.js.
 
    La page n'affiche que les événements en cours ou à venir : ceux
    dont le dernier jour est passé s'archivent tout seuls dans le
@@ -31,20 +24,11 @@
   var R = window.ZinemaRender;
   var Films = window.ZinemaEvenementsFilms;
   var Detail = window.ZinemaEvenementDetail;
-  var Carte = window.ZinemaEvenementCarte;
+  var Rangee = window.ZinemaEvenementRangee;
   var D = window.ZinemaData;
 
   function bande(classe, contenu) {
     return '<div class="m-bande ' + classe + '">' + contenu + "</div>";
-  }
-
-  /* Les cartes se partagent la rangée au prorata de leur format :
-     toutes ont la même hauteur, gardent leurs proportions et
-     remplissent la largeur. Une affiche seule sur sa rangée prend
-     donc toute la largeur — le cinéma ne veut aucun vide à côté
-     (8 octobre 2026). */
-  function bandeDesCartes(evenements) {
-    return bande("m-bande--cartes", evenements.map(Carte.html).join(""));
   }
 
   /* La page se ferme sur le chemin des séances : une annonce donne
@@ -56,7 +40,7 @@
     );
   }
 
-  /* La liste : les affiches des événements, puis les films. */
+  /* La liste : les événements, puis les films. */
   function afficherLaListe() {
     /* Les deux sources arrivent ensemble : les événements saisis dans
        le Studio, et les films que la page déduit toute seule. La page
@@ -88,11 +72,7 @@
         return;
       }
 
-      /* Toutes les cartes sur une même bande, séparée des films
-         par un trait : on ne peut plus croire qu'elles vont avec. */
-      var cartes = evenements.length ? bandeDesCartes(evenements) : "";
-
-      app.innerHTML = cadre(cartes + bandesFilms);
+      app.innerHTML = cadre(Rangee.bandes(evenements) + bandesFilms);
     });
   }
 
@@ -117,8 +97,6 @@
   }
 
   var adresse = new URLSearchParams(window.location.search).get("e");
-
-  Carte.activer(app);
 
   if (adresse) {
     app.innerHTML = R.etatChargement("de l'événement");

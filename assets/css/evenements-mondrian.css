@@ -3,9 +3,8 @@
    S'appuie sur film-mondrian.css (quadrillage, cases, visuels) :
    les deux feuilles sont chargées ensemble sur cette page.
 
-   La liste montre chaque événement en carte, aux proportions de
-   son affiche, qui se retourne au clic : voir
-   evenements-cartes.css. Le détail (evenements/?e=…) : deux cases,
+   La liste montre chaque événement en rangée, comme un film
+   annoncé, avec une vignette en paysage. Le détail (evenements/?e=…) : deux cases,
    le flyer à gauche, et à droite le titre suivi de tout le texte.
    ============================================================ */
 
@@ -77,6 +76,66 @@
 .m-annonce__liens a:hover,
 .m-annonce__liens a:focus-visible {
   text-decoration-thickness: 4px;
+}
+
+/* ---------- Le texte complet (texte-riche.js) ---------- */
+.texte-riche > * + * {
+  margin-top: 0.6em;
+}
+.texte-riche__titre {
+  font-size: 1em;
+  font-weight: 800;
+}
+.texte-riche ul,
+.texte-riche ol {
+  padding-left: 1.25em;
+}
+.texte-riche ul { list-style: disc; }
+.texte-riche ol { list-style: decimal; }
+.texte-riche blockquote {
+  padding-left: 0.75em;
+  border-left: var(--ligne) solid currentColor;
+}
+.texte-riche a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+/* ---------- Un événement en rangée (evenement-rangee.js) ----------
+   La vignette : le flyer entier, à une largeur modeste et fixe —
+   un repère dans la rangée, pas l'image d'ouverture de la page.
+   Sur téléphone, elle prend toute la largeur, au-dessus du texte.
+   Si le texte est long, la case garde sa couleur sous l'image. */
+.m-annonce__vignette {
+  justify-content: center;
+  padding: 0;
+}
+.m-annonce__vignette img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.m-annonce__evenement {
+  gap: 0.75rem;
+}
+.m-annonce__evenement .m-annonce__titre {
+  color: inherit;
+  text-decoration: none;
+}
+.m-annonce__evenement .m-annonce__titre:hover,
+.m-annonce__evenement .m-annonce__titre:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+@media (min-width: 900px) {
+  .m-bande--evenement > .m-annonce__vignette {
+    flex: 0 0 clamp(14rem, 24vw, 22rem);
+  }
+  .m-bande--evenement > .m-annonce__evenement {
+    flex: 1 1 0;
+  }
 }
 
 /* ---------- Les films que la page annonce d'elle-même ----------

@@ -137,17 +137,20 @@ function chargerLeDetailDUnEvenement() {
   };
   fenetre.window = fenetre;
   vm.createContext(fenetre);
-  for (const fichier of ["couleurs.js", "render.js", "texte-riche.js", "evenement-detail.js"]) {
+  for (const fichier of ["couleurs.js", "render.js", "texte-riche.js", "evenement-detail.js", "evenement-rangee.js"]) {
     const code = readFileSync(new URL(`../assets/js/${fichier}`, import.meta.url), "utf8");
     vm.runInContext(code, fenetre, { filename: fichier });
   }
   if (!fenetre.ZinemaEvenementDetail || typeof fenetre.ZinemaEvenementDetail.categorie !== "function") {
     throw new Error("assets/js/evenement-detail.js n'expose plus ZinemaEvenementDetail.categorie.");
   }
-  return fenetre.ZinemaEvenementDetail;
+  if (!fenetre.ZinemaEvenementRangee || typeof fenetre.ZinemaEvenementRangee.bandes !== "function") {
+    throw new Error("assets/js/evenement-rangee.js n'expose plus ZinemaEvenementRangee.bandes.");
+  }
+  return { Detail: fenetre.ZinemaEvenementDetail, Rangee: fenetre.ZinemaEvenementRangee };
 }
 
-const Detail = chargerLeDetailDUnEvenement();
+const { Detail, Rangee } = chargerLeDetailDUnEvenement();
 
 /* Le même événement passe dans le site ET dans le Studio : les deux
    doivent écrire le même libellé. */
@@ -208,7 +211,7 @@ verifier(
 );
 
 /* Le « Texte complet » du Studio, écrit avec sa mise en forme
-   (texte-riche.js), au dos des cartes comme sur le détail. */
+   (texte-riche.js), dans les rangées comme sur le détail. */
 const morceau = (text, marks = []) => ({ _type: "span", text, marks });
 const pageAvecTexte = Detail.html({
   title: "Soirée",
@@ -247,6 +250,22 @@ verifier(
   "le texte complet est échappé, et un lien « javascript: » n'est jamais écrit",
   [pageAvecTexte.includes("<script>"), pageAvecTexte.includes("javascript:")],
   [false, false],
+);
+
+/* La page Événements : une rangée par événement, comme un film. */
+const rangees = Rangee.bandes([
+  { _id: "a1", slug: "cumbia", title: "Cumbia <b>del</b> Zinema", dateDebut: "2026-10-16", typeNom: "Soirée" },
+  { _id: "a2", slug: "info", title: "", dateDebut: "2026-10-16" },
+]);
+verifier(
+  "une rangée par événement titré, le titre échappé et menant à sa page",
+  [
+    (rangees.match(/m-bande--evenement/g) || []).length,
+    rangees.includes("<b>del</b>"),
+    rangees.includes('href="../evenements/?e=cumbia"'),
+    rangees.includes("m-annonce__vignette"),
+  ],
+  [1, false, true, false],
 );
 
 console.log(

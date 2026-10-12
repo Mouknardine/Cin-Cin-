@@ -8,8 +8,8 @@
    n'est gardé que s'il mène vers le web, un e-mail ou un numéro
    de téléphone — jamais vers du « javascript: ».
 
-   Utilisé au dos des cartes (evenement-carte.js) et sur le détail
-   d'un événement (evenement-detail.js).
+   Utilisé sur la page Événements (evenement-rangee.js) et sur le
+   détail d'un événement (evenement-detail.js).
    ============================================================ */
 (function (global) {
   "use strict";

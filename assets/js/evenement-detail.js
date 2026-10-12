@@ -13,8 +13,9 @@
      └──────────┴───────────────────────────────────┘
 
    Sans visuel, la case de texte occupe seule toute la largeur.
-   Le type et la période s'écrivent ici une seule fois : le dos des
-   cartes (evenement-carte.js) s'en sert aussi.
+   Le type, la période, le texte et les liens s'écrivent ici une
+   seule fois : les rangées de la page Événements
+   (evenement-rangee.js) s'en servent aussi.
    ============================================================ */
 (function (global) {
   "use strict";
@@ -146,5 +147,7 @@
     introuvable: introuvable,
     categorie: categorie,
     periode: periode,
+    texteHTML: texteHTML,
+    liensHTML: liensHTML,
   };
 })(window);
