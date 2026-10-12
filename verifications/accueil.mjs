@@ -137,7 +137,7 @@ function chargerLeDetailDUnEvenement() {
   };
   fenetre.window = fenetre;
   vm.createContext(fenetre);
-  for (const fichier of ["couleurs.js", "render.js", "texte-riche.js", "evenement-detail.js", "evenement-rangee.js"]) {
+  for (const fichier of ["couleurs.js", "render.js", "texte-riche.js", "evenement-detail.js", "evenement-carte.js", "evenement-rangee.js"]) {
     const code = readFileSync(new URL(`../assets/js/${fichier}`, import.meta.url), "utf8");
     vm.runInContext(code, fenetre, { filename: fichier });
   }

@@ -4,8 +4,9 @@
    noirs, dont la couleur est tirée au hasard à chaque affichage.
 
    Chaque événement y est une rangée, comme les films annoncés en
-   dessous : une vignette en paysage, le titre et tout le texte, le
-   type et la date — voir evenement-rangee.js. Le flyer en grand
+   dessous : le flyer, qui se retourne d'un clic pour montrer le
+   texte, le titre, le type et la date — voir evenement-rangee.js
+   et evenement-carte.js. Le flyer en grand
    est à evenements/?e=…, voir evenement-detail.js.
 
    La page n'affiche que les événements en cours ou à venir : ceux
@@ -25,6 +26,7 @@
   var Films = window.ZinemaEvenementsFilms;
   var Detail = window.ZinemaEvenementDetail;
   var Rangee = window.ZinemaEvenementRangee;
+  var Carte = window.ZinemaEvenementCarte;
   var D = window.ZinemaData;
 
   function bande(classe, contenu) {
@@ -97,6 +99,8 @@
   }
 
   var adresse = new URLSearchParams(window.location.search).get("e");
+
+  Carte.activer(app);
 
   if (adresse) {
     app.innerHTML = R.etatChargement("de l'événement");

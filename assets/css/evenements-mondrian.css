@@ -4,8 +4,10 @@
    les deux feuilles sont chargées ensemble sur cette page.
 
    La liste montre chaque événement en rangée, comme un film
-   annoncé, avec une vignette en paysage. Le détail (evenements/?e=…) : deux cases,
-   le flyer à gauche, et à droite le titre suivi de tout le texte.
+   annoncé, avec son flyer qui se retourne d'un clic
+   (evenements-cartes.css). Le détail (evenements/?e=…) : deux
+   cases, le flyer à gauche, et à droite le titre suivi de tout le
+   texte.
    ============================================================ */
 
 /* ---------- Mobile : chaque case prend toute la largeur ----------
@@ -21,6 +23,20 @@
 @media (max-width: 899px) {
   .mondrian--evenements .m-bande > * {
     flex: 1 1 100%;
+  }
+  /* « PROCHAINEMENT » prend presque toute la largeur d'un téléphone :
+     la date, rangée à côté, s'écrasait sur quatre lignes (« dès le /
+     mercredi / 28 / octobre »). Le libellé passe donc au-dessus de
+     sa valeur, comme sur ordinateur. */
+  .mondrian--evenements .m-annonce__quand,
+  .mondrian--evenements .m-annonce__presence {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  .mondrian--evenements .m-annonce__quand .m-cell__value,
+  .mondrian--evenements .m-annonce__presence .m-cell__value {
+    text-align: left;
   }
 }
 
@@ -103,19 +119,7 @@
 }
 
 /* ---------- Un événement en rangée (evenement-rangee.js) ----------
-   La vignette : le flyer entier, à une largeur modeste et fixe —
-   un repère dans la rangée, pas l'image d'ouverture de la page.
-   Sur téléphone, elle prend toute la largeur, au-dessus du texte.
-   Si le texte est long, la case garde sa couleur sous l'image. */
-.m-annonce__vignette {
-  justify-content: center;
-  padding: 0;
-}
-.m-annonce__vignette img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
+   Le flyer qui se retourne est décrit dans evenements-cartes.css. */
 .m-annonce__evenement {
   gap: 0.75rem;
 }
@@ -130,9 +134,6 @@
 }
 
 @media (min-width: 900px) {
-  .m-bande--evenement > .m-annonce__vignette {
-    flex: 0 0 clamp(14rem, 24vw, 22rem);
-  }
   .m-bande--evenement > .m-annonce__evenement {
     flex: 1 1 0;
   }
