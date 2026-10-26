@@ -1,6 +1,12 @@
-import { defineField, defineType, type SanityDocument } from "sanity";
+import {
+  type ConditionalPropertyCallback,
+  defineField,
+  defineType,
+  type SanityDocument,
+} from "sanity";
 
 import { heureDeFin, intervallesSeChevauchent } from "../plugins/planification/utils/conflits";
+import { NOM_DE_LA_PROJECTION } from "../plugins/planification/utils/projection-de-la-fiche";
 import { listeDesSalles, SALLES } from "../salles";
 
 /* ============================================================
@@ -18,6 +24,15 @@ interface ScreeningEnCours extends SanityDocument {
   time?: string;
   room?: string;
 }
+
+/* La séance d'une avant-première ou d'une première se règle dans la
+   fiche de son film : ici, son film, son jour, son heure et sa salle
+   sont en lecture seule — sinon la prochaine publication de la fiche
+   la remettrait à l'horaire écrit là-bas, sans prévenir. */
+const TENUE_PAR_LA_FICHE: ConditionalPropertyCallback = ({ document }) =>
+  Boolean(document?.evenementDuFilm);
+const DIT_PAR_LA_FICHE =
+  "Cette séance est une avant-première ou une première : elle se règle dans la fiche du film (« Jour et heure de la projection »).";
 
 const JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
 const MOIS = [
@@ -91,6 +106,7 @@ export const screening = defineType({
       title: "Quel film ?",
       type: "reference",
       to: [{ type: "film" }],
+      readOnly: TENUE_PAR_LA_FICHE,
       description:
         "Le titre, l'affiche, la durée, la version et le prix sont repris automatiquement de la fiche du film — rien à recopier ici.",
       validation: (Rule) => Rule.required().error("Choisissez le film projeté."),
@@ -100,6 +116,7 @@ export const screening = defineType({
       title: "Date de la séance",
       type: "date",
       options: { dateFormat: "dddd D MMMM YYYY" },
+      readOnly: TENUE_PAR_LA_FICHE,
       validation: (Rule) => Rule.required().error("Indiquez la date de la séance."),
     }),
     defineField({
@@ -107,6 +124,7 @@ export const screening = defineType({
       title: "Heure de début",
       type: "string",
       description: "Sur 24 heures, avec deux points. Ex. 20:30 pour 20 h 30.",
+      readOnly: TENUE_PAR_LA_FICHE,
       validation: (Rule) =>
         Rule.required()
           .regex(/^([01]\d|2[0-3]):[0-5]\d$/, { name: "heure (HH:MM)" })
@@ -119,6 +137,7 @@ export const screening = defineType({
       description:
         "Le nombre de places de chaque salle se règle dans « Réglages du cinéma → Tarifs & salles ».",
       options: { list: listeDesSalles, layout: "radio" },
+      readOnly: TENUE_PAR_LA_FICHE,
       initialValue: SALLES[0],
       validation: (Rule) => Rule.required(),
     }),
@@ -145,6 +164,21 @@ export const screening = defineType({
       type: "string",
       description:
         "S'affiche à côté de l'heure sur l'agenda. Ex. « Séance suivie d'une rencontre », « Ciné-goûter dès 6 ans », « Copie restaurée ». Laissez vide pour une séance normale.",
+    }),
+    /* Posée par la publication de la fiche du film, jamais à la main :
+       c'est elle qui fait de cette séance l'avant-première ou la
+       première du film. Voir plugins/planification/utils/
+       projection-de-la-fiche.ts. */
+    defineField({
+      name: "evenementDuFilm",
+      title: "Projection annoncée par la fiche du film",
+      type: "string",
+      readOnly: true,
+      hidden: ({ document }) => !document?.evenementDuFilm,
+      description: DIT_PAR_LA_FICHE,
+      options: {
+        list: Object.entries(NOM_DE_LA_PROJECTION).map(([value, title]) => ({ title, value })),
+      },
     }),
     defineField({
       name: "price",
@@ -188,13 +222,16 @@ export const screening = defineType({
       room: "room",
       status: "status",
       mention: "versionNote",
+      evenement: "evenementDuFilm",
     },
-    prepare({ titre, media, date, time, room, status, mention }) {
+    prepare({ titre, media, date, time, room, status, mention, evenement }) {
       const etat =
         status === "complet" ? "COMPLET" : status === "annule" ? "ANNULÉE" : null;
+      const projection =
+        NOM_DE_LA_PROJECTION[evenement as keyof typeof NOM_DE_LA_PROJECTION] ?? null;
       return {
         title: `${time || "??:??"} — ${titre || "Film à choisir"}`,
-        subtitle: [dateEnFrancais(date), room, etat, mention]
+        subtitle: [dateEnFrancais(date), room, projection, etat, mention]
           .filter(Boolean)
           .join(" · "),
         media,

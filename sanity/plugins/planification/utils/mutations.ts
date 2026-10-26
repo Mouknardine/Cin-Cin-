@@ -15,7 +15,8 @@ const CHAMPS_SEANCE = `{
   "salle": room,
   "filmId": film._ref,
   "filmTitre": coalesce(film->title, "Film supprimé"),
-  "filmDuree": film->duration
+  "filmDuree": film->duration,
+  "evenement": evenementDuFilm
 }`
 
 /**

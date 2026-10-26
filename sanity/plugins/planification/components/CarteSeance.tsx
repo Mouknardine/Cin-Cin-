@@ -7,11 +7,16 @@
  * natif), ce qui évite d'embarquer une librairie entière pour trois
  * gestes — et garde le clavier opérationnel, puisque le menu ⋮ propose
  * les mêmes déplacements.
+ *
+ * Une avant-première ou une première est ÉPINGLÉE : elle porte son nom,
+ * ne s'attrape pas, et son menu mène à la fiche du film, où elle se
+ * règle (jour, heure, salle). Une seule source pour son horaire.
  */
 import {
   DragHandleIcon,
   EditIcon,
   EllipsisVerticalIcon,
+  PinFilledIcon,
   SortIcon,
   TransferIcon,
   TrashIcon,
@@ -23,6 +28,7 @@ import {useRouter} from 'sanity/router'
 
 import type {ActionsPlanning, SeancePlanning} from '../types'
 import {heureDeFin} from '../utils/conflits'
+import {NOM_DE_LA_PROJECTION, estUneProjection} from '../utils/projection-de-la-fiche'
 import {autreSalle} from '../utils/salles-attitrees'
 
 /** Une couleur « #RRGGBB » à 26 % : assez franche pour distinguer les films,
@@ -61,6 +67,14 @@ export function CarteSeance({
   const ouvrirFiche = useCallback(() => {
     router.navigateIntent('edit', {id: seance._id.replace(/^drafts\./, ''), type: 'screening'})
   }, [router, seance._id])
+  const ouvrirFicheDuFilm = useCallback(() => {
+    router.navigateIntent('edit', {id: seance.filmId, type: 'film'})
+  }, [router, seance.filmId])
+
+  /* L'avant-première ou la première du film, tenue par sa fiche. */
+  const projection = estUneProjection(seance.evenement)
+    ? NOM_DE_LA_PROJECTION[seance.evenement]
+    : null
 
   const demanderSuppression = useCallback(
     () => actions.onSupprimer(seance),
@@ -97,11 +111,11 @@ export function CarteSeance({
       shadow={1}
       tone={enConflit ? 'critical' : 'default'}
       role="listitem"
-      draggable
-      onDragStart={commencer}
-      onDragEnd={onFinGlisser}
+      draggable={!projection}
+      onDragStart={projection ? undefined : commencer}
+      onDragEnd={projection ? undefined : onFinGlisser}
       style={{
-        cursor: 'grab',
+        cursor: projection ? 'default' : 'grab',
         opacity: enCoursDeDeplacement ? 0.4 : 1,
         /* La couleur du film, la même que dans le compteur au-dessus :
            un liseré franc et toute la carte légèrement teintée, pour que
@@ -110,12 +124,16 @@ export function CarteSeance({
         borderLeft: `6px solid ${couleur}`,
         ...(enConflit ? {} : {background: teinte(couleur)}),
       }}
-      title={`${seance.filmTitre} — glissez la carte pour déplacer cette séance`}
+      title={
+        projection
+          ? `${projection} de « ${seance.filmTitre} » — elle se règle dans la fiche du film`
+          : `${seance.filmTitre} — glissez la carte pour déplacer cette séance`
+      }
     >
       <Flex align="flex-start" gap={1}>
         <Box paddingTop={1}>
           <Text size={1} muted>
-            <DragHandleIcon />
+            {projection ? <PinFilledIcon /> : <DragHandleIcon />}
           </Text>
         </Box>
         <Stack space={2} flex={1}>
@@ -126,6 +144,11 @@ export function CarteSeance({
             <Badge tone={seance.salle === 'Salle 1' ? 'primary' : 'positive'} fontSize={0}>
               {seance.salle}
             </Badge>
+            {projection && (
+              <Badge tone="caution" fontSize={0}>
+                {projection}
+              </Badge>
+            )}
             {fin && (
               <Text size={0} muted>
                 → {fin.heure}
@@ -143,27 +166,38 @@ export function CarteSeance({
           id={`actions-${seance._id}`}
           button={<Button mode="bleed" icon={EllipsisVerticalIcon} aria-label="Actions" />}
           menu={
-            <Menu>
-              <MenuItem
-                icon={TransferIcon}
-                text="Changer le film…"
-                onClick={demanderChangementDeFilm}
-              />
-              {salleVoisine && (
+            projection ? (
+              <Menu>
                 <MenuItem
-                  icon={SortIcon}
-                  text={`Passer ce film en ${salleVoisine} (toute la semaine)`}
-                  onClick={demanderChangementDeSalle}
+                  icon={EditIcon}
+                  text="Régler dans la fiche du film"
+                  onClick={ouvrirFicheDuFilm}
                 />
-              )}
-              <MenuItem icon={EditIcon} text="Ouvrir la fiche" onClick={ouvrirFiche} />
-              <MenuItem
-                icon={TrashIcon}
-                text="Supprimer"
-                tone="critical"
-                onClick={demanderSuppression}
-              />
-            </Menu>
+                <MenuItem icon={EditIcon} text="Ouvrir la fiche de la séance" onClick={ouvrirFiche} />
+              </Menu>
+            ) : (
+              <Menu>
+                <MenuItem
+                  icon={TransferIcon}
+                  text="Changer le film…"
+                  onClick={demanderChangementDeFilm}
+                />
+                {salleVoisine && (
+                  <MenuItem
+                    icon={SortIcon}
+                    text={`Passer ce film en ${salleVoisine} (toute la semaine)`}
+                    onClick={demanderChangementDeSalle}
+                  />
+                )}
+                <MenuItem icon={EditIcon} text="Ouvrir la fiche" onClick={ouvrirFiche} />
+                <MenuItem
+                  icon={TrashIcon}
+                  text="Supprimer"
+                  tone="critical"
+                  onClick={demanderSuppression}
+                />
+              </Menu>
+            )
           }
           popover={{portal: true}}
         />

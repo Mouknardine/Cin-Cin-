@@ -7,12 +7,16 @@
  *
  *   - case vide     → la séance déménage ici ;
  *   - case occupée  → les deux séances échangent leurs places.
+ *
+ * Sauf une case tenue par une avant-première ou une première : elle se
+ * règle dans la fiche du film, un échange la déplacerait en douce.
  */
 import {AddIcon} from '@sanity/icons'
 import {Box, Card, Flex, Text} from '@sanity/ui'
 import {useCallback, useState} from 'react'
 
 import type {ActionsPlanning, CreneauDate, GlisserDeposer, SeancePlanning} from '../types'
+import {estTenueParLaFiche} from '../utils/projection-de-la-fiche'
 import {CarteSeance} from './CarteSeance'
 
 interface Props {
@@ -35,7 +39,7 @@ export function CelluleCreneau({
   const portee = glisser.seanceGlissee
   /* Une case n'accepte un dépôt que si une séance est en cours de
      déplacement, et que ce n'est pas celle qui s'y trouve déjà. */
-  const accepte = Boolean(portee) && portee?._id !== seance?._id
+  const accepte = Boolean(portee) && portee?._id !== seance?._id && !estTenueParLaFiche(seance)
 
   const survoler = useCallback(
     (evenement: React.DragEvent<HTMLDivElement>) => {

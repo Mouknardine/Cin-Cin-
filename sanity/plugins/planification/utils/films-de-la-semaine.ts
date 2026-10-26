@@ -13,7 +13,7 @@
 import type {FilmPlanning, SeancePlanning} from '../types'
 
 /** Les films qu'on s'attend à voir programmés, même sans séance encore. */
-const STATUTS_A_PROGRAMMER = ['a-laffiche', 'avant-premiere', 'cycle']
+const STATUTS_A_PROGRAMMER = ['a-laffiche', 'avant-premiere', 'premiere', 'cycle']
 
 /** Un film de la semaine : son nombre de séances et ses salles. */
 export interface FilmDeLaSemaine {

@@ -143,13 +143,29 @@
     return '<p class="m-sortie__date">À partir du ' + R.escapeHtml(date) + "</p>";
   }
 
+  /* Une avant-première ou une première porte son nom en tête de la
+     case, à la place de « Séances ». Ses horaires sont ceux de sa
+     séance, créée par la fiche du film ; tant qu'elle n'est pas là, la
+     case annonce le jour et l'heure écrits dans la fiche plutôt que
+     « Aucune séance ». */
+  function projectionHTML(film) {
+    var quand = R.formatRendezVous(film.projectionDate, film.projectionHeure);
+    if (!quand) return '<p class="m-seances__vide">Date à venir.</p>';
+    return '<p class="m-sortie__date">' + R.escapeHtml(quand) + "</p>";
+  }
+
   function caseSeancesHTML(film) {
     var annonce = estAnnonce(film);
+    var projection = R.estUneProjection(film.status);
+    var label = annonce ? "Sortie" : projection ? R.statusLabel(film.status) : "Séances";
+    var contenu = annonce
+      ? sortieHTML(film)
+      : projection && seancesAVenir(film).length === 0
+        ? projectionHTML(film)
+        : seancesHTML(film);
     return (
       '<div class="m-cell m-seances ' + C.classeSansSurvol() + '">' +
-      '<p class="m-cell__label">' + (annonce ? "Sortie" : "Séances") + "</p>" +
-      (annonce ? sortieHTML(film) : seancesHTML(film)) +
-      "</div>"
+      '<p class="m-cell__label">' + label + "</p>" + contenu + "</div>"
     );
   }
 

@@ -6,7 +6,10 @@
  *   - en ajouter plusieurs d'un coup (les créneaux de la semaine × un
  *     nombre de semaines) ;
  *   - marquer une séance « complet » ou « annulée » ;
- *   - supprimer une séance.
+ *   - supprimer une séance — sauf l'avant-première ou la première, qui
+ *     se règle plus haut dans la fiche (« Jour et heure de la
+ *     projection ») : la supprimer ici, la prochaine publication la
+ *     recréerait.
  *
  * Les changements partent directement sur la version publiée : ils sont
  * en ligne aussitôt, sans clic « Publish » supplémentaire.
@@ -20,6 +23,7 @@ import {ordonnerSeances} from '../../../salles'
 import {API_VERSION} from '../types'
 import {debutDeSemaine, formatJourCourt} from '../utils/dates'
 import {supprimerSeance} from '../utils/mutations'
+import {NOM_DE_LA_PROJECTION, estUneProjection} from '../utils/projection-de-la-fiche'
 import {DialogProgrammerFilm} from './DialogProgrammerFilm'
 
 interface SeanceResumee {
@@ -28,6 +32,7 @@ interface SeanceResumee {
   heure: string
   salle: string
   statut: string
+  evenement: string | null
 }
 
 function aujourdhui(): string {
@@ -67,7 +72,7 @@ export function ChampSeancesDuFilm(): React.JSX.Element {
         `{
           "seances": *[_type == "screening" && film._ref == $id && date >= $today]
             | order(date asc, time asc)
-            {_id, date, "heure": time, "salle": room, "statut": status},
+            {_id, date, "heure": time, "salle": room, "statut": status, "evenement": evenementDuFilm},
           "publie": defined(*[_id == $id][0]._id)
         }`,
         {id, today: aujourdhui()},
@@ -87,6 +92,17 @@ export function ChampSeancesDuFilm(): React.JSX.Element {
   }, [client, id])
 
   useEffect(charger, [charger])
+
+  /* La séance d'une avant-première arrive APRÈS la publication de la
+     fiche, qui la crée : la liste se relit d'elle-même pour la montrer,
+     sans qu'on ait à recharger la page. */
+  useEffect(() => {
+    if (!id) return undefined
+    const abonnement = client
+      .listen(`*[_type == "screening" && film._ref == $id]`, {id}, {events: ['mutation']})
+      .subscribe({next: () => charger(), error: () => undefined})
+    return () => abonnement.unsubscribe()
+  }, [charger, client, id])
 
   const changerEtat = useCallback(
     async (seanceId: string, statut: string) => {
@@ -154,6 +170,7 @@ export function ChampSeancesDuFilm(): React.JSX.Element {
                     <Box style={{minWidth: '11rem'}}>
                       <Text size={1}>
                         {formatJourCourt(s.date)} · {s.heure} · {s.salle}
+                        {estUneProjection(s.evenement) ? ` · ${NOM_DE_LA_PROJECTION[s.evenement]}` : ''}
                       </Text>
                     </Box>
                     <Box flex={1}>
@@ -176,8 +193,12 @@ export function ChampSeancesDuFilm(): React.JSX.Element {
                       icon={TrashIcon}
                       fontSize={1}
                       padding={2}
-                      title="Supprimer cette séance"
-                      disabled={enCours === s._id}
+                      title={
+                        s.evenement
+                          ? 'Cette séance se règle plus haut, dans « Jour et heure de la projection » : effacez le jour ou l’heure, puis publiez.'
+                          : 'Supprimer cette séance'
+                      }
+                      disabled={enCours === s._id || Boolean(s.evenement)}
                       onClick={() => supprimer(s._id)}
                     />
                   </Flex>

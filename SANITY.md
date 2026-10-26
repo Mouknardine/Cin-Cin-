@@ -107,7 +107,8 @@ où son contenu apparaît, et **rien n'existe à deux endroits**.
 Films                 les fiches de film — et, dans chaque fiche, ses horaires
 Agenda                Séances à venir · Séances passées
 Événements            cycles, brunchs, séances spéciales — et les films
-                      qui sortent prochainement ou passent avec un invité
+                      qui sortent prochainement, les avant-premières et
+                      premières datées, et ceux qui passent avec un invité
 Location              les espaces à louer et l'adresse des demandes
 Histoire              la phrase d'accueil et les étapes de la frise
 Membership            phrase d'accueil, formules et paiement
@@ -125,12 +126,13 @@ plus de quel film il s'agit.
 **La rubrique Événements montre tout ce que la page Événements du site
 annonce**, en deux listes : **Événements** (ceux saisis à la main) et
 **Films annoncés** (les films qui s'y affichent d'eux-mêmes — ceux qui
-sortent prochainement et ceux qui passent en présence d'un invité),
+sortent prochainement, les avant-premières et premières datées, et ceux
+qui passent en présence d'un invité),
 rangés par date de sortie. Un clic ouvre la fiche du film ; un film se
 crée dans « Films ».
 
-**Il n'y a pas non plus de rubrique par statut** (à l'affiche, première,
-prochainement, cycles). La liste « Films » les montre tous, et chaque
+**Il n'y a pas non plus de rubrique par statut** (à l'affiche,
+avant-première, première, prochainement, cycles). La liste « Films » les montre tous, et chaque
 ligne affiche déjà l'affiche, le titre, l'état du film et sa réalisation.
 Pour déplacer un film d'un onglet du site à l'autre, on ouvre sa fiche et
 on change « Où en est ce film ? ».
@@ -141,6 +143,27 @@ avec les films à l'affiche, le fait monter sur l'accueil et le retire de
 la page Événements. Rien à changer ce jour-là. Dans la liste du Studio,
 il s'affiche alors « À l'affiche — sorti le … ». Sans date de sortie,
 c'est le choix fait dans la fiche qui compte.
+
+**Une avant-première ou une première se date dans sa fiche.** Ce sont
+deux statuts distincts de « Où en est ce film ? ». Dès que l'un des deux
+est coché, la fiche demande le **jour**, l'**heure** et la **salle** de
+la projection. À la publication, la séance se crée toute seule : elle
+apparaît dans la Planification, sur l'agenda, en billetterie, et le site
+écrit le jour avec l'heure (page Films, fiche du film, page Événements,
+d'où elle s'en va le lendemain). Inutile de la programmer à la main.
+
+Dans la Planification, cette séance est **épinglée** (une punaise et le
+nom « Avant-première » ou « Première ») : elle ne se glisse pas, ne se
+recale pas, et « Vider la semaine » comme « Dupliquer la semaine » la
+laissent où elle est. Pour la déplacer, on change le jour, l'heure ou la
+salle dans la fiche, et on republie. Pour l'annuler, on efface le jour
+ou l'heure et on republie — sauf si des billets sont déjà vendus : elle
+reste alors, en séance ordinaire. Quand le film change de statut (il
+passe à l'affiche), sa séance reste programmée et redevient une séance
+comme les autres.
+
+Une séance déjà programmée à la main au même jour et à la même heure est
+reprise telle quelle : la publication n'en crée pas une seconde.
 
 **Le type du film** (Documentaire, Fiction, Animation…) s'écrit en
 toutes lettres dans le champ « Type de film », tel qu'il doit se lire
@@ -186,7 +209,7 @@ répéter. Pour les modifier, il faut passer par l'agence.
 ## Ce qui se décide tout seul (rien à régler)
 
 - **Ce qui remonte sur l'accueil** : les films à l'affiche d'abord, puis les
-  avant-premières, les cycles et les films annoncés ; à égalité, celui dont la
+  avant-premières et premières, les cycles et les films annoncés ; à égalité, celui dont la
   prochaine séance est la plus proche. Plus aucune case « mettre en avant ».
 - **La taille des affiches** dans les grilles : le site s'en charge.
 - **L'archivage** des séances, des films terminés et des événements passés :

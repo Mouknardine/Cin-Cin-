@@ -25,6 +25,7 @@
   var statusLabels = {
     "a-laffiche": "À l'affiche",
     "avant-premiere": "Avant-première",
+    premiere: "Première",
     prochainement: "Prochainement",
     cycle: "Cycle",
     passe: "Passé",
@@ -34,10 +35,14 @@
   }
 
   /* Les filtres de la page Films, dans l'ordre voulu. Libellés plus
-     courts que les statuts complets : ils tiennent sur une rangée. */
+     courts que les statuts complets : ils tiennent sur une rangée.
+     L'avant-première et la première ne sont pas la même chose : deux
+     filtres, chacun son nom (demande du cinéma, 26 octobre 2026). Un
+     filtre sans film ne s'affiche pas. */
   var filtresFilms = [
     { statut: "a-laffiche", label: "À l'affiche" },
-    { statut: "avant-premiere", label: "Première" },
+    { statut: "avant-premiere", label: "Avant-première" },
+    { statut: "premiere", label: "Première" },
     { statut: "prochainement", label: "Prochainement" },
     { statut: "cycle", label: "Cycles" },
   ];
@@ -118,6 +123,22 @@
     var texte = date.getDate() + " " + MONTH_LONG[date.getMonth()];
     if (date.getFullYear() !== new Date().getFullYear()) texte += " " + date.getFullYear();
     return texte;
+  }
+
+  /* Le rendez-vous d'une avant-première ou d'une première : le jour ET
+     l'heure, écrits dans la fiche du film. « mercredi 4 novembre,
+     20:00 », ou « 4 novembre, 20:00 » en court pour les cases étroites
+     de la page Films. Sans heure, le jour seul ; sans jour, rien — la
+     page dit alors « Date à venir ». */
+  function formatRendezVous(dateStr, heure, court) {
+    var jour = court ? formatDateSortieCourte(dateStr) : formatDateSortie(dateStr);
+    if (!jour) return "";
+    return heure ? jour + ", " + heure : jour;
+  }
+
+  /* L'avant-première et la première se datent dans la fiche du film. */
+  function estUneProjection(status) {
+    return status === "avant-premiere" || status === "premiere";
   }
 
   function formatDowShort(dateStr) {
@@ -348,6 +369,8 @@
     formatDowShort: formatDowShort,
     formatDateSortie: formatDateSortie,
     formatDateSortieCourte: formatDateSortieCourte,
+    formatRendezVous: formatRendezVous,
+    estUneProjection: estUneProjection,
     isToday: isToday,
     parseISODate: parseISODate,
     toEmbedUrl: toEmbedUrl,

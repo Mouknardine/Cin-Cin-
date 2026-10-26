@@ -5,7 +5,9 @@
    les séances de la période partent, séances particulières comprises —
    SAUF celles pour lesquelles un billet existe : une commande désigne
    sa séance, et un spectateur qui a payé doit la retrouver. Celles-là
-   restent, et l'outil dit combien.
+   restent, et l'outil dit combien. Restent aussi les avant-premières
+   et les premières : elles se règlent dans la fiche de leur film, et
+   la prochaine publication de la fiche les remettrait en place.
    ============================================================ */
 import type {SanityClient} from 'sanity'
 
@@ -17,6 +19,8 @@ export interface InventaireSemaine {
   aSupprimer: string[]
   /** Les séances gardées parce qu'un billet les désigne. */
   avecBillets: string[]
+  /** Les avant-premières et premières, tenues par la fiche de leur film. */
+  tenuesParLaFiche: string[]
 }
 
 function idPublie(id: string): string {
@@ -25,14 +29,21 @@ function idPublie(id: string): string {
 
 /** Fait l'inventaire d'une période : ce qui peut partir, ce qui doit rester. */
 export async function inventorier(client: SanityClient, periode: Periode): Promise<InventaireSemaine> {
-  const ids = await client
+  const trouvees = await client
     .withConfig({perspective: 'raw'})
-    .fetch<string[]>(
-      `*[_type == "screening" && defined(date) && date >= $debut && date <= $fin]._id`,
+    .fetch<{_id: string; tenue: boolean}[]>(
+      `*[_type == "screening" && defined(date) && date >= $debut && date <= $fin]{
+        _id, "tenue": defined(evenementDuFilm)
+      }`,
       {...periode},
     )
-  const seances = [...new Set((ids ?? []).map(idPublie))]
-  if (seances.length === 0) return {aSupprimer: [], avecBillets: []}
+  const tenues = new Set(
+    (trouvees ?? []).filter((seance) => seance.tenue).map((seance) => idPublie(seance._id)),
+  )
+  const toutes = [...new Set((trouvees ?? []).map((seance) => idPublie(seance._id)))]
+  const tenuesParLaFiche = toutes.filter((id) => tenues.has(id))
+  const seances = toutes.filter((id) => !tenues.has(id))
+  if (seances.length === 0) return {aSupprimer: [], avecBillets: [], tenuesParLaFiche}
 
   const reservees = await client.fetch<string[]>(
     `*[_type == "commande" && seance._ref in $seances].seance._ref`,
@@ -42,6 +53,7 @@ export async function inventorier(client: SanityClient, periode: Periode): Promi
   return {
     aSupprimer: seances.filter((id) => !avecBillets.has(id)),
     avecBillets: seances.filter((id) => avecBillets.has(id)),
+    tenuesParLaFiche,
   }
 }
 

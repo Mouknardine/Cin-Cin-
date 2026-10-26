@@ -74,6 +74,7 @@ export function DialogViderSemaine({debutSemaine, onFermer, onFait}: Props): Rea
 
   const aSupprimer = inventaire?.aSupprimer.length ?? 0
   const avecBillets = inventaire?.avecBillets.length ?? 0
+  const tenues = inventaire?.tenuesParLaFiche.length ?? 0
 
   return (
     <Dialog id="vider-semaine" header="Vider la semaine" onClose={onFermer} width={1}>
@@ -109,6 +110,18 @@ export function DialogViderSemaine({debutSemaine, onFermer, onFait}: Props): Rea
                     {pluriel(avecBillets, 'séance')} {avecBillets > 1 ? 'restent' : 'reste'} : des billets y
                     sont déjà vendus. Pour {avecBillets > 1 ? 'les' : 'la'} retirer, annulez d’abord les
                     commandes.
+                  </Text>
+                </Card>
+              )}
+              {tenues > 0 && (
+                <Card padding={3} radius={2} tone="caution">
+                  <Text size={1}>
+                    {tenues > 1
+                      ? `${tenues} avant-premières ou premières restent`
+                      : 'Une avant-première ou une première reste'}{' '}
+                    : {tenues > 1 ? 'elles se règlent' : 'elle se règle'} dans la fiche du film. Pour{' '}
+                    {tenues > 1 ? 'les' : 'la'} retirer, effacez le jour et l’heure dans la fiche, puis
+                    publiez-la.
                   </Text>
                 </Card>
               )}

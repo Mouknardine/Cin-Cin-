@@ -241,7 +241,7 @@
   var CHAMPS_FILM =
     '_id,"slug":coalesce(slug.current,_id),title,originalTitle,director,year,country,duration,' +
     "language,subtitles,ageRating,typeDeFilm,genres," + STATUT_DU_JOUR +
-    ",releaseDate,synopsis,poster,stillImages,trailerUrl," +
+    ",releaseDate,projectionDate,projectionHeure,synopsis,poster,stillImages,trailerUrl," +
     "presence,presenceDate," +
     'price,sumupCheckoutUrl,presseUrl';
 
@@ -314,21 +314,27 @@
 
     /** Les films que la page Événements annonce d'elle-même : ceux
         qui sortent prochainement (le jour de leur sortie, ils
-        quittent la page tout seuls), et ceux qui passent en présence
-        de quelqu'un. Un film peut être les deux : il n'est alors annoncé
-        qu'une fois, la requête ne le renvoyant qu'une fois.
+        quittent la page tout seuls), les avant-premières et premières
+        datées (le lendemain, elles s'en vont aussi), et ceux qui passent
+        en présence de quelqu'un. Un film peut être plusieurs à la fois :
+        il n'est alors annoncé qu'une fois, la requête ne le renvoyant
+        qu'une fois.
 
         Chacun repart avec sa prochaine séance non annulée, pour
         pouvoir dire QUAND venir — sans elle, « en présence de la
-        réalisatrice » n'apprend rien d'utile. */
+        réalisatrice » n'apprend rien d'utile. Et quand l'invité·e
+        vient un jour précis, avec l'heure de la séance de ce jour-là. */
     getFilmsAnnonces: function () {
       return cachee("films-annonces", function () {
         return sanityFetch(
           '*[_type == "film" && status != "passe" && ' +
             '((status == "prochainement" && !(' + FILM_SORTI + ')) || ' +
+            '(status in ["avant-premiere", "premiere"] && projectionDate >= $today) || ' +
             '(defined(presence) && presence != ""))]{' + CHAMPS_FILM +
             ',"prochaineSeance": *[_type == "screening" && references(^._id) && ' +
-            'date >= $today && status != "annule"] | order(date asc, time asc)[0]{date,time}}',
+            'date >= $today && status != "annule"] | order(date asc, time asc)[0]{date,time}' +
+            ',"heureInvite": *[_type == "screening" && references(^._id) && ' +
+            'date == ^.presenceDate && status != "annule"] | order(time asc)[0].time}',
           { today: aujourdhui() }
         );
       });

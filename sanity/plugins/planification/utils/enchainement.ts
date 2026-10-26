@@ -38,6 +38,7 @@ import {
   vagueDeLaSeance,
 } from './creneaux-standards'
 import {formatJourCourt} from './dates'
+import {estTenueParLaFiche} from './projection-de-la-fiche'
 
 const MINUTES_PAR_JOUR = 24 * 60
 
@@ -57,6 +58,8 @@ export interface SeanceEnGrille {
   salle: string
   filmDuree: number | null
   filmTitre: string
+  /** Une avant-première ou une première : son heure est celle de la fiche du film. */
+  evenement?: string | null
 }
 
 /** « 21:15 » depuis 1275 minutes. Renvoie null si la séance déborde sur le lendemain. */
@@ -146,6 +149,10 @@ export function recalagesNecessaires(seances: readonly SeanceEnGrille[]): Recala
       const suivante = vagues.get(vague)
       const precedente = vagues.get(vague - 1)
       if (!suivante || !precedente) continue
+      /* L'heure d'une avant-première est annoncée dans la fiche du film,
+         et sur le site : on ne la change pas en douce. Si le film d'avant
+         déborde, la grille le montre en rouge. */
+      if (estTenueParLaFiche(suivante)) continue
       const attendue = heureDeDepart(vague, suivante.date, precedente)
       const actuelle = heureEnMinutes(suivante.heure)
       const voulue = heureEnMinutes(attendue)

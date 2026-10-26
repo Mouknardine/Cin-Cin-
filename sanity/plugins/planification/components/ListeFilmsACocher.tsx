@@ -15,6 +15,7 @@ import type {FilmPlanning} from '../types'
 /** Ce que le Studio écrit à côté d'un film qui n'est pas simplement à l'affiche. */
 const MENTION_DE_STATUT: Record<string, string> = {
   'avant-premiere': 'avant-première',
+  premiere: 'première',
   prochainement: 'prochainement',
   cycle: 'cycle / ciné-club',
   passe: 'retiré de l’affiche',

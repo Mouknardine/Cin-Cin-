@@ -10,6 +10,9 @@
  * déjà à l'affiche : on garde le volume, on renouvelle la grille.
  * Les séances particulières — Hall-Bar, horaires inhabituels — ne sont
  * jamais déplacées par le hasard : elles se recopient telles quelles.
+ *
+ * Une avant-première ou une première, elle, ne se recopie pas : c'est un
+ * rendez-vous unique, tenu par la fiche du film.
  */
 import {Box, Button, Dialog, Select, Stack, Text, useToast} from '@sanity/ui'
 import {useCallback, useMemo, useState} from 'react'
@@ -28,6 +31,7 @@ import {useHistorique} from '../hooks/useHistorique'
 import {semainesDe} from '../utils/historique'
 import {chargerSeancesPeriode, creerSeances} from '../utils/mutations'
 import {poserLesHeures} from '../utils/heures-de-la-grille'
+import {estTenueParLaFiche} from '../utils/projection-de-la-fiche'
 import {type Place, affecterFilms} from '../utils/repartition'
 import {OptionACocher} from './OptionACocher'
 import {RapportResultat} from './RapportResultat'
@@ -109,10 +113,14 @@ function rebattreLesCartes(
 
 export function DialogDupliquerSemaine({
   debutSemaine,
-  seancesSemaine,
+  seancesSemaine: seancesAffichees,
   onFermer,
   onCree,
 }: Props): React.JSX.Element {
+  const seancesSemaine = useMemo(
+    () => seancesAffichees.filter((seance) => !estTenueParLaFiche(seance)),
+    [seancesAffichees],
+  )
   const client = useClient({apiVersion: API_VERSION})
   const toast = useToast()
   const historique = useHistorique()

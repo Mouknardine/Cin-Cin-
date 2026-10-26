@@ -35,6 +35,7 @@ const aujourdhui = new Date().toISOString().slice(0, 10);
 const ETATS = {
   "a-laffiche": "À l'affiche",
   "avant-premiere": "Avant-première",
+  premiere: "Première",
   prochainement: "Prochainement",
   cycle: "Cycle",
   passe: "Terminé",

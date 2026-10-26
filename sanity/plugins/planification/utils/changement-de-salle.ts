@@ -14,7 +14,9 @@
    L'heure de la séance de 21 h est remise à 21:00 (19:00 le dimanche) : c'est l'outil qui
    la repousse ensuite au bon quart d'heure si le film de 19 h de sa
    nouvelle salle déborde (voir enchainement.ts). Les séances
-   particulières (Hall-Bar, avant-première à 18 h) ne bougent pas.
+   particulières (Hall-Bar, avant-première à 18 h) ne bougent pas, ni
+   une avant-première ou une première : elles se règlent dans la fiche
+   du film.
 
    Ce fichier ne fait que des calculs : il se vérifie tout seul dans
    verifications/repartition.mjs.
@@ -22,6 +24,7 @@
 import type {SeancePlanning} from '../types'
 import {HORS_GRILLE, heureDeLaVague, vagueDeLaSeance} from './creneaux-standards'
 import type {Deplacement} from './deplacements'
+import {estTenueParLaFiche} from './projection-de-la-fiche'
 
 /** L'heure d'une séance posée sur cette vague, avant tout recalage. */
 function heureSurLaVague(seance: SeancePlanning, vague: number): string {
@@ -40,6 +43,7 @@ export function deplacementsPourChangerDeSalle(
   const deplacements: Deplacement[] = []
   for (const seance of seancesSemaine) {
     if (seance.filmId !== filmId || seance.salle === versSalle) continue
+    if (estTenueParLaFiche(seance)) continue
     const vague = vagueDeLaSeance(seance)
     if (vague === HORS_GRILLE) continue
 
@@ -52,6 +56,9 @@ export function deplacementsPourChangerDeSalle(
     /* Le film joue déjà au même moment dans l'autre salle : le
        déplacer ferait un doublon. On laisse cette séance-là. */
     if (occupant?.filmId === filmId) continue
+    /* La place est tenue par une avant-première : elle ne fait pas le
+       chemin inverse, la séance reste où elle est. */
+    if (estTenueParLaFiche(occupant)) continue
 
     deplacements.push({
       id: seance._id,

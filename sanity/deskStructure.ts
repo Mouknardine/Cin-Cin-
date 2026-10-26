@@ -106,9 +106,9 @@ export const deskStructure: StructureResolver = (S) =>
            - les événements saisis ici (cycles, brunchs…), du plus
              récent au plus ancien ;
            - les films qui s'y affichent d'eux-mêmes — ceux qui sortent
-             prochainement et ceux qui passent en présence d'un
-             invité —, par date de sortie. Un clic ouvre la fiche du
-             film ; rien à ressaisir.
+             prochainement, les avant-premières et premières datées, et
+             ceux qui passent en présence d'un invité —, par date de
+             sortie. Un clic ouvre la fiche du film ; rien à ressaisir.
 
          Deux listes et non une seule : un événement et un film n'ont
          pas la même date (« Premier jour » d'un côté, « Date de
@@ -149,6 +149,7 @@ export const deskStructure: StructureResolver = (S) =>
                     .filter(
                       '_type == "film" && status != "passe" && (' +
                         '(status == "prochainement" && !(defined(releaseDate) && releaseDate <= $today)) || ' +
+                        '(status in ["avant-premiere", "premiere"] && projectionDate >= $today) || ' +
                         '(defined(presence) && presence != ""))'
                     )
                     .params({ today: aujourdhuiLocal() })

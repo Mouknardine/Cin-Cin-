@@ -1,11 +1,13 @@
 /* ============================================================
    Zinéma — les films que la page Événements annonce d'elle-même.
 
-   Deux choses n'ont jamais eu à être ressaisies dans un événement,
+   Trois choses n'ont jamais eu à être ressaisies dans un événement,
    parce qu'elles sont déjà écrites dans la fiche du film :
 
      — les films qui sortent PROCHAINEMENT (« Où en est ce film ? »
        dans le Studio) ;
+     — les AVANT-PREMIÈRES et les PREMIÈRES datées, avec leur jour
+       et leur heure (« Jour et heure de la projection ») ;
      — les films projetés EN PRÉSENCE de quelqu'un (le champ
        « Séance en présence de… » de la fiche).
 
@@ -13,11 +15,11 @@
    la main, dans la même mise en page : une bande par film —
    l'affiche, la date, le titre, l'invité·e, et le chemin vers la
    fiche. Rien à créer, rien à supprimer : un film qui passe à
-   l'affiche quitte la rubrique de lui-même, comme un invité
-   retiré de la fiche.
+   l'affiche quitte la rubrique de lui-même, comme une avant-première
+   passée ou un invité retiré de la fiche.
 
-   Un film qui est dans les deux cas n'est annoncé qu'une fois :
-   sa bande porte simplement les deux informations.
+   Un film qui est dans plusieurs cas n'est annoncé qu'une fois :
+   sa bande porte simplement toutes ses informations.
    ============================================================ */
 (function (global) {
   "use strict";
@@ -26,12 +28,18 @@
   var C = global.ZinemaCouleurs;
 
   /* Ce que la case de date raconte, selon ce qu'on sait du film.
-     Dans l'ordre de ce qui compte : le jour où l'invité·e sera là,
-     sinon la date de sortie annoncée, sinon la prochaine séance.
-     Si rien n'est su, on le dit — plutôt que d'inventer un jour. */
+     Dans l'ordre de ce qui compte : le rendez-vous d'une avant-première
+     ou d'une première, sinon le jour où l'invité·e sera là, sinon la
+     date de sortie annoncée, sinon la prochaine séance. Le jour se dit
+     avec son heure dès qu'on la connaît (demande du cinéma, 26 octobre
+     2026). Si rien n'est su, on le dit — plutôt que d'inventer un jour. */
   function quandTexte(film) {
+    if (R.estUneProjection(film.status)) {
+      var rendezVous = R.formatRendezVous(film.projectionDate, film.projectionHeure);
+      if (rendezVous) return rendezVous;
+    }
     if (film.presence && film.presenceDate) {
-      var jour = R.formatDateSortie(film.presenceDate);
+      var jour = R.formatRendezVous(film.presenceDate, film.heureInvite);
       if (jour) return jour;
     }
     if (film.status === "prochainement") {
@@ -52,6 +60,7 @@
   function dateDeTri(film) {
     var seance = film.prochaineSeance;
     return (
+      (R.estUneProjection(film.status) && film.projectionDate) ||
       (film.presence && film.presenceDate) ||
       (film.status === "prochainement" && film.releaseDate) ||
       (seance && seance.date) ||
@@ -105,27 +114,29 @@
   }
 
   /* Toutes les bandes, prêtes à être posées dans le tableau. Les
-     séances en présence de quelqu'un passent devant : ce sont des
-     rendez-vous datés, alors qu'un film annoncé peut encore
-     attendre. Sans aucun film à annoncer, rien n'est écrit. */
+     avant-premières, premières et séances en présence de quelqu'un
+     passent devant : ce sont des rendez-vous datés, alors qu'un film
+     annoncé peut encore attendre. Sans aucun film à annoncer, rien
+     n'est écrit. */
   function bandes(films) {
     if (!Array.isArray(films) || !films.length) return "";
     var racine = document.body.dataset.root || "";
-    var avecInvite = [];
+    var rendezVous = [];
     var annonces = [];
     films.forEach(function (film) {
       if (!film || !film.slug) return;
       /* On n'annonce que ce qui a quelque chose à annoncer : un
-         invité·e, ou une sortie à venir. Un film qui n'a ni l'un ni
-         l'autre n'a rien à faire sur cette page, même si la requête
-         le renvoyait. */
-      if (film.presence) avecInvite.push(film);
-      else if (film.status === "prochainement") annonces.push(film);
+         invité·e, une avant-première ou une première datée, ou une
+         sortie à venir. Un film qui n'a rien de tout cela n'a rien à
+         faire sur cette page, même si la requête le renvoyait. */
+      if (film.presence || (R.estUneProjection(film.status) && film.projectionDate)) {
+        rendezVous.push(film);
+      } else if (film.status === "prochainement") annonces.push(film);
     });
     function parDate(a, b) {
       return String(dateDeTri(a)).localeCompare(String(dateDeTri(b)));
     }
-    return avecInvite
+    return rendezVous
       .sort(parDate)
       .concat(annonces.sort(parDate))
       .map(function (film) { return bandeHTML(film, racine); })
