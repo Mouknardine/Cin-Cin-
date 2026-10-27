@@ -6,8 +6,10 @@
 
      — les films qui sortent PROCHAINEMENT (« Où en est ce film ? »
        dans le Studio) ;
-     — les AVANT-PREMIÈRES et les PREMIÈRES datées, avec leur jour
-       et leur heure (« Jour et heure de la projection ») ;
+     — les AVANT-PREMIÈRES, les PREMIÈRES et les PROJECTIONS
+       EXTRAORDINAIRES, dès que le statut est coché, avec leur jour et
+       leur heure (« Jour et heure de la projection ») — ou « Date à
+       venir » tant que le jour n'est pas choisi ;
      — les films projetés EN PRÉSENCE de quelqu'un (le champ
        « Séance en présence de… » de la fiche).
 
@@ -126,10 +128,10 @@
     films.forEach(function (film) {
       if (!film || !film.slug) return;
       /* On n'annonce que ce qui a quelque chose à annoncer : un
-         invité·e, une avant-première ou une première datée, ou une
-         sortie à venir. Un film qui n'a rien de tout cela n'a rien à
+         invité·e, une projection unique (avant-première, première,
+         projection extraordinaire), ou une sortie à venir. Un film qui n'a rien de tout cela n'a rien à
          faire sur cette page, même si la requête le renvoyait. */
-      if (film.presence || (R.estUneProjection(film.status) && film.projectionDate)) {
+      if (film.presence || R.estUneProjection(film.status)) {
         rendezVous.push(film);
       } else if (film.status === "prochainement") annonces.push(film);
     });

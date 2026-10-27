@@ -36,6 +36,7 @@ const ETATS = {
   "a-laffiche": "À l'affiche",
   "avant-premiere": "Avant-première",
   premiere: "Première",
+  "projection-extraordinaire": "Projection extraordinaire",
   prochainement: "Prochainement",
   cycle: "Cycle",
   passe: "Terminé",

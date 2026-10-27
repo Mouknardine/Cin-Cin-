@@ -314,8 +314,10 @@
 
     /** Les films que la page Événements annonce d'elle-même : ceux
         qui sortent prochainement (le jour de leur sortie, ils
-        quittent la page tout seuls), les avant-premières et premières
-        datées (le lendemain, elles s'en vont aussi), et ceux qui passent
+        quittent la page tout seuls), les avant-premières, premières et
+        projections extraordinaires — dès que le statut est coché, même
+        sans jour encore, et jusqu'au lendemain de la projection —, et
+        ceux qui passent
         en présence de quelqu'un. Un film peut être plusieurs à la fois :
         il n'est alors annoncé qu'une fois, la requête ne le renvoyant
         qu'une fois.
@@ -329,7 +331,8 @@
         return sanityFetch(
           '*[_type == "film" && status != "passe" && ' +
             '((status == "prochainement" && !(' + FILM_SORTI + ')) || ' +
-            '(status in ["avant-premiere", "premiere"] && projectionDate >= $today) || ' +
+            '(status in ["avant-premiere", "premiere", "projection-extraordinaire"] && ' +
+            '(!defined(projectionDate) || projectionDate >= $today)) || ' +
             '(defined(presence) && presence != ""))]{' + CHAMPS_FILM +
             ',"prochaineSeance": *[_type == "screening" && references(^._id) && ' +
             'date >= $today && status != "annule"] | order(date asc, time asc)[0]{date,time}' +

@@ -16,6 +16,7 @@ import type {FilmPlanning} from '../types'
 const MENTION_DE_STATUT: Record<string, string> = {
   'avant-premiere': 'avant-première',
   premiere: 'première',
+  'projection-extraordinaire': 'projection extraordinaire',
   prochainement: 'prochainement',
   cycle: 'cycle / ciné-club',
   passe: 'retiré de l’affiche',

@@ -33,8 +33,8 @@ export interface SeancePlanning {
   filmId: string
   filmTitre: string
   filmDuree: number | null
-  /* « avant-premiere » ou « premiere » quand la séance est tenue par la
-     fiche du film (voir utils/projection-de-la-fiche.ts), sinon absent. */
+  /* « avant-premiere », « premiere » ou « projection-extraordinaire »
+     quand la séance est tenue par la fiche du film (voir utils/projection-de-la-fiche.ts), sinon absent. */
   evenement?: string | null
 }
 

@@ -11,9 +11,10 @@
    Ce fichier ne fait que des calculs.
    ============================================================ */
 import type {FilmPlanning, SeancePlanning} from '../types'
+import {STATUTS_A_PROJECTION} from './projection-de-la-fiche'
 
 /** Les films qu'on s'attend à voir programmés, même sans séance encore. */
-const STATUTS_A_PROGRAMMER = ['a-laffiche', 'avant-premiere', 'premiere', 'cycle']
+const STATUTS_A_PROGRAMMER = ['a-laffiche', ...STATUTS_A_PROJECTION, 'cycle']
 
 /** Un film de la semaine : son nombre de séances et ses salles. */
 export interface FilmDeLaSemaine {

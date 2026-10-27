@@ -18,6 +18,12 @@
         échangée lors d'un changement de salle ;
    et le site écrit le jour avec l'heure.
 
+   Le 27 octobre 2026, deux demandes de plus : une case « Projection
+   extraordinaire » (un film qu'on passe une fois, ni avant-première ni
+   première), qui se comporte exactement comme les deux autres ; et que
+   ces films s'annoncent sur la page Événements dès que le statut est
+   coché, même avant d'avoir choisi le jour.
+
    Pour lancer :  npm test
    ============================================================ */
 import {readFileSync} from 'node:fs'
@@ -38,7 +44,8 @@ async function chargerModule(chemin) {
   return import(`data:text/javascript;base64,${Buffer.from(code).toString('base64')}`)
 }
 
-const {operationsPourLaFiche, projectionComplete} = await chargerModule(
+const {operationsPourLaFiche, projectionComplete, estUneProjection, FILTRE_PROJECTION_A_VENIR} =
+  await chargerModule(
   '../sanity/plugins/planification/utils/projection-de-la-fiche.ts',
 )
 const {recalagesNecessaires} = await chargerModule(
@@ -268,6 +275,89 @@ verifier(
   ['avant-premiere=Avant-première', 'premiere=Première'],
 )
 verifier('« premiere » se lit « Première »', R.statusLabel('premiere'), 'Première')
+
+console.log('\nLa projection extraordinaire')
+
+verifier(
+  'le Studio la date comme une avant-première',
+  estUneProjection('projection-extraordinaire'),
+  true,
+)
+verifier('le site aussi', R.estUneProjection('projection-extraordinaire'), true)
+verifier(
+  'elle se lit « Projection extraordinaire »',
+  R.statusLabel('projection-extraordinaire'),
+  'Projection extraordinaire',
+)
+verifier(
+  'elle a son filtre sur la page Films, après la Première',
+  R.filtresFilms.map((f) => f.statut).slice(1, 4),
+  ['avant-premiere', 'premiere', 'projection-extraordinaire'],
+)
+verifier(
+  'publier sa fiche crée sa séance',
+  operationsPourLaFiche(
+    {statut: 'projection-extraordinaire', date: '2099-11-04', heure: '20:00', salle: 'Salle 1'},
+    [],
+    '2026-10-27',
+  ),
+  [
+    {
+      type: 'creer',
+      date: '2099-11-04',
+      heure: '20:00',
+      salle: 'Salle 1',
+      evenement: 'projection-extraordinaire',
+    },
+  ],
+)
+
+console.log('\nLa page Événements, dès que le statut est coché')
+
+/* Le Studio et le site doivent annoncer les mêmes films : le filtre de
+   la rubrique « Films annoncés » et celui de la page publique disent
+   la même chose. */
+const filtreDuSite = readFileSync(new URL('../assets/js/data.js', import.meta.url), 'utf8')
+verifier(
+  'le Studio annonce aussi les projections pas encore datées',
+  FILTRE_PROJECTION_A_VENIR.includes('!defined(projectionDate)'),
+  true,
+)
+verifier(
+  'le site aussi, avec les trois statuts',
+  filtreDuSite.includes('"avant-premiere", "premiere", "projection-extraordinaire"') &&
+    filtreDuSite.includes('(!defined(projectionDate) || projectionDate >= $today)'),
+  true,
+)
+
+fenetre.document = {body: {dataset: {root: '/'}}}
+fenetre.ZinemaCouleurs = {classe: () => 'c'}
+vm.runInContext(
+  readFileSync(new URL('../assets/js/evenements-films.js', import.meta.url), 'utf8'),
+  fenetre,
+)
+const E = fenetre.ZinemaEvenementsFilms
+const sansJour = E.bandes([{slug: 'mark-fisher', title: 'Mark Fisher', status: 'avant-premiere'}])
+verifier('une avant-première sans jour a sa bande', sansJour.includes('Mark Fisher'), true)
+verifier('qui dit « Date à venir »', sansJour.includes('Date à venir'), true)
+verifier(
+  'une projection extraordinaire datée a la sienne, avec l’heure',
+  E.bandes([
+    {
+      slug: 'unique',
+      title: 'Une fois',
+      status: 'projection-extraordinaire',
+      projectionDate: `${annee}-11-04`,
+      projectionHeure: '20:00',
+    },
+  ]).includes('4 novembre, 20:00'),
+  true,
+)
+verifier(
+  'un film simplement à l’affiche n’y est pas',
+  E.bandes([{slug: 'x', title: 'Ordinaire', status: 'a-laffiche'}]),
+  '',
+)
 
 console.log(`\n${reussites} vérification(s) réussie(s), ${echecs} échec(s).`)
 process.exit(echecs > 0 ? 1 : 0)

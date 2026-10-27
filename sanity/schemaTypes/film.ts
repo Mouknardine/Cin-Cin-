@@ -46,8 +46,8 @@ export const film = defineType({
       title: "Prix particulier — à ouvrir seulement en cas d'exception",
       options: { collapsible: true, collapsed: true },
     },
-    /* Le jour, l'heure et la salle d'une avant-première ou d'une
-       première, sur une seule rangée, juste sous « Où en est ce
+    /* Le jour, l'heure et la salle d'une avant-première, d'une
+       première ou d'une projection extraordinaire, sur une seule rangée, juste sous « Où en est ce
        film ? ». Ils n'apparaissent que pour ces deux statuts. */
     {
       name: "projection",
@@ -187,12 +187,16 @@ export const film = defineType({
       title: "Où en est ce film ?",
       type: "string",
       description:
-        "Détermine dans quelle partie de la page Films il apparaît. Une avant-première ou une première se date juste en dessous : jour, heure et salle, et sa séance se crée toute seule à la publication. Un film « Prochainement » passe tout seul « À l'affiche » le jour de sa date de sortie, et quitte alors la page Événements : rien à changer ce jour-là. Passez-le sur « Terminé » quand il quitte l'affiche : il sort des pages publiques mais reste consultable ici.",
+        "Détermine dans quelle partie de la page Films il apparaît. Une avant-première, une première ou une projection extraordinaire se date juste en dessous : jour, heure et salle. Sa séance se crée toute seule à la publication, et le film s'annonce tout seul sur la page Événements. Un film « Prochainement » passe tout seul « À l'affiche » le jour de sa date de sortie, et quitte alors la page Événements : rien à changer ce jour-là. Passez-le sur « Terminé » quand il quitte l'affiche : il sort des pages publiques mais reste consultable ici.",
       options: {
         list: [
           { title: "À l'affiche — visible en premier sur le site", value: "a-laffiche" },
           { title: "Avant-première — projection avant la sortie du film", value: "avant-premiere" },
           { title: "Première — la projection qui lance le film", value: "premiere" },
+          {
+            title: "Projection extraordinaire — un film qu'on passe une seule fois",
+            value: "projection-extraordinaire",
+          },
           { title: "Prochainement — pas encore de séance", value: "prochainement" },
           { title: "Cycle / ciné-club", value: "cycle" },
           { title: "Terminé — retiré de l'affiche", value: "passe" },
@@ -223,7 +227,7 @@ export const film = defineType({
         }).warning(),
     }),
 
-    /* ---------------- Avant-première, première ----------------
+    /* -------- Avant-première, première, projection extraordinaire --------
        Un rendez-vous unique : un jour, une heure, une salle, écrits
        ici plutôt que programmés à la main dans la Planification. La
        publication de la fiche crée la séance (voir
@@ -457,7 +461,8 @@ export const film = defineType({
             : `${etat} — dès le ${jour}/${mois}/${annee}`;
         }
       }
-      /* Une avant-première ou une première se lit avec son rendez-vous :
+      /* Une projection unique (avant-première, première, projection
+         extraordinaire) se lit avec son rendez-vous :
          « Avant-première — 04/11/2026 à 20:00 ». */
       if (estUneProjection(status) && typeof projectionDate === "string" && projectionDate) {
         const [annee, mois, jour] = projectionDate.split("-");

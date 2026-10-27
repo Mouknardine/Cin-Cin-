@@ -30,7 +30,7 @@
      qu'on ait à le passer sur « Terminé » dans le Studio. Seuls les
      films annoncés — « Prochainement », pas encore sortis — restent
      sans séance : on les annonce justement avant leur programmation. */
-  var RANG_STATUT = { "a-laffiche": 0, "avant-premiere": 1, premiere: 1, cycle: 2, prochainement: 3 };
+  var RANG_STATUT = { "a-laffiche": 0, "avant-premiere": 1, premiere: 1, "projection-extraordinaire": 1, cycle: 2, prochainement: 3 };
 
   /* La prochaine séance non annulée de chaque film, « AAAA-MM-JJ HH:MM ».
      Un film absent de la liste n'a plus rien de programmé. */

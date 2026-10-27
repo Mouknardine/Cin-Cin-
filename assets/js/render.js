@@ -26,6 +26,7 @@
     "a-laffiche": "À l'affiche",
     "avant-premiere": "Avant-première",
     premiere: "Première",
+    "projection-extraordinaire": "Projection extraordinaire",
     prochainement: "Prochainement",
     cycle: "Cycle",
     passe: "Passé",
@@ -43,6 +44,7 @@
     { statut: "a-laffiche", label: "À l'affiche" },
     { statut: "avant-premiere", label: "Avant-première" },
     { statut: "premiere", label: "Première" },
+    { statut: "projection-extraordinaire", label: "Projection extraordinaire" },
     { statut: "prochainement", label: "Prochainement" },
     { statut: "cycle", label: "Cycles" },
   ];
@@ -136,9 +138,12 @@
     return heure ? jour + ", " + heure : jour;
   }
 
-  /* L'avant-première et la première se datent dans la fiche du film. */
+  /* L'avant-première, la première et la projection extraordinaire se
+     datent dans la fiche du film. La même liste que STATUTS_A_PROJECTION
+     côté Studio (plugins/planification/utils/projection-de-la-fiche.ts). */
+  var statutsAProjection = ["avant-premiere", "premiere", "projection-extraordinaire"];
   function estUneProjection(status) {
-    return status === "avant-premiere" || status === "premiere";
+    return statutsAProjection.indexOf(status) !== -1;
   }
 
   function formatDowShort(dateStr) {

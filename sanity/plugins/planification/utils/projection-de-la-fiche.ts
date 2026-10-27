@@ -26,8 +26,11 @@
    écrire lui-même. Il se vérifie dans verifications/projection.mjs.
    ============================================================ */
 
-/** Les statuts qui annoncent une projection unique, datée dans la fiche. */
-export const STATUTS_A_PROJECTION = ['avant-premiere', 'premiere'] as const
+/** Les statuts qui annoncent une projection unique, datée dans la fiche.
+    La projection extraordinaire — un film qu'on passe une fois, ni
+    avant-première ni première — s'y est ajoutée à la demande du cinéma
+    (27 octobre 2026). */
+export const STATUTS_A_PROJECTION = ['avant-premiere', 'premiere', 'projection-extraordinaire'] as const
 
 export type StatutAProjection = (typeof STATUTS_A_PROJECTION)[number]
 
@@ -35,11 +38,22 @@ export type StatutAProjection = (typeof STATUTS_A_PROJECTION)[number]
 export const NOM_DE_LA_PROJECTION: Record<StatutAProjection, string> = {
   'avant-premiere': 'Avant-première',
   premiere: 'Première',
+  'projection-extraordinaire': 'Projection extraordinaire',
 }
 
 export function estUneProjection(statut: unknown): statut is StatutAProjection {
   return (STATUTS_A_PROJECTION as readonly unknown[]).includes(statut)
 }
+
+/**
+ * Le filtre GROQ des projections que la rubrique Événements annonce :
+ * dès que le statut est coché, même avant d'avoir choisi le jour (le
+ * site écrit alors « Date à venir »), et jusqu'au jour de la projection.
+ * Attend le paramètre $today.
+ */
+export const FILTRE_PROJECTION_A_VENIR = `(status in ${JSON.stringify(
+  STATUTS_A_PROJECTION,
+)} && (!defined(projectionDate) || projectionDate >= $today))`
 
 /**
  * Cette séance est-elle tenue par la fiche de son film ? La
