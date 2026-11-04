@@ -182,6 +182,17 @@
 
 .m-ba {
   gap: 0.75rem;
+  /* La case sert de mesure à son titre (voir juste dessous). */
+  container-type: inline-size;
+}
+/* « BANDE-ANNONCE » s'étire d'un bord à l'autre de la case.
+   Mesuré en Aileron Heavy capitales : le mot fait 9,2 fois sa
+   taille en largeur, donc 100 % de la case ÷ 9,2 ≈ 10,87 % ;
+   on garde 10,75 % pour ne jamais déborder. */
+.m-ba > .m-cell__label {
+  font-size: 10.75cqi;
+  line-height: 1;
+  white-space: nowrap;
 }
 .m-ba__media {
   position: relative;
@@ -701,9 +712,10 @@ button.m-acheter:focus-visible { background: var(--vert-fonce); }
   }
   .m-info .m-cell__value { hyphens: manual; }
 
-  /* Le lecteur de bande-annonce se centre dans sa case quand
-     celle-ci est plus haute que lui. */
-  .m-ba__media { margin-block: auto; }
+  /* Le lecteur de bande-annonce se pose en bas de sa case quand
+     celle-ci est plus haute que lui : le titre en haut, l'image
+     au pied. */
+  .m-ba__media { margin-top: auto; }
 }
 
 /* Sur grand écran, la bande-annonce et les séances se mettent
