@@ -103,7 +103,7 @@ export const evenement = defineType({
       type: "date",
       options: { dateFormat: "dddd D MMMM YYYY" },
       description:
-        "Le jour où l'événement commence. C'est à partir de cette date qu'il apparaît sur le site.",
+        "Le jour où l'événement commence. Le site l'écrit sur l'événement (« du … au … ») et range les événements dans cet ordre. L'événement est visible sur le site dès sa publication, même avant ce jour : on peut l'annoncer à l'avance.",
       initialValue: AUJOURDHUI,
       validation: (Rule) => Rule.required().error("Indiquez le premier jour."),
     }),
@@ -113,7 +113,7 @@ export const evenement = defineType({
       type: "date",
       options: { dateFormat: "dddd D MMMM YYYY" },
       description:
-        "Le jour où l'événement se termine. Passé ce jour, il quitte automatiquement les pages publiques. Pour un événement d'un seul jour, remettez la même date qu'au-dessus. Laissez vide pour une information sans fin prévue.",
+        "Le jour où l'événement se termine. Passé ce jour, il quitte automatiquement les pages publiques. Pour un événement d'un seul jour, remettez la même date qu'au-dessus. Pour un événement en plusieurs soirs, mettez le dernier soir. Laissé vide, l'événement reste en ligne jusqu'à ce qu'on le supprime : à réserver aux informations sans fin prévue.",
       validation: (Rule) =>
         Rule.custom((fin, contexte) => {
           const debut = (contexte.document as { dateDebut?: string } | undefined)?.dateDebut;
