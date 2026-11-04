@@ -3,11 +3,10 @@
  * par mois, un ciné-club du dimanche — rappelés dans chaque newsletter
  * (demande du cinéma, 3 novembre 2026).
  *
- * Rien à réécrire chaque semaine. Dans la fiche de l'événement, on coche
- * « Le rappeler dans chaque newsletter » et on note ses dates une fois pour
- * toutes. Chaque newsletter annonce alors les prochaines, et le rappel
- * s'arrête tout seul après la dernière date, ou après le dernier jour de
- * l'événement.
+ * Rien à réécrire chaque semaine. Quels événements la rubrique annonce :
+ * voir evenements.ts. Ce fichier les met en page : sous le titre, les trois
+ * prochaines soirées notées, ou à défaut la période de l'événement. Le rappel
+ * s'arrête tout seul après la dernière date, ou après le dernier jour.
  *
  *   ┌──────────┬──────────────────────────────┐
  *   │ visuel   │ type, titre                  │
@@ -44,27 +43,9 @@ export interface EvenementNewsletter {
   /** Le visuel vertical de l'accueil s'il existe, sinon le visuel de l'événement. */
   imageRef: string | null
   rendezVous: DateDeRendezVous[] | null
+  /** Coché « Le rappeler dans chaque newsletter ». */
+  rappel?: boolean | null
 }
-
-/**
- * La requête : les événements cochés « rappel », commencés au plus tard le
- * dernier jour de la semaine annoncée, et pas encore finis le jour de
- * l'envoi. Attend $envoi et $finSemaine.
- */
-export const REQUETE_RENDEZ_VOUS = `*[_type == "evenement" && rappelNewsletter == true
-  && dateDebut <= $finSemaine && (!defined(dateFin) || dateFin >= $envoi)]
-  | order(dateDebut asc){
-    _id,
-    "titre": title,
-    "slug": coalesce(slug.current, _id),
-    "typeNom": typeEvenement,
-    "ancienType": category,
-    "resume": excerpt,
-    dateDebut,
-    dateFin,
-    "imageRef": coalesce(imageAccueil.asset._ref, image.asset._ref),
-    "rendezVous": rendezVous[defined(date)]{date, heure, salle}
-  }`
 
 /** On rappelle les trois prochaines dates : au-delà, la case devient une liste. */
 const DATES_MAX = 3
@@ -96,9 +77,40 @@ export function rendezVousARappeler(
 
 const LARGEUR_VISUEL = 180
 
-function lienDeLEvenement(slug: string | null): string | null {
+/** L'adresse de la page de l'événement sur le site, ou null. */
+export function adresseDeLEvenement(slug: string | null | undefined): string | null {
   const propre = String(slug ?? '').trim()
-  return propre ? echapper(`${SITE}/evenements/?e=${encodeURIComponent(propre)}`) : null
+  return propre ? `${SITE}/evenements/?e=${encodeURIComponent(propre)}` : null
+}
+
+function lienDeLEvenement(slug: string | null): string | null {
+  const adresse = adresseDeLEvenement(slug)
+  return adresse ? echapper(adresse) : null
+}
+
+/**
+ * Sans soirée notée, la période de l'événement : « Du jeudi 12 novembre au
+ * jeudi 10 décembre », ou son seul jour. Une information sans dernier jour,
+ * déjà commencée, n'a pas de date à annoncer.
+ */
+export function periodeEnClair(evenement: EvenementNewsletter, envoi: string): string | null {
+  if ((evenement.rendezVous ?? []).length || !evenement.dateDebut) return null
+  const {dateDebut, dateFin} = evenement
+  if (dateFin && dateFin !== dateDebut) {
+    return dateDebut <= envoi
+      ? `Jusqu'au ${formatJourLong(dateFin)}`
+      : `Du ${formatJourLong(dateDebut)} au ${formatJourLong(dateFin)}`
+  }
+  if (!dateFin && dateDebut < envoi) return null
+  return formatJourLong(dateDebut)
+}
+
+/** Les lignes de dates sous le titre : les prochaines soirées, sinon la période. */
+function lignesDeDates(evenement: EvenementNewsletter, envoi: string): string {
+  const dates = prochainesDates(evenement, envoi)
+  if (dates.length) return dates.map(ligneDeDate).join('')
+  const periode = periodeEnClair(evenement, envoi)
+  return periode ? `<div style="padding-top:5px;">${echapper(capitales(periode))}</div>` : ''
 }
 
 /** « JEUDI 6 NOVEMBRE · 20:00 · HALL-BAR » */
@@ -122,7 +134,7 @@ function blocEvenement(evenement: EvenementNewsletter, envoi: string, image: Omi
   const lien = lienDeLEvenement(evenement.slug)
   const type = libelleDuTypeEvenement(evenement.typeNom, evenement.ancienType)
   const titre = echapper(capitales(evenement.titre))
-  const dates = prochainesDates(evenement, envoi)
+  const dates = lignesDeDates(evenement, envoi)
 
   const entete =
     (type
@@ -132,10 +144,10 @@ function blocEvenement(evenement: EvenementNewsletter, envoi: string, image: Omi
     `<div style="font-size:${TAILLE.titre};line-height:1.15;font-weight:bold;text-transform:uppercase;">` +
     (lien ? `<a href="${lien}" style="color:${ENCRE};text-decoration:none;">${titre}</a>` : titre) +
     `</div>` +
-    (dates.length
+    (dates
       ? `<div style="font-size:${TAILLE.petit};line-height:1.4;mso-line-height-rule:exactly;font-weight:bold;` +
         `letter-spacing:0.02em;text-transform:uppercase;color:${ROUGE};padding-top:4px;">` +
-        dates.map(ligneDeDate).join('') +
+        dates +
         `</div>`
       : '')
 

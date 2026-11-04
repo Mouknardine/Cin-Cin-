@@ -131,7 +131,7 @@ export const evenement = defineType({
       title: "Les dates (événement en plusieurs soirs)",
       type: "array",
       description:
-        "Un match d'impro par mois, un ciné-club du dimanche : ajoutez ici chaque soir (jour, heure, lieu) plutôt que de les écrire dans le résumé. Le site les affiche sur l'événement, et les dates passées disparaissent d'elles-mêmes. Pour un événement d'un seul jour, inutile : le premier jour suffit.",
+        "Un match d'impro par mois, un ciné-club du dimanche : ajoutez ici chaque soir (jour, heure, lieu) plutôt que de les écrire dans le résumé. Le site les affiche sur l'événement, la newsletter met chaque soir (avec son heure) dans le programme du jour, et les dates passées disparaissent d'elles-mêmes. Pour un événement d'un seul jour, inutile : le premier jour suffit.",
       of: [
         {
           type: "object",
@@ -192,7 +192,7 @@ export const evenement = defineType({
       type: "boolean",
       initialValue: false,
       description:
-        "Cochée, chaque newsletter rappelle cet événement dans sa rubrique « Rendez-vous », avec ses trois prochaines dates. Le rappel s'arrête tout seul après la dernière date.",
+        "La newsletter annonce déjà d'elle-même tout événement qui a lieu dans sa semaine. Cochée, cette case l'annonce aussi les autres semaines, jusqu'à quatre semaines avant son premier jour, dans la rubrique « Rendez-vous » avec ses trois prochaines dates. Le rappel s'arrête tout seul après la dernière date.",
     }),
     defineField({
       name: "excerpt",

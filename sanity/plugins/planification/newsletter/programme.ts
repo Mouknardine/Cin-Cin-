@@ -74,7 +74,8 @@ function bandeauParticularite(seance: SeanceProgramme, grise: boolean): string {
 /** Le titre mène à la fiche du film, sans se déguiser en lien : la couleur et
     le soulignement d'une messagerie feraient de cette grille une bouillie bleue. */
 function ligneDeSeance(seance: SeanceProgramme, encre: string, grise: boolean): string {
-  const lien = lienDuFilm(seance.slug)
+  /* La soirée d'un événement mène à sa page ; une séance, à la fiche du film. */
+  const lien = seance.lien ? echapper(seance.lien) : lienDuFilm(seance.slug)
   const titre = lien
     ? `<a href="${lien}" style="color:${encre};text-decoration:none;">${echapper(capitales(seance.titre))}</a>`
     : echapper(capitales(seance.titre))

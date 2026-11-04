@@ -15,7 +15,8 @@ import type {SanityClient} from 'sanity'
 import {ordonnerSeances} from '../../../salles'
 import {ajouterJours, debutDeSemaine, finDeSemaine} from '../utils/dates'
 import {particulariteDeLaSeance, texteParticularite} from './particularite'
-import {REQUETE_RENDEZ_VOUS, type EvenementNewsletter} from './rendez-vous'
+import {JOURS_D_AVANCE_DU_RAPPEL, REQUETE_EVENEMENTS, avecLesSoirees, evenementsAnnonces} from './evenements'
+import type {EvenementNewsletter} from './rendez-vous'
 import {jourDeLEnvoi} from './seances'
 
 /** Une séance, telle que la newsletter en a besoin. */
@@ -37,6 +38,8 @@ export interface SeanceProgramme extends SeanceNewsletter {
   titre: string
   /** L'adresse de la fiche du film sur le site, pour rendre le titre cliquable. */
   slug: string | null
+  /** Pour la soirée d'un événement : l'adresse complète de sa page, à la place de celle d'un film. */
+  lien?: string | null
   /** « Avant-première · En présence de … », ou null pour une séance ordinaire. */
   particularite: string | null
 }
@@ -97,7 +100,8 @@ export interface DonneesNewsletter {
   filmsDeLaSemaine: FilmNewsletter[]
   /** Ceux qui arrivent : séances après la semaine, ou date de sortie à venir. */
   filmsAVenir: FilmNewsletter[]
-  /** Les événements qui reviennent, cochés « Le rappeler dans chaque newsletter ». */
+  /** Les événements annoncés : ceux qui ont lieu dans la semaine, et ceux
+      cochés « Le rappeler dans chaque newsletter » (voir evenements.ts). */
   rendezVous?: EvenementNewsletter[]
   reglages: ReglagesNewsletter
 }
@@ -194,13 +198,13 @@ export async function chargerNewsletter(
 
   const reponse = await client.fetch<{
     films: FilmNewsletter[]
-    rendezVous: EvenementNewsletter[] | null
+    evenements: EvenementNewsletter[] | null
     reglages: Omit<ReglagesNewsletter, 'iban'> | null
     iban: string | null
   }>(
     `{
       "films": *[_type == "film" && status != "passe"]{${CHAMPS_FILM}},
-      "rendezVous": ${REQUETE_RENDEZ_VOUS},
+      "evenements": ${REQUETE_EVENEMENTS},
       "reglages": *[_type == "siteSettings"][0]{
         "adresse": address,
         "telephone": phone,
@@ -210,7 +214,7 @@ export async function chargerNewsletter(
       },
       "iban": *[_type == "abonnements"][0].iban
     }`,
-    {fenetreDebut, fenetreFin, envoi: jourDeLEnvoi(debut), finSemaine: fin},
+    {fenetreDebut, fenetreFin, envoi: jourDeLEnvoi(debut), horizon: ajouterJours(fin, JOURS_D_AVANCE_DU_RAPPEL)},
   )
 
   const films = (reponse.films ?? []).map((film) => ({
@@ -218,13 +222,18 @@ export async function chargerNewsletter(
     seances: film.seances ?? [],
   }))
 
-  const programme = programmeEntre(films, debut, fin)
+  /* Les soirées des événements prennent leur ligne dans le programme de leur
+     jour, entre les séances (demande du cinéma, 4 novembre 2026). */
+  const evenements = reponse.evenements ?? []
+  const programme = avecLesSoirees(programmeEntre(films, debut, fin), evenements, debut, fin)
 
   /* La newsletter part le lundi, mais la semaine qu'elle annonce n'ouvre que
      le mercredi : le soir même et le lendemain restaient sans programme. Le
      cinéma les a fait remettre en tête, en grisé (5 octobre 2026). Ils ne
      comptent pas parmi les films de la semaine : seulement dans la grille. */
-  const lundiEtMardi = programmeEntre(films, jourDeLEnvoi(debut), ajouterJours(debut, -1))
+  const envoi = jourDeLEnvoi(debut)
+  const veille = ajouterJours(debut, -1)
+  const lundiEtMardi = avecLesSoirees(programmeEntre(films, envoi, veille), evenements, envoi, veille)
 
   /* Les films de la semaine se suivent dans l'ordre où le programme les
      annonce : celui qui ouvre la semaine ouvre la liste. Le lecteur vient de
@@ -260,7 +269,7 @@ export async function chargerNewsletter(
     lundiEtMardi,
     filmsDeLaSemaine,
     filmsAVenir,
-    rendezVous: reponse.rendezVous ?? [],
+    rendezVous: evenementsAnnonces(evenements, envoi, fin),
     reglages: {...(reponse.reglages ?? videReglages()), iban: reponse.iban ?? null},
   }
 }

@@ -286,7 +286,7 @@ verifier('la requête du Studio ne garde que l’événement coché et en cours'
 verifier('avec ses dates', chargees.rendezVous[0].rendezVous, [{date: '2026-11-06', heure: '20:00', salle: 'Hall-Bar'}])
 verifier(
   'et la séance spéciale arrive avec sa mention, depuis Sanity',
-  chargees.programme.map((s) => s.particularite),
+  chargees.programme.filter((s) => s.filmId).map((s) => s.particularite),
   ['Avant-première · En présence de la réalisatrice · Suivie d’une rencontre'],
 )
 

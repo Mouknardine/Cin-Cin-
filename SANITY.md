@@ -203,15 +203,27 @@ le champ **« Les dates »** reçoit chaque soir : jour, heure, lieu. Plus
 besoin de les écrire dans le résumé : la page Événements du site les
 affiche, une par ligne, et retire d'elle-même celles qui sont passées.
 
-Pour qu'il soit en plus rappelé dans **chaque newsletter**, cocher
-**« Le rappeler dans chaque newsletter »**, juste en dessous.
+**Dans la newsletter, tout se fait seul** à partir de ces dates :
 
-La newsletter ouvre alors une rubrique **« Rendez-vous »**, entre les
-films de la semaine et « Prochainement », avec le visuel, le résumé et
-les **trois prochaines dates**. Les dates passées disparaissent
-d'elles-mêmes, et le rappel s'arrête tout seul après la dernière date
-ou le dernier jour de l'événement. Sans aucune date notée, l'événement
-est rappelé sans date, tant qu'il est en cours.
+- **Chaque soirée notée avec une heure** prend sa ligne dans le
+  programme de son jour, comme une séance (heure, titre, lieu), avec
+  le type de l'événement en bandeau noir. Le titre mène à la page de
+  l'événement. La feuille à imprimer l'affiche aussi.
+- **Tout événement qui a lieu dans la semaine** (une soirée notée, son
+  jour, ou sa période qui chevauche la semaine) apparaît dans la
+  rubrique **« Rendez-vous »**, entre les films de la semaine et
+  « Prochainement », avec le visuel, le résumé et ses **trois
+  prochaines dates**. Sans soirée notée, c'est sa période qui s'écrit
+  : « Samedi 14 novembre », « Du jeudi 12 au dimanche 22 novembre »,
+  « Jusqu'au dimanche 22 novembre ».
+- **« Le rappeler dans chaque newsletter »**, juste sous les dates,
+  sert aux semaines où l'événement n'a *pas* lieu : il est alors
+  annoncé quand même, jusqu'à **quatre semaines avant son premier
+  jour**, et tant qu'il lui reste une date à venir.
+
+Les dates passées disparaissent d'elles-mêmes. Une information sans
+dernier jour (« Projections privées ») n'est jamais annoncée d'office :
+seulement si elle est cochée « rappel ».
 
 **Le type du film** (Documentaire, Fiction, Animation…) s'écrit en
 toutes lettres dans le champ « Type de film », tel qu'il doit se lire
