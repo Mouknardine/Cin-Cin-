@@ -79,7 +79,14 @@ export function stylesDeLaFeuille(mesures: MesuresFeuille): string {
       font-weight: bold;
       text-transform: uppercase;
     }
+    tr.special td {
+      background: ${ENCRE};
+      color: ${BLANC};
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
     table.grise td { color: ${GRIS_CLAIR}; }
+    table.grise tr.special td { background: ${GRIS_CLAIR}; color: ${BLANC}; }
     table.grise tr.jour td { background: ${GRIS_AVANT}; color: ${GRIS_CLAIR}; }
     col.col-heure { width: 17mm; }
     col.col-salle { width: 30mm; }

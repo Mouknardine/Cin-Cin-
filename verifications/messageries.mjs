@@ -28,7 +28,8 @@
    rien qui dépasse de l'écran.
 
    Pour lancer :  npm run test:messageries
-   (Chromium doit être installé : npx playwright install chromium)
+   (Chromium doit être installé : npx playwright install chromium,
+   ou NAVIGATEUR=chrome npm run test:messageries pour prendre Chrome)
    Pour garder les captures :  CAPTURES=dossier npm run test:messageries
    ============================================================ */
 import {build} from 'esbuild'
@@ -240,7 +241,9 @@ function verifier(intitule, condition, detail = '') {
 const CAPTURES = process.env.CAPTURES
 if (CAPTURES) mkdirSync(CAPTURES, {recursive: true})
 
-const navigateur = await chromium.launch()
+/* NAVIGATEUR=chrome utilise le Google Chrome installé sur l'ordinateur,
+   quand le Chromium de Playwright n'a pas pu être téléchargé. */
+const navigateur = await chromium.launch(process.env.NAVIGATEUR ? {channel: process.env.NAVIGATEUR} : {})
 try {
   console.log('\nLa newsletter, dans les messageries\n')
   let texteDeReference = null

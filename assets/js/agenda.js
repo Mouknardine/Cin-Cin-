@@ -127,9 +127,14 @@
        le titre au-dessus (demande du cinéma, 22 septembre). La note de
        version reste en maigre et telle qu'elle est écrite : « VO st.
        fr » en capitales se lirait plus mal, pas mieux. */
+    /* Une séance spéciale (avant-première, en présence de la
+       réalisatrice…) porte sa mention dans un bandeau d'encre, sous le
+       titre, et non plus en petit à côté de la salle (demande du
+       cinéma, 3 novembre 2026). */
+    var speciale = R.particularitesDeLaSeance(s, s.film).join(" · ");
     var sub = [
       s.room ? '<span class="m-seance__salle-nom">' + R.escapeHtml(s.room) + "</span>" : "",
-      s.versionNote ? "— " + R.escapeHtml(s.versionNote) : "",
+      s.versionNote && !speciale ? "— " + R.escapeHtml(s.versionNote) : "",
     ]
       .filter(Boolean)
       .join(" ");
@@ -139,6 +144,7 @@
       '<span class="m-cell m-seance__infos c-' + C.suivante() + '">' +
       '<span class="m-seance__titre">' + R.escapeHtml(s.film ? s.film.title : "Séance") + "</span>" +
       (sub ? '<span class="m-seance__salle">' + sub + "</span>" : "") +
+      (speciale ? '<span class="m-seance__special">' + R.escapeHtml(speciale) + "</span>" : "") +
       "</span>";
     var statutHTML = statusText[s.status]
       ? '<span class="m-cell m-seance__statut c-' + C.suivante() +

@@ -509,36 +509,34 @@ console.log('\nLes pastilles dans Outlook, signalées le 5 octobre 2026')
     S('2026-09-18', '21:00', 'Salle 2'), S('2026-09-20', '17:00', 'Salle 1')]})
   const html = construire([unFilm], [])
   const bloc = html.split('>LES FILMS DE LA SEMAINE<')[1]
-  const pastilles = [...bloc.matchAll(/<table role="presentation" align="left"[\s\S]*?<\/table><\/td><\/tr><\/table>/g)].map((m) => m[0])
-  verifier(
-    'chaque séance est son propre petit tableau, aligné à gauche',
-    pastilles.length === 4,
-    `${pastilles.length} trouvées`,
-  )
+  const pastilles = [...bloc.matchAll(/<td nowrap style="border:3px solid #100f0c;[\s\S]*?<\/td>/g)].map((m) => m[0])
+  verifier('chaque séance est sa propre case encadrée', pastilles.length === 4, `${pastilles.length} trouvées`)
   verifier(
     "plus aucune pastille ne compte sur inline-block ni sur une marge, que Word ignore",
     pastilles.every((p) => !/inline-block|margin:/.test(p)),
   )
+  /* Le 3 novembre 2026, reçues sur iPhone après Outlook, les pastilles
+     posées en tableaux flottants (align="left") s'empilaient en grandes
+     cases et écrasaient l'affiche. Plus rien ne flotte : une grille. */
+  verifier('aucun tableau ne flotte (align="left", float)', !/align="left"|float:/.test(html))
+  const rangees = [...bloc.matchAll(/<tr><td width="50%"[\s\S]*?<\/td><td width="50%"[\s\S]*?<\/td><\/tr>/g)]
+  verifier('les pastilles sont rangées deux par deux, en vraies rangées', rangees.length === 2, `${rangees.length} rangées`)
   verifier(
     "l'écart entre deux pastilles est une marge intérieure de case, que Word respecte",
-    pastilles.every((p) => p.includes('<tr><td style="padding:0 6px 6px 0;">')),
+    bloc.includes('style="width:50%;padding:0 6px 6px 0;') && bloc.includes('style="width:50%;padding:0 0px 6px 0;'),
   )
   verifier(
     'le cadre est sur une case, avec sa marge intérieure pour Word',
-    pastilles.every((p) => /<td nowrap style="border:3px solid #100f0c;padding:0;mso-padding-alt:5px 8px;/.test(p)),
+    pastilles.every((p) => /^<td nowrap style="border:3px solid #100f0c;padding:0;mso-padding-alt:5px 7px;/.test(p)),
   )
   verifier(
     'toute la pastille se clique, et mène à la fiche du film',
-    pastilles.every((p) => /<a href="https:\/\/www\.zinema\.ch\/film\/\?s=pastilles" style="display:block;padding:5px 8px;/.test(p)),
+    pastilles.every((p) => /<a href="https:\/\/www\.zinema\.ch\/film\/\?s=pastilles" style="display:block;padding:5px 7px;/.test(p)),
   )
   verifier(
     "« LUN 14 19:00 » ne se coupe jamais : ses espaces sont insécables",
     pastilles[0].includes('>LUN&nbsp;14&nbsp;&nbsp;<span style="font-weight:normal;">19:00</span>'),
     pastilles[0],
-  )
-  verifier(
-    'après les pastilles, la suite repart dessous',
-    bloc.includes('</table><div style="clear:both;font-size:0;line-height:0;"></div></div>'),
   )
 }
 

@@ -47,6 +47,19 @@ function ligneDuJour(date: string): string {
   return `<tr class="jour"><td colspan="3">${echapper(formatJourLong(date))}</td></tr>`
 }
 
+/* Ce qui rend la séance particulière — « Avant-première · En présence de
+   la réalisatrice » — a sa propre ligne, juste sous la séance : un bandeau
+   noir, texte blanc, qui se voit de loin sur la feuille au mur (demande du
+   cinéma, 3 novembre 2026). Il compte comme une ligne : la hauteur se
+   recalcule et la feuille tient toujours sur une page. Il reste en maigre :
+   seuls la semaine et les jours sont en gras (demande du 29 septembre 2026).
+   Trop longue, la mention se termine par des points de suspension plutôt
+   que de déborder. */
+function ligneParticularite(seance: SeanceProgramme): string {
+  if (!seance.particularite) return ''
+  return `<tr class="special"><td></td><td colspan="2">${echapper(seance.particularite)}</td></tr>`
+}
+
 function ligneDeSeance(seance: SeanceProgramme): string {
   const complet = seance.statut === 'complet' ? ' <span class="complet">· Complet</span>' : ''
   return (
@@ -54,7 +67,8 @@ function ligneDeSeance(seance: SeanceProgramme): string {
     `<td class="heure">${echapper(seance.heure)}</td>` +
     `<td class="titre">${echapper(seance.titre)}${complet}</td>` +
     `<td class="salle">${echapper(seance.salle)}</td>` +
-    `</tr>`
+    `</tr>` +
+    ligneParticularite(seance)
   )
 }
 
@@ -77,9 +91,10 @@ export interface DonneesFeuille {
   lundiEtMardi: readonly SeanceProgramme[]
 }
 
-/** Le nombre de lignes d'un tableau : une par jour, une par séance. */
+/** Le nombre de lignes d'un tableau : une par jour, une par séance, une par séance spéciale. */
 function nombreDeLignes(programme: readonly SeanceProgramme[]): number {
-  return programme.length + parJour(programme).size
+  const speciales = programme.filter((seance) => Boolean(seance.particularite)).length
+  return programme.length + speciales + parJour(programme).size
 }
 
 /** Le bandeau de la semaine : une ligne comme les autres, de la même hauteur. */

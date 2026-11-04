@@ -228,30 +228,89 @@
 
   /* ---------------- Morceaux de requête réutilisés ---------------- */
 
-  /* Le jour de sa sortie, un film annoncé passe à l'affiche tout
-     seul : personne n'a à rouvrir sa fiche le mercredi matin. Dès que
-     sa date de sortie est atteinte, le site le traite partout comme
-     « À l'affiche » — il quitte la page Événements, rejoint la
-     rubrique À l'affiche de la page Films et monte sur l'accueil.
-     Sans date de sortie, c'est le Studio qui décide. Les requêtes qui
-     utilisent CHAMPS_FILM passent donc toutes le paramètre $today. */
-  var FILM_SORTI = 'status == "prochainement" && defined(releaseDate) && releaseDate <= $today';
-  var STATUT_DU_JOUR = '"status":select(' + FILM_SORTI + ' => "a-laffiche", status)';
+  /* ---------------- Où en est chaque film, ce jour-là ----------------
+     Dans le Studio, « Où en est ce film ? » se coche en plusieurs cases
+     (demande du cinéma, 3 novembre 2026) : un film peut être en
+     avant-première ET à l'affiche. Seul « Terminé » est seul. Le film
+     apparaît dans chaque rubrique cochée.
+
+     Et le site range de lui-même, jour après jour — personne n'a à
+     rouvrir la fiche :
+       - « Prochainement » devient « À l'affiche » le jour de la sortie ;
+       - une avant-première, une première ou une projection
+         extraordinaire quitte sa rubrique le lendemain de la
+         projection, si une autre case est cochée.
+
+     film.statuts : les rubriques du jour ; film.status : la principale,
+     celle qu'écrit la carte du film. Le même calcul que statutsDuJour
+     côté Studio (plugins/planification/utils/etats-du-film.ts) ;
+     verifications/seances-speciales.mjs vérifie qu'ils disent la même
+     chose. Les fiches d'avant le 3 novembre n'ont que « status ». */
+  var STATUTS_A_PROJECTION = ["avant-premiere", "premiere", "projection-extraordinaire"];
+  var PRIORITE = ["passe"].concat(STATUTS_A_PROJECTION, ["a-laffiche", "prochainement", "cycle"]);
+
+  function rangDuStatut(statut) {
+    var position = PRIORITE.indexOf(statut);
+    return position === -1 ? PRIORITE.length : position;
+  }
+
+  function sansDoublon(liste) {
+    return liste.filter(function (valeur, i) { return liste.indexOf(valeur) === i; });
+  }
+
+  function statutsDuJour(film, jour) {
+    var statuts = Array.isArray(film.statuts)
+      ? film.statuts.filter(function (s) { return typeof s === "string" && s; })
+      : [];
+    if (!statuts.length && film.status) statuts = [film.status];
+    statuts = sansDoublon(statuts);
+    if (statuts.indexOf("passe") !== -1) return ["passe"];
+    var sorti = Boolean(film.releaseDate && film.releaseDate <= jour);
+    statuts = sansDoublon(statuts.map(function (s) {
+      return s === "prochainement" && sorti ? "a-laffiche" : s;
+    }));
+    var projectionPassee = Boolean(film.projectionDate && film.projectionDate < jour);
+    var autres = statuts.filter(function (s) { return STATUTS_A_PROJECTION.indexOf(s) === -1; });
+    return projectionPassee && autres.length ? autres : statuts;
+  }
+
+  /** Range le film (ou la liste de films) pour aujourd'hui — ou pour
+      le jour donné, ce qui permet de le vérifier. */
+  function etatDuJour(films, jourDonne) {
+    if (!films || estUneErreur(films)) return films;
+    var jour = typeof jourDonne === "string" ? jourDonne : aujourdhui();
+    (Array.isArray(films) ? films : [films]).forEach(function (film) {
+      if (!film) return;
+      film.statuts = statutsDuJour(film, jour);
+      film.status = film.statuts.slice().sort(function (a, b) {
+        return rangDuStatut(a) - rangDuStatut(b);
+      })[0] || null;
+    });
+    return films;
+  }
+
+  /* Une case est-elle cochée ? En GROQ, pour les filtres. */
+  function coche(statut) {
+    return '"' + statut + '" in coalesce(statuts, [status])';
+  }
+  var FILM_SORTI = "defined(releaseDate) && releaseDate <= $today";
 
   var CHAMPS_FILM =
     '_id,"slug":coalesce(slug.current,_id),title,originalTitle,director,year,country,duration,' +
-    "language,subtitles,ageRating,typeDeFilm,genres," + STATUT_DU_JOUR +
+    "language,subtitles,ageRating,typeDeFilm,genres,status,statuts" +
     ",releaseDate,projectionDate,projectionHeure,synopsis,poster,stillImages,trailerUrl," +
     "presence,presenceDate," +
     'price,sumupCheckoutUrl,presseUrl';
 
   var CHAMPS_SEANCE =
-    "_id,date,time,room,versionNote,status,price,sumupCheckoutUrl," +
-    '"film":film->{_id,"slug":coalesce(slug.current,_id),title,director,duration,language,subtitles,poster}';
+    "_id,date,time,room,versionNote,evenementDuFilm,status,price,sumupCheckoutUrl," +
+    '"film":film->{_id,"slug":coalesce(slug.current,_id),title,director,duration,language,subtitles,poster,' +
+    'presence,presenceDate}';
 
   var CHAMPS_EVENEMENT =
     '_id,title,"slug":coalesce(slug.current,_id),"typeNom":typeEvenement,category,dateDebut,dateFin,image,imageAccueil,excerpt,body,' +
-    'linkUrl,linkLabel,"films":films[]->{_id,"slug":coalesce(slug.current,_id),title,poster}';
+    'linkUrl,linkLabel,"rendezVous":rendezVous[defined(date)]{date,heure,salle},' +
+    '"films":films[]->{_id,"slug":coalesce(slug.current,_id),title,poster}';
 
   var CHAMPS_REGLAGES =
     "shareImage,address,phone,phoneSecondary,email," +
@@ -273,6 +332,8 @@
        séances elles-mêmes (l'agenda, jour par jour) la rappellent sur
        chaque groupe, et rangent donc exactement comme ici. */
     trierSeances: trierSeances,
+    /* Où en est chaque film ce jour-là (cases cochées du Studio). */
+    etatDuJour: etatDuJour,
 
     /** Tous les films encore d'actualité, les « terminés » exclus. */
     getFilms: function () {
@@ -280,7 +341,7 @@
         return sanityFetch(
           '*[_type == "film" && status != "passe"] | order(title asc) {' + CHAMPS_FILM + "}",
           { today: aujourdhui() }
-        );
+        ).then(etatDuJour);
       });
     },
 
@@ -297,7 +358,7 @@
         { slug: slug, today: aujourdhui() }
       ).then(function (film) {
         if (film && !estUneErreur(film)) film.screenings = trierSeances(film.screenings);
-        return film;
+        return etatDuJour(film);
       });
     },
 
@@ -330,7 +391,7 @@
       return cachee("films-annonces", function () {
         return sanityFetch(
           '*[_type == "film" && status != "passe" && ' +
-            '((status == "prochainement" && !(' + FILM_SORTI + ')) || ' +
+            '((' + coche("prochainement") + ' && !(' + FILM_SORTI + ')) || ' +
             '(status in ["avant-premiere", "premiere", "projection-extraordinaire"] && ' +
             '(!defined(projectionDate) || projectionDate >= $today)) || ' +
             '(defined(presence) && presence != ""))]{' + CHAMPS_FILM +
@@ -339,7 +400,7 @@
             ',"heureInvite": *[_type == "screening" && references(^._id) && ' +
             'date == ^.presenceDate && status != "annule"] | order(time asc)[0].time}',
           { today: aujourdhui() }
-        );
+        ).then(etatDuJour);
       });
     },
 

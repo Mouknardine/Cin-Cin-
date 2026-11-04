@@ -14,7 +14,8 @@
  * Pas de lien sous le synopsis : l'affiche, le titre et chaque pastille
  * mènent déjà à la fiche du film, où l'on achète son billet.
  */
-import type {DonneesNewsletter, FilmNewsletter} from './donnees'
+import {formatJourAbrege, formatJourLong, numeroDuJour} from '../utils/dates'
+import {particulariteDe, type DonneesNewsletter, type FilmNewsletter, type SeanceNewsletter} from './donnees'
 import {etiquetteDuFilm, type Etiquette, type TonEtiquette} from './etiquette'
 import {
   BLANC, BLEU, ENCRE, GRIS, JAUNE, PAPIER, POLICE, ROUGE, SEPARATEUR, TAILLE,
@@ -81,6 +82,44 @@ function ligneTechnique(film: FilmNewsletter): string {
     .join(SEPARATEUR)
 }
 
+/** Au-delà, on renvoie à la fiche du film : la case doit rester lisible. */
+const SEANCES_SPECIALES_MAX = 3
+
+/**
+ * Les séances spéciales du film, chacune dans un bandeau d'encre sous le
+ * titre : « VEN 6 · 20:00 — AVANT-PREMIÈRE · EN PRÉSENCE DE LA
+ * RÉALISATRICE » (demande du cinéma, 3 novembre 2026). Sa pastille est
+ * inversée de la même encre, plus bas. Pour un film de la semaine, celles
+ * de ses pastilles ; pour un film annoncé, celles qui suivent la semaine,
+ * avec le jour en toutes lettres puisqu'il n'a pas de pastille.
+ */
+function seancesSpeciales(film: FilmNewsletter, seances: readonly SeanceNewsletter[], alAffiche: boolean): string {
+  const lignes = seances
+    .filter((seance) => seance.statut !== 'annule')
+    .map((seance) => ({seance, texte: particulariteDe(seance, film)}))
+    .filter((ligne): ligne is {seance: SeanceNewsletter; texte: string} => Boolean(ligne.texte))
+    .slice(0, SEANCES_SPECIALES_MAX)
+    .map(({seance, texte}) => {
+      const jour = alAffiche
+        ? `${formatJourAbrege(seance.date)} ${numeroDuJour(seance.date)}`
+        : formatJourLong(seance.date)
+      return (
+        `<tr><td style="background-color:${ENCRE};color:${BLANC};padding:7px 10px;font-family:${POLICE};` +
+        `font-size:${TAILLE.petit};line-height:1.4;mso-line-height-rule:exactly;font-weight:bold;` +
+        `letter-spacing:0.03em;text-transform:uppercase;">` +
+        `${echapper(capitales(`${jour} · ${seance.heure}`))}&nbsp;— ${echapper(capitales(texte))}</td></tr>`
+      )
+    })
+  if (!lignes.length) return ''
+  /* Un tableau plutôt que des div colorées : Word, qui dessine l'Outlook
+     classique, ne peint pas le fond d'une div. L'espace entre deux
+     bandeaux est celui des cases (border-spacing). */
+  return (
+    `<div style="padding-top:8px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" ` +
+    `style="width:100%;border-collapse:separate;border-spacing:0 4px;">${lignes.join('')}</table></div>`
+  )
+}
+
 /** L'affiche est le plus gros objet du bloc : c'est elle qu'on clique d'instinct. */
 function caseAffiche(film: FilmNewsletter, projet: ProjetSanity, lien: string | null): string {
   const adresse = urlImage(film.afficheRef, {...projet, largeur: LARGEUR_AFFICHE * 2})
@@ -113,12 +152,15 @@ export function blocFilm(
       ? `<a href="${lien}" style="color:${ENCRE};text-decoration:none;">${echapper(capitales(film.titre))}</a>`
       : echapper(capitales(film.titre))) +
     `</div>`
+  const annoncees = seancesAnnoncees(film.seances, donnees.debutSemaine, donnees.finSemaine)
+  const apresLaSemaine = film.seances.filter((seance) => seance.date > donnees.finSemaine)
   const entete =
     (etiquetteCalculee ? etiquette(etiquetteCalculee, alAffiche) : '') +
     titre +
     `<div style="font-size:${TAILLE.petit};line-height:1.45;font-weight:bold;color:${GRIS};padding-top:5px;">${ligneTechnique(film)}</div>` +
+    seancesSpeciales(film, alAffiche ? annoncees : apresLaSemaine, alAffiche) +
     (alAffiche
-      ? pastillesDesSeances(seancesAnnoncees(film.seances, donnees.debutSemaine, donnees.finSemaine), lien)
+      ? pastillesDesSeances(annoncees, lien, (seance) => Boolean(particulariteDe(seance, film)))
       : '')
 
   const synopsis = paragraphes(film.synopsis, `font-size:${TAILLE.texte};line-height:1.5;`)

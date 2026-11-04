@@ -69,7 +69,10 @@
   }
 
   function chipHTML(seance, film) {
-    var note = seance.versionNote || seance.room || "";
+    /* Une séance spéciale dit déjà sa mention dans le bandeau de son
+       jour : la pastille garde la salle. */
+    var speciale = R.particularitesDeLaSeance(seance, film).length > 0;
+    var note = (speciale ? "" : seance.versionNote) || seance.room || "";
     if (seance.status !== "disponible") {
       return (
         '<span class="m-seances__chip m-seances__chip--off">' + R.escapeHtml(seance.time) +
@@ -100,6 +103,27 @@
     return '<span class="m-seances__chip">' + contenu + "</span>";
   }
 
+  /* Le jour d'une séance spéciale — en présence de la réalisatrice,
+     avant-première — porte un bandeau d'encre sous son nom : on le
+     repère d'un coup d'œil dans la liste des jours (demande du cinéma,
+     3 novembre 2026). Quand le jour a plusieurs séances, le bandeau dit
+     laquelle. */
+  function specialesDuJour(seances, film) {
+    var actives = seances.filter(function (s) { return s.status !== "annule"; });
+    var lignes = actives
+      .map(function (s) {
+        var morceaux = R.particularitesDeLaSeance(s, film);
+        if (!morceaux.length) return "";
+        var texte = morceaux.join(" · ");
+        return R.escapeHtml(actives.length > 1 ? s.time + " — " + texte : texte);
+      })
+      .filter(Boolean);
+    if (!lignes.length) return "";
+    return lignes.map(function (ligne) {
+      return '<p class="m-seances__special">' + ligne + "</p>";
+    }).join("");
+  }
+
   function seancesHTML(film) {
     var seances = seancesAVenir(film);
     if (seances.length === 0) {
@@ -117,8 +141,10 @@
     var blocs = jours
       .map(function (jour) {
         var chips = jour.liste.map(function (s) { return chipHTML(s, film); }).join("");
+        var speciales = specialesDuJour(jour.liste, film);
         return (
-          '<div class="m-seances__bloc"><p class="m-seances__jour">' + R.formatDayHeading(jour.date) + "</p>" +
+          '<div class="m-seances__bloc' + (speciales ? " m-seances__bloc--special" : "") + '">' +
+          '<p class="m-seances__jour">' + R.formatDayHeading(jour.date) + "</p>" + speciales +
           '<div class="m-seances__chips">' + chips + "</div></div>"
         );
       })
@@ -156,7 +182,10 @@
 
   function caseSeancesHTML(film) {
     var annonce = estAnnonce(film);
-    var projection = R.estUneProjection(film.status);
+    /* Une avant-première qui est AUSSI à l'affiche (plusieurs cases
+       cochées) liste toutes ses séances : la case reste « Séances ». */
+    var rubriques = Array.isArray(film.statuts) && film.statuts.length ? film.statuts : [film.status];
+    var projection = R.estUneProjection(film.status) && rubriques.length === 1;
     var label = annonce ? "Sortie" : projection ? R.statusLabel(film.status) : "Séances";
     var contenu = annonce
       ? sortieHTML(film)

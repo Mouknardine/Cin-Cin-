@@ -165,6 +165,54 @@ comme les autres.
 Une séance déjà programmée à la main au même jour et à la même heure est
 reprise telle quelle : la publication n'en crée pas une seconde.
 
+**« Où en est ce film ? » se coche en plusieurs cases.** Un film peut
+être, par exemple, en **Avant-première + À l'affiche**, ou en
+**Première + Prochainement** : il apparaît alors dans chaque rubrique
+cochée de la page Films. Trois règles seulement :
+
+- **« Terminé » ne se combine avec rien** : le cocher décoche le reste,
+  cocher autre chose le décoche ;
+- **Avant-première, Première et Projection extraordinaire s'excluent**
+  entre elles : la fiche n'a qu'un jour et qu'une heure de projection ;
+- tout le reste se combine librement.
+
+Ensuite, le site range le film tout seul : le lendemain de la
+projection, il quitte la rubrique Avant-première (ou Première) et reste
+dans les autres cases cochées ; « Prochainement » devient « À
+l'affiche » le jour de la sortie. La liste des films du Studio montre
+les rubriques du jour : « Avant-première — 04/11/2026 à 20:00 + À
+l'affiche ».
+
+**Les séances spéciales sont mises en avant partout**, sans rien saisir
+de plus : sur la fiche du film du site, la case de son jour porte un
+bandeau noir (« Avant-première · En présence de la réalisatrice Jeanne
+Dupont ») ; sur l'agenda, la séance a le même bandeau sous son titre ;
+dans la newsletter, un bandeau noir suit la séance dans le programme, et
+le bloc du film la rappelle avec sa pastille en noir ; sur la feuille à
+imprimer, elle a sa propre ligne noire sous la séance. Ce texte vient de
+trois endroits déjà connus : l'avant-première, la première ou la
+projection extraordinaire de la fiche du film ; son champ **« Séance en
+présence de… »** (le jour indiqué, ou toutes les séances sans jour) ; et
+la **« Mention particulière »** d'une séance (Agenda → la séance).
+
+## Les rendez-vous qui reviennent (match d'impro, ciné-club…)
+
+Un événement en plusieurs soirs (le Cosmic Impro Club, un ciné-club)
+garde **une seule fiche**. Juste sous « Premier jour / Dernier jour »,
+le champ **« Les dates »** reçoit chaque soir : jour, heure, lieu. Plus
+besoin de les écrire dans le résumé : la page Événements du site les
+affiche, une par ligne, et retire d'elle-même celles qui sont passées.
+
+Pour qu'il soit en plus rappelé dans **chaque newsletter**, cocher
+**« Le rappeler dans chaque newsletter »**, juste en dessous.
+
+La newsletter ouvre alors une rubrique **« Rendez-vous »**, entre les
+films de la semaine et « Prochainement », avec le visuel, le résumé et
+les **trois prochaines dates**. Les dates passées disparaissent
+d'elles-mêmes, et le rappel s'arrête tout seul après la dernière date
+ou le dernier jour de l'événement. Sans aucune date notée, l'événement
+est rappelé sans date, tant qu'il est en cours.
+
 **Le type du film** (Documentaire, Fiction, Animation…) s'écrit en
 toutes lettres dans le champ « Type de film », tel qu'il doit se lire
 sur le site.
@@ -372,8 +420,9 @@ npm install
 npm run studio:dev      # Studio local sur http://localhost:3333
 npm run studio:deploy   # Met en ligne https://cincin-zinema.sanity.studio
 npm run typecheck       # Vérifie les schémas
-npm test                # Vérifie l'ordre du programme, la newsletter
-                        # et le tirage au sort d'une semaine
+npm test                # Vérifie l'ordre du programme, la newsletter,
+                        # le tirage au sort d'une semaine, les séances
+                        # spéciales et les rendez-vous qui reviennent
 npm run test:messageries  # Rejoue la newsletter dans les messageries
                           # (il faut Chromium : npx playwright install chromium)
 ```

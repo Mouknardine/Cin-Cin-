@@ -71,6 +71,19 @@
   overflow-wrap: anywhere;
 }
 .m-seance__salle { font-weight: 400; }
+/* La mention d'une séance spéciale : un bandeau d'encre sous le titre,
+   lisible sur la couleur de n'importe quelle case. */
+.m-seance__special {
+  align-self: flex-start;
+  margin-top: 0.15rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+}
 /* Le nom de la salle en capitales et en gras : en maigre et en bas de
    casse sous un titre de film en capitales, il se perdait. La note de
    version, dans la même ligne, garde sa graisse de texte courant. */

@@ -146,6 +146,33 @@
     return statutsAProjection.indexOf(status) !== -1;
   }
 
+  /* ---------------- Séance spéciale ----------------
+     Ce qui rend une séance particulière, morceau par morceau :
+     « Avant-première », « En présence de la réalisatrice Jeanne
+     Dupont », puis la mention particulière de la séance. Les pages
+     la mettent en avant dans la case du jour (demande du cinéma,
+     3 novembre 2026). La même règle que particulariteDeLaSeance côté
+     Studio (plugins/planification/newsletter/particularite.ts) ;
+     verifications/seances-speciales.mjs vérifie qu'elles s'accordent.
+
+     « film » porte presence et presenceDate : sans jour, l'invité·e
+     est là à toutes les séances du film. */
+  function propre(texte) {
+    return typeof texte === "string" ? texte.trim() : "";
+  }
+  function particularitesDeLaSeance(seance, film) {
+    var morceaux = [];
+    if (!seance) return morceaux;
+    if (estUneProjection(seance.evenementDuFilm)) morceaux.push(statusLabel(seance.evenementDuFilm));
+    var invite = propre(film && film.presence);
+    var jour = propre(film && film.presenceDate);
+    if (invite && (!jour || jour === seance.date)) morceaux.push("En présence de " + invite);
+    var mention = propre(seance.versionNote);
+    var dejaDit = morceaux.some(function (m) { return m.toLowerCase() === mention.toLowerCase(); });
+    if (mention && !dejaDit) morceaux.push(mention);
+    return morceaux;
+  }
+
   function formatDowShort(dateStr) {
     var date = parseISODate(dateStr);
     return DOW_SHORT[date.getDay()].toUpperCase();
@@ -376,6 +403,7 @@
     formatDateSortieCourte: formatDateSortieCourte,
     formatRendezVous: formatRendezVous,
     estUneProjection: estUneProjection,
+    particularitesDeLaSeance: particularitesDeLaSeance,
     isToday: isToday,
     parseISODate: parseISODate,
     toEmbedUrl: toEmbedUrl,

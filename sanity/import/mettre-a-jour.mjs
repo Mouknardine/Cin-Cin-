@@ -133,6 +133,9 @@ function champsDuFilm(film) {
     typeDeFilm: (film.genres || []).join(", ") || undefined,
     synopsis: film.synopsis,
     status: film.status,
+    /* Les cases cochées de « Où en est ce film ? » : les deux champs
+       vont toujours ensemble (voir plugins/planification/utils/etats-du-film.ts). */
+    statuts: [film.status],
     trailerUrl: film.trailerUrl,
   };
   if (film.subtitles) champs.subtitles = film.subtitles;
@@ -182,7 +185,7 @@ async function traiterLesFilms() {
   }
 
   for (const film of aRetirer) {
-    await client.patch(film._id).set({ status: "passe" }).commit();
+    await client.patch(film._id).set({ status: "passe", statuts: ["passe"] }).commit();
     dire(`   − ${film.title} → Terminé (retiré du site, gardé dans le Studio)`);
   }
 

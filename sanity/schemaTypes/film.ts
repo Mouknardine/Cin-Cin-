@@ -1,5 +1,6 @@
 import { defineField, defineType } from "sanity";
 
+import { ChampEtatsDuFilm } from "../plugins/planification/components/ChampEtatsDuFilm";
 import { ChampSeancesDuFilm } from "../plugins/planification/components/ChampSeancesDuFilm";
 import { heureDeFin, intervallesSeChevauchent } from "../plugins/planification/utils/conflits";
 import {
@@ -7,6 +8,12 @@ import {
   NOM_DE_LA_PROJECTION,
   estUneProjection,
 } from "../plugins/planification/utils/projection-de-la-fiche";
+import {
+  ETATS_DU_FILM,
+  TERMINE,
+  statutsDe,
+  statutsDuJour,
+} from "../plugins/planification/utils/etats-du-film";
 import { listeDesSalles, SALLES } from "../salles";
 
 /* ============================================================
@@ -29,6 +36,17 @@ function dateDuJour(): string {
   const mois = String(maintenant.getMonth() + 1).padStart(2, "0");
   const jour = String(maintenant.getDate()).padStart(2, "0");
   return `${maintenant.getFullYear()}-${mois}-${jour}`;
+}
+
+/** La case « Prochainement » est-elle cochée dans cette fiche ? */
+function estCoche(document: unknown, statut: string): boolean {
+  return statutsDe(document as { status?: unknown; statuts?: unknown } | undefined).includes(statut);
+}
+
+/** « 12/03/2026 », depuis « 2026-03-12 ». */
+function dateCourte(iso: string): string {
+  const [annee, mois, jour] = iso.split("-");
+  return annee && mois && jour ? `${jour}/${mois}/${annee}` : iso;
 }
 
 export const film = defineType({
@@ -182,49 +200,38 @@ export const film = defineType({
         ),
     }),
 
+    /* Des cases à cocher, plus un choix unique : un film peut être en
+       avant-première ET à l'affiche, sauf « Terminé » qui ne se
+       combine avec rien (demande du cinéma, 3 novembre 2026). Voir
+       plugins/planification/utils/etats-du-film.ts. Le champ garde
+       l'état principal ; les cases cochées vont dans « statuts ». */
     defineField({
       name: "status",
       title: "Où en est ce film ?",
       type: "string",
       description:
-        "Détermine dans quelle partie de la page Films il apparaît. Une avant-première, une première ou une projection extraordinaire se date juste en dessous : jour, heure et salle. Sa séance se crée toute seule à la publication, et le film s'annonce tout seul sur la page Événements. Un film « Prochainement » passe tout seul « À l'affiche » le jour de sa date de sortie, et quitte alors la page Événements : rien à changer ce jour-là. Passez-le sur « Terminé » quand il quitte l'affiche : il sort des pages publiques mais reste consultable ici.",
+        "Cochez une ou plusieurs cases : le film apparaît dans chaque rubrique cochée de la page Films. Ex. « Avant-première » + « À l'affiche ». Une avant-première, une première ou une projection extraordinaire se date juste en dessous (jour, heure, salle) : sa séance se crée toute seule à la publication, et le lendemain le film quitte cette rubrique tout seul pour rester dans les autres cases cochées. « Prochainement » passe tout seul « À l'affiche » le jour de sa date de sortie. « Terminé » ne se combine avec rien : le film sort des pages publiques mais reste consultable ici.",
+      components: { input: ChampEtatsDuFilm },
       options: {
-        list: [
-          { title: "À l'affiche — visible en premier sur le site", value: "a-laffiche" },
-          { title: "Avant-première — projection avant la sortie du film", value: "avant-premiere" },
-          { title: "Première — la projection qui lance le film", value: "premiere" },
-          {
-            title: "Projection extraordinaire — un film qu'on passe une seule fois",
-            value: "projection-extraordinaire",
-          },
-          { title: "Prochainement — pas encore de séance", value: "prochainement" },
-          { title: "Cycle / ciné-club", value: "cycle" },
-          { title: "Terminé — retiré de l'affiche", value: "passe" },
-        ],
-        layout: "radio",
+        list: ETATS_DU_FILM.map((etat) => ({ title: etat.titre, value: etat.valeur })),
       },
       initialValue: "a-laffiche",
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.required().error("Cochez au moins une case."),
     }),
-
-    /* La date de sortie n'a de sens que pour un film annoncé : le
-       champ n'apparaît donc que si « Prochainement » est coché, et
-       disparaît dès que le film passe à l'affiche. Sur le site, elle
-       remplace la case des séances par « Sortie — à partir du … ». */
     defineField({
-      name: "releaseDate",
-      title: "Date de sortie",
-      type: "date",
-      options: { dateFormat: "DD/MM/YYYY" },
-      description:
-        "Le jour où le film arrive chez nous. Sur le site, la fiche du film annonce alors « À partir du mercredi 12 mars » à la place des séances. Laissez vide si la date n'est pas encore connue : le site écrira simplement « Date à venir ».",
-      hidden: ({ document }) => document?.status !== "prochainement",
+      name: "statuts",
+      title: "Cases cochées",
+      type: "array",
+      of: [{ type: "string" }],
+      hidden: true,
+      initialValue: ["a-laffiche"],
       validation: (Rule) =>
-        Rule.custom((valeur, contexte) => {
-          const statut = (contexte.document as { status?: string } | undefined)?.status;
-          if (statut !== "prochainement" || valeur) return true;
-          return "Sans date, le site affichera « Date à venir » : indiquez-la dès qu'elle est connue.";
-        }).warning(),
+        Rule.custom((cases) => {
+          const liste = Array.isArray(cases) ? cases : [];
+          return liste.includes(TERMINE) && liste.length > 1
+            ? "« Terminé » ne se combine avec aucune autre case."
+            : true;
+        }),
     }),
 
     /* -------- Avant-première, première, projection extraordinaire --------
@@ -244,6 +251,11 @@ export const film = defineType({
           if (!estUneProjection(statut)) return true;
           if (!jour) {
             return "Sans jour, la séance ne peut pas être programmée : le site écrira « Date à venir ».";
+          }
+          /* Un film qui reste à l'affiche garde le jour de son
+             avant-première une fois passé : c'est normal, pas une erreur. */
+          if (statutsDe(contexte.document as { status?: unknown; statuts?: unknown }).length > 1) {
+            return true;
           }
           return jour < dateDuJour() ? "Ce jour est déjà passé : vérifiez la date." : true;
         }).warning(),
@@ -323,6 +335,25 @@ export const film = defineType({
           }
           return salle ? true : "Choisissez la salle : la séance ne peut pas être créée sans elle.";
         }),
+    }),
+
+    /* La date de sortie n'a de sens que pour un film annoncé : le
+       champ n'apparaît donc que si « Prochainement » est coché, et
+       disparaît dès que la case est décochée. Sur le site, elle
+       remplace la case des séances par « Sortie — à partir du … ». */
+    defineField({
+      name: "releaseDate",
+      title: "Date de sortie",
+      type: "date",
+      options: { dateFormat: "DD/MM/YYYY" },
+      description:
+        "Le jour où le film arrive chez nous. Sur le site, la fiche du film annonce alors « À partir du mercredi 12 mars » à la place des séances. Laissez vide si la date n'est pas encore connue : le site écrira simplement « Date à venir ».",
+      hidden: ({ document }) => !estCoche(document, "prochainement"),
+      validation: (Rule) =>
+        Rule.custom((valeur, contexte) => {
+          if (!estCoche(contexte.document, "prochainement") || valeur) return true;
+          return "Sans date, le site affichera « Date à venir » : indiquez-la dès qu'elle est connue.";
+        }).warning(),
     }),
 
     /* Le bloc « Séances » n'enregistre rien dans le film : il affiche
@@ -422,6 +453,7 @@ export const film = defineType({
       director: "director",
       year: "year",
       status: "status",
+      statuts: "statuts",
       releaseDate: "releaseDate",
       projectionDate: "projectionDate",
       projectionHeure: "projectionHeure",
@@ -433,6 +465,7 @@ export const film = defineType({
       director,
       year,
       status,
+      statuts,
       releaseDate,
       projectionDate,
       projectionHeure,
@@ -446,29 +479,30 @@ export const film = defineType({
         cycle: "Cycle / ciné-club",
         passe: "Terminé",
       };
-      /* Un film annoncé se lit mieux avec sa date : dans la liste,
-         « Prochainement — dès le 12/03/2026 » évite d'ouvrir la
-         fiche pour savoir quand il arrive. */
-      let etat = etats[status as string] || "";
-      if (status === "prochainement" && typeof releaseDate === "string" && releaseDate) {
-        const [annee, mois, jour] = releaseDate.split("-");
-        /* Le jour de sa sortie, le site le passe à l'affiche tout seul
-           (voir assets/js/data.js) : la liste le dit aussi. */
-        const sorti = releaseDate <= dateDuJour();
-        if (annee && mois && jour) {
-          etat = sorti
-            ? `À l'affiche — sorti le ${jour}/${mois}/${annee}`
-            : `${etat} — dès le ${jour}/${mois}/${annee}`;
-        }
-      }
-      /* Une projection unique (avant-première, première, projection
-         extraordinaire) se lit avec son rendez-vous :
-         « Avant-première — 04/11/2026 à 20:00 ». */
-      if (estUneProjection(status) && typeof projectionDate === "string" && projectionDate) {
-        const [annee, mois, jour] = projectionDate.split("-");
-        const heure = typeof projectionHeure === "string" && projectionHeure ? ` à ${projectionHeure}` : "";
-        if (annee && mois && jour) etat = `${etat} — ${jour}/${mois}/${annee}${heure}`;
-      }
+      const sortie = typeof releaseDate === "string" && releaseDate ? releaseDate : null;
+      const projection = typeof projectionDate === "string" && projectionDate ? projectionDate : null;
+      /* Les rubriques du jour, comme le site les range : « Avant-première
+         — 04/11/2026 à 20:00 + À l'affiche ». Un film annoncé se lit avec
+         sa date, une projection avec son rendez-vous. */
+      const etat = statutsDuJour(
+        {
+          status: typeof status === "string" ? status : null,
+          statuts: Array.isArray(statuts) ? (statuts as string[]) : null,
+          releaseDate: sortie,
+          projectionDate: projection,
+        },
+        dateDuJour()
+      )
+        .map((statut) => {
+          const nom = etats[statut] || statut;
+          if (statut === "prochainement" && sortie) return `${nom} — dès le ${dateCourte(sortie)}`;
+          if (estUneProjection(statut) && projection) {
+            const heure = typeof projectionHeure === "string" && projectionHeure ? ` à ${projectionHeure}` : "";
+            return `${nom} — ${dateCourte(projection)}${heure}`;
+          }
+          return nom;
+        })
+        .join(" + ");
       /* L'invité·e se lit dans la liste : c'est ce qui fait apparaître
          le film dans la rubrique Événements. */
       const invite = typeof presence === "string" && presence.trim()

@@ -90,6 +90,18 @@
   font-weight: 400;
   line-height: 1.4;
 }
+/* Les soirs d'un événement qui revient : en gras, comme les horaires
+   d'un film, une ligne par soir. */
+.m-annonce__dates {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-weight: 800;
+  line-height: 1.35;
+}
+.m-annonce__dates li + li {
+  margin-top: 0.2em;
+}
 .m-annonce__liens {
   display: flex;
   flex-wrap: wrap;

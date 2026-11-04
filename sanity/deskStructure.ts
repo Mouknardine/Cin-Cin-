@@ -11,6 +11,7 @@ import {
   UsersIcon,
 } from "@sanity/icons";
 
+import { groqCoche } from "./plugins/planification/utils/etats-du-film";
 import { FILTRE_PROJECTION_A_VENIR } from "./plugins/planification/utils/projection-de-la-fiche";
 
 /* ============================================================
@@ -152,7 +153,7 @@ export const deskStructure: StructureResolver = (S) =>
                     .apiVersion("2024-06-01")
                     .filter(
                       '_type == "film" && status != "passe" && (' +
-                        '(status == "prochainement" && !(defined(releaseDate) && releaseDate <= $today)) || ' +
+                        '(' + groqCoche("prochainement") + ' && !(defined(releaseDate) && releaseDate <= $today)) || ' +
                         FILTRE_PROJECTION_A_VENIR + ' || ' +
                         '(defined(presence) && presence != ""))'
                     )

@@ -358,6 +358,20 @@ button.m-seances__chip:focus-visible {
 }
 .m-seances__chip--off .m-seances__chip-note { color: var(--red); }
 .m-seances__vide { font-weight: 400; opacity: 0.6; }
+/* Le jour d'une séance spéciale : un bandeau d'encre, sous le nom du
+   jour, qui tranche sur la couleur de la case quelle qu'elle soit.
+   Le nom du jour reprend toute sa force. */
+.m-seances__bloc--special .m-seances__jour { opacity: 1; font-weight: 800; }
+.m-seances__special {
+  margin-top: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+}
 /* Film annoncé : à la place des pastilles d'horaires, la seule
    information qui compte encore — le jour où il arrive. On lui
    donne le poids d'une pastille, sans le cadre : rien à cliquer

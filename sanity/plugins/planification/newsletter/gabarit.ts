@@ -40,6 +40,8 @@ import {
 } from './html'
 import {blocPratique} from './pratique'
 import {lignesDuProgramme} from './programme'
+import {rubriqueRendezVous} from './rendez-vous'
+import {jourDeLEnvoi} from './seances'
 
 export type OptionsGabarit = ProjetSanity
 
@@ -155,6 +157,9 @@ export function construireNewsletter(donnees: DonneesNewsletter, options: Option
     `<tr>${cellule(tableau(lignesDuProgramme(donnees.programme)), 'padding:0;')}</tr>` +
     appelAuSite() +
     (filmsDeLaSemaine ? bandeau('Les films de la semaine') + filmsDeLaSemaine : '') +
+    /* La piqûre de rappel des événements qui reviennent (match d'impro,
+       ciné-club…), entre les films de la semaine et ceux qui arrivent. */
+    rubriqueRendezVous(donnees.rendezVous, jourDeLEnvoi(donnees.debutSemaine), options) +
     (filmsProchainement ? bandeau('Prochainement') + filmsProchainement : '') +
     blocPratique(donnees.reglages) +
     pied(donnees.reglages)

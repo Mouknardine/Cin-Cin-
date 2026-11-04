@@ -53,9 +53,27 @@ function barreDuJour(date: string, couleur: Couleur): string {
   )}</tr>`
 }
 
+/**
+ * Juste sous une séance spéciale, un bandeau d'encre sur toute la largeur :
+ * « AVANT-PREMIÈRE · EN PRÉSENCE DE LA RÉALISATRICE » (demande du cinéma,
+ * 3 novembre 2026). Il tranche sur les barres de couleur des jours et se
+ * repère du premier coup d'œil. Le lundi et le mardi de l'envoi le gardent,
+ * en grisé comme le reste.
+ */
+function bandeauParticularite(seance: SeanceProgramme, grise: boolean): string {
+  if (!seance.particularite) return ''
+  return `<tr>${cellule(
+    echapper(capitales(seance.particularite)),
+    `background-color:${grise ? GRIS_CLAIR : ENCRE};color:${BLANC};padding:7px 12px;` +
+      `font-size:${TAILLE.petit};line-height:1.35;mso-line-height-rule:exactly;font-weight:bold;` +
+      `text-transform:uppercase;letter-spacing:0.04em;`,
+    'colspan="3"',
+  )}</tr>`
+}
+
 /** Le titre mène à la fiche du film, sans se déguiser en lien : la couleur et
     le soulignement d'une messagerie feraient de cette grille une bouillie bleue. */
-function ligneDeSeance(seance: SeanceProgramme, encre: string): string {
+function ligneDeSeance(seance: SeanceProgramme, encre: string, grise: boolean): string {
   const lien = lienDuFilm(seance.slug)
   const titre = lien
     ? `<a href="${lien}" style="color:${encre};text-decoration:none;">${echapper(capitales(seance.titre))}</a>`
@@ -79,7 +97,8 @@ function ligneDeSeance(seance: SeanceProgramme, encre: string): string {
         `text-transform:uppercase;white-space:nowrap;text-align:right;`,
       `width="${LARGEUR_SALLE}" valign="middle" align="right"`,
     ) +
-    '</tr>'
+    '</tr>' +
+    bandeauParticularite(seance, grise)
   )
 }
 
@@ -89,7 +108,7 @@ export function lignesDuProgramme(programme: SeanceProgramme[], grise = false): 
     .map(([date, seances], rang) => {
       const couleur = grise ? GRISE : COULEURS_DES_JOURS[rang % COULEURS_DES_JOURS.length]
       const encre = grise ? GRIS_CLAIR : ENCRE
-      return barreDuJour(date, couleur) + seances.map((seance) => ligneDeSeance(seance, encre)).join('')
+      return barreDuJour(date, couleur) + seances.map((seance) => ligneDeSeance(seance, encre, grise)).join('')
     })
     .join('')
 }

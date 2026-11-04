@@ -32,6 +32,21 @@
      sans séance : on les annonce justement avant leur programmation. */
   var RANG_STATUT = { "a-laffiche": 0, "avant-premiere": 1, premiere: 1, "projection-extraordinaire": 1, cycle: 2, prochainement: 3 };
 
+  /* Les rubriques du jour d'un film : plusieurs cases peuvent être
+     cochées dans le Studio (voir etatDuJour dans assets/js/data.js). */
+  function rubriques(film) {
+    return Array.isArray(film.statuts) && film.statuts.length ? film.statuts : [film.status];
+  }
+
+  /* Le meilleur rang parmi ses rubriques : un film en avant-première
+     ET à l'affiche se range avec les films à l'affiche. */
+  function rangDuFilm(film) {
+    return rubriques(film).reduce(function (meilleur, statut) {
+      var rang = RANG_STATUT[statut];
+      return rang === undefined ? meilleur : Math.min(meilleur, rang);
+    }, 9);
+  }
+
   /* La prochaine séance non annulée de chaque film, « AAAA-MM-JJ HH:MM ».
      Un film absent de la liste n'a plus rien de programmé. */
   function prochaineSeanceParFilm(seances) {
@@ -50,7 +65,7 @@
      alors aucun film, plutôt que de vider le mur sur une panne. */
   function estEncoreProgramme(film, prochaine, seancesConnues) {
     if (film.status === "passe") return false;
-    if (!seancesConnues || film.status === "prochainement") return true;
+    if (!seancesConnues || rubriques(film).indexOf("prochainement") !== -1) return true;
     return Boolean(prochaine[film._id]);
   }
 
@@ -71,10 +86,8 @@
         var ia = isRealImage(a.poster) ? 0 : 1;
         var ib = isRealImage(b.poster) ? 0 : 1;
         if (ia !== ib) return ia - ib;
-        var ra = RANG_STATUT[a.status];
-        var rb = RANG_STATUT[b.status];
-        ra = ra === undefined ? 9 : ra;
-        rb = rb === undefined ? 9 : rb;
+        var ra = rangDuFilm(a);
+        var rb = rangDuFilm(b);
         if (ra !== rb) return ra - rb;
         var pa = prochaine[a._id] || "9999";
         var pb = prochaine[b._id] || "9999";

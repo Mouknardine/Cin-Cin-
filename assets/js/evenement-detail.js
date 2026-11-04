@@ -55,6 +55,29 @@
     return R.formatLongDate(a.dateDebut);
   }
 
+  /* Les soirs d'un événement qui revient — un match d'impro par mois
+     (champ « Les dates » du Studio, demande du cinéma du 3 novembre
+     2026) : seulement ceux à venir, dans l'ordre, chacun sur sa ligne.
+     « jeudi 13 mai 2027, 20:00 · Hall-Bar ». */
+  function datesHTML(a) {
+    var jour = global.ZinemaData ? global.ZinemaData.aujourdhui() : "";
+    var dates = (Array.isArray(a.rendezVous) ? a.rendezVous : [])
+      .filter(function (rdv) { return rdv && typeof rdv.date === "string" && rdv.date >= jour; })
+      .sort(function (x, y) {
+        return (x.date + (x.heure || "")).localeCompare(y.date + (y.heure || ""));
+      });
+    if (!dates.length) return "";
+    return (
+      '<ul class="m-annonce__dates">' +
+      dates.map(function (rdv) {
+        var quand = R.formatRendezVous(rdv.date, texte(rdv.heure));
+        var lieu = texte(rdv.salle);
+        return "<li>" + R.escapeHtml(lieu ? quand + " · " + lieu : quand) + "</li>";
+      }).join("") +
+      "</ul>"
+    );
+  }
+
   function bande(classe, contenu) {
     return '<div class="m-bande ' + classe + '">' + contenu + "</div>";
   }
@@ -95,7 +118,7 @@
       '<div class="m-cell m-annonce__infos ' + C.classe() + '">' +
       '<p class="m-cell__label">' + R.escapeHtml(quand) + "</p>" +
       "<" + balise + ">" + R.escapeHtml(a.title) + "</" + balise + ">" +
-      texteHTML(a) + liensHTML(a) + "</div>"
+      datesHTML(a) + texteHTML(a) + liensHTML(a) + "</div>"
     );
   }
 

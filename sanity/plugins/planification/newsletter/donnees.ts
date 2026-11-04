@@ -14,6 +14,8 @@ import type {SanityClient} from 'sanity'
 
 import {ordonnerSeances} from '../../../salles'
 import {ajouterJours, debutDeSemaine, finDeSemaine} from '../utils/dates'
+import {particulariteDeLaSeance, texteParticularite} from './particularite'
+import {REQUETE_RENDEZ_VOUS, type EvenementNewsletter} from './rendez-vous'
 import {jourDeLEnvoi} from './seances'
 
 /** Une séance, telle que la newsletter en a besoin. */
@@ -22,6 +24,11 @@ export interface SeanceNewsletter {
   heure: string
   salle: string
   statut: string | null
+  /** La marque d'une avant-première, d'une première ou d'une projection
+      extraordinaire, posée par la fiche du film ; sinon null. */
+  projection?: string | null
+  /** La « Mention particulière » de la séance. */
+  mention?: string | null
 }
 
 /** Une séance de la grille de la semaine, avec le film qu'elle projette. */
@@ -30,6 +37,8 @@ export interface SeanceProgramme extends SeanceNewsletter {
   titre: string
   /** L'adresse de la fiche du film sur le site, pour rendre le titre cliquable. */
   slug: string | null
+  /** « Avant-première · En présence de … », ou null pour une séance ordinaire. */
+  particularite: string | null
 }
 
 /** Un film, avec ses séances sur la fenêtre observée. */
@@ -58,6 +67,9 @@ export interface FilmNewsletter {
   bandeAnnonce: string | null
   presse: string | null
   afficheRef: string | null
+  /** L'invité·e de la fiche (« Séance en présence de… »), et son jour s'il n'en vient qu'un. */
+  presence?: string | null
+  presenceDate?: string | null
   seances: SeanceNewsletter[]
 }
 
@@ -85,6 +97,8 @@ export interface DonneesNewsletter {
   filmsDeLaSemaine: FilmNewsletter[]
   /** Ceux qui arrivent : séances après la semaine, ou date de sortie à venir. */
   filmsAVenir: FilmNewsletter[]
+  /** Les événements qui reviennent, cochés « Le rappeler dans chaque newsletter ». */
+  rendezVous?: EvenementNewsletter[]
   reglages: ReglagesNewsletter
 }
 
@@ -109,10 +123,13 @@ const CHAMPS_FILM = `
   "bandeAnnonce": trailerUrl,
   "presse": presseUrl,
   "afficheRef": poster.asset._ref,
+  presence,
+  presenceDate,
   "seances": *[_type == "screening" && film._ref == ^._id
     && date >= $fenetreDebut && date <= $fenetreFin]
     | order(date asc, time asc)
-    { date, "heure": time, "salle": room, "statut": status }
+    { date, "heure": time, "salle": room, "statut": status,
+      "projection": evenementDuFilm, "mention": versionNote }
 `
 
 /**
@@ -125,6 +142,11 @@ const CHAMPS_FILM = `
  */
 const SEMAINES_EN_ARRIERE = 1
 const JOURS_EN_AVANT = 120
+
+/** « Avant-première · En présence de … » pour cette séance de ce film, ou null. */
+export function particulariteDe(seance: SeanceNewsletter, film: FilmNewsletter): string | null {
+  return texteParticularite(particulariteDeLaSeance(seance, film))
+}
 
 /**
  * Les séances de tous les films entre deux dates, dans l'ordre du programme :
@@ -142,6 +164,7 @@ export function programmeEntre(films: FilmNewsletter[], debut: string, fin: stri
           filmId: film._id,
           titre: film.titre,
           slug: film.slug,
+          particularite: particulariteDe(seance, film),
         })),
     ),
   )
@@ -171,11 +194,13 @@ export async function chargerNewsletter(
 
   const reponse = await client.fetch<{
     films: FilmNewsletter[]
+    rendezVous: EvenementNewsletter[] | null
     reglages: Omit<ReglagesNewsletter, 'iban'> | null
     iban: string | null
   }>(
     `{
       "films": *[_type == "film" && status != "passe"]{${CHAMPS_FILM}},
+      "rendezVous": ${REQUETE_RENDEZ_VOUS},
       "reglages": *[_type == "siteSettings"][0]{
         "adresse": address,
         "telephone": phone,
@@ -185,7 +210,7 @@ export async function chargerNewsletter(
       },
       "iban": *[_type == "abonnements"][0].iban
     }`,
-    {fenetreDebut, fenetreFin},
+    {fenetreDebut, fenetreFin, envoi: jourDeLEnvoi(debut), finSemaine: fin},
   )
 
   const films = (reponse.films ?? []).map((film) => ({
@@ -235,6 +260,7 @@ export async function chargerNewsletter(
     lundiEtMardi,
     filmsDeLaSemaine,
     filmsAVenir,
+    rendezVous: reponse.rendezVous ?? [],
     reglages: {...(reponse.reglages ?? videReglages()), iban: reponse.iban ?? null},
   }
 }

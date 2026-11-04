@@ -1,4 +1,5 @@
 import { defineField, defineType } from "sanity";
+import { listeDesSalles } from "../salles";
 import { libelleDuTypeEvenement } from "../typesEvenement";
 
 /* ============================================================
@@ -12,6 +13,13 @@ import { libelleDuTypeEvenement } from "../typesEvenement";
    ============================================================ */
 
 const AUJOURDHUI = () => new Date().toISOString().slice(0, 10);
+
+const HEURE_VALIDE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+interface PeriodeEvenement {
+  dateDebut?: string;
+  dateFin?: string;
+}
 
 export const evenement = defineType({
   name: "evenement",
@@ -114,6 +122,77 @@ export const evenement = defineType({
             ? true
             : "Le dernier jour ne peut pas être avant le premier jour.";
         }),
+    }),
+    /* Plusieurs soirs pour un même événement, et la piqûre de rappel
+       dans la newsletter (demandes du cinéma, 3 novembre 2026) : juste
+       sous la période, là où l'on pense aux dates. */
+    defineField({
+      name: "rendezVous",
+      title: "Les dates (événement en plusieurs soirs)",
+      type: "array",
+      description:
+        "Un match d'impro par mois, un ciné-club du dimanche : ajoutez ici chaque soir (jour, heure, lieu) plutôt que de les écrire dans le résumé. Le site les affiche sur l'événement, et les dates passées disparaissent d'elles-mêmes. Pour un événement d'un seul jour, inutile : le premier jour suffit.",
+      of: [
+        {
+          type: "object",
+          name: "rendezVous",
+          title: "Date",
+          fields: [
+            defineField({
+              name: "date",
+              title: "Jour",
+              type: "date",
+              options: { dateFormat: "dddd D MMMM YYYY" },
+              validation: (Rule) => [
+                Rule.required().error("Indiquez le jour."),
+                Rule.custom((jour, contexte) => {
+                  const { dateDebut, dateFin } = (contexte.document ?? {}) as PeriodeEvenement;
+                  if (typeof jour !== "string") return true;
+                  if ((dateDebut && jour < dateDebut) || (dateFin && jour > dateFin)) {
+                    return "Ce jour est en dehors du premier et du dernier jour de l'événement : la newsletter ne l'annoncera pas.";
+                  }
+                  return true;
+                }).warning(),
+              ],
+            }),
+            defineField({
+              name: "heure",
+              title: "Heure",
+              type: "string",
+              placeholder: "20:00",
+              validation: (Rule) =>
+                Rule.regex(HEURE_VALIDE, { name: "heure (HH:MM)" }).error(
+                  "Écrivez l'heure sous la forme 20:30."
+                ),
+            }),
+            defineField({
+              name: "salle",
+              title: "Lieu",
+              type: "string",
+              options: { list: listeDesSalles },
+            }),
+          ],
+          preview: {
+            select: { date: "date", heure: "heure", salle: "salle" },
+            prepare({ date, heure, salle }) {
+              const [annee, mois, jour] = String(date ?? "").split("-");
+              const quand = annee && mois && jour ? `${jour}/${mois}/${annee}` : "Jour à choisir";
+              return {
+                title: [quand, heure].filter(Boolean).join(" à "),
+                subtitle: typeof salle === "string" ? salle : undefined,
+              };
+            },
+          },
+        },
+      ],
+    }),
+    defineField({
+      name: "rappelNewsletter",
+      title: "Le rappeler dans chaque newsletter",
+      type: "boolean",
+      initialValue: false,
+      description:
+        "Cochée, chaque newsletter rappelle cet événement dans sa rubrique « Rendez-vous », avec ses trois prochaines dates. Le rappel s'arrête tout seul après la dernière date.",
     }),
     defineField({
       name: "excerpt",

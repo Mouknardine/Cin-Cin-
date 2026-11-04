@@ -41,8 +41,8 @@
        rubriques, parce qu'elle apprend quelque chose. De même pour
        une avant-première ou une première : son jour et son heure. */
     var sortie =
-      film.status === "prochainement" ? R.formatDateSortieCourte(film.releaseDate) : "";
-    var rendezVous = R.estUneProjection(film.status)
+      estDans(film, "prochainement") ? R.formatDateSortieCourte(film.releaseDate) : "";
+    var rendezVous = rubriques(film).some(R.estUneProjection)
       ? R.formatRendezVous(film.projectionDate, film.projectionHeure, true)
       : "";
     var statut;
@@ -50,7 +50,7 @@
       statut = '<p class="m-film__statut">Dès le ' + R.escapeHtml(sortie) + "</p>";
     } else if (rendezVous) {
       statut = '<p class="m-film__statut">' + R.escapeHtml(rendezVous) + "</p>";
-    } else if (film.status === activeFilter) {
+    } else if (estDans(film, activeFilter)) {
       statut = "";
     } else {
       statut = '<p class="m-film__statut">' + R.statusLabel(film.status) + "</p>";
@@ -71,6 +71,16 @@
     );
   }
 
+  /* Un film peut être dans plusieurs rubriques à la fois (cases cochées
+     dans le Studio, rangées pour le jour par assets/js/data.js) : il
+     apparaît dans chacune. */
+  function rubriques(film) {
+    return Array.isArray(film.statuts) && film.statuts.length ? film.statuts : [film.status];
+  }
+  function estDans(film, statut) {
+    return rubriques(film).indexOf(statut) !== -1;
+  }
+
   function filtreHTML(filtre) {
     return (
       '<button type="button" class="m-filtre ' + C.classeVive() +
@@ -80,12 +90,12 @@
   }
 
   function render() {
-    var visible = allFilms.filter(function (f) { return f.status === activeFilter; });
+    var visible = allFilms.filter(function (f) { return estDans(f, activeFilter); });
 
     /* Un filtre n'apparaît que s'il a des films : jamais de rubrique
        vide dans le tableau. */
     var filtres = R.filtresFilms.filter(function (f) {
-      return allFilms.some(function (film) { return film.status === f.statut; });
+      return allFilms.some(function (film) { return estDans(film, f.statut); });
     });
     var filtresHTML = '<nav class="m-filtres" aria-label="Filtrer les films">' +
       filtres.map(filtreHTML).join("") + "</nav>";
@@ -129,7 +139,7 @@
     /* Si aucun film n'est à l'affiche, on ouvre sur la première
        rubrique qui en contient — jamais de page vide à l'arrivée. */
     var premierNonVide = R.filtresFilms.filter(function (f) {
-      return allFilms.some(function (film) { return film.status === f.statut; });
+      return allFilms.some(function (film) { return estDans(film, f.statut); });
     })[0];
     if (premierNonVide) activeFilter = premierNonVide.statut;
     render();
