@@ -50,23 +50,42 @@ function ligneDuJour(date: string): string {
 /* Ce qui rend la séance particulière — « Avant-première · En présence de
    la réalisatrice » — se lit dans la même case que le titre, après une
    virgule : « WE ARE MAKING A FILM ABOUT MARK FISHER, EN PRÉSENCE DE… ».
-   Le bandeau noir qui le portait seul sous la séance ne disait pas de quel
-   film il parlait (demande du cinéma, 9 novembre 2026). La séance prend
-   alors deux lignes de hauteur et le texte passe à la ligne ; il compte
-   donc pour deux lignes, la hauteur se recalcule et la feuille tient
-   toujours sur une page. Trop longue, la mention se termine par des points
-   de suspension plutôt que de déborder. */
+   La mention seule passe en gras, le titre reste en maigre comme les autres séances (la newsletter, elle, est déjà toute en gras). Le texte passe à
+   la ligne : la séance prend une, deux ou trois lignes de hauteur selon sa
+   longueur (demande du cinéma, 9 novembre 2026). La hauteur se recalcule et
+   la feuille tient toujours sur une page. Au-delà de trois lignes, la
+   mention se termine par des points de suspension. */
+const LIGNES_MAX_D_UNE_SEANCE = 3
+/* Ce qui tient sur une ligne du titre, au plus prudent : en gras et en
+   capitales, à la plus grande taille du texte. Plus le texte rapetisse,
+   plus il en tient : on ne sous-estime jamais la place prise. */
+const CARACTERES_PAR_LIGNE = 48
+
+function intituleDeLaSeance(seance: SeanceProgramme): string {
+  return seance.particularite ? `${seance.titre}, ${seance.particularite}` : seance.titre
+}
+
+/** Le nombre de lignes de hauteur qu'une séance occupe : de une à trois. */
+function lignesDeLaSeance(seance: SeanceProgramme): number {
+  const complet = seance.statut === 'complet' ? ' · Complet'.length : 0
+  const longueur = intituleDeLaSeance(seance).length + complet
+  return Math.min(LIGNES_MAX_D_UNE_SEANCE, Math.max(1, Math.ceil(longueur / CARACTERES_PAR_LIGNE)))
+}
+
 function texteDuTitre(seance: SeanceProgramme): string {
   const complet = seance.statut === 'complet' ? ' <span class="complet">· Complet</span>' : ''
   if (!seance.particularite) return `${echapper(seance.titre)}${complet}`
   return (
     `<span class="titre-long">${echapper(seance.titre)}, ` +
-    `${echapper(seance.particularite)}${complet}</span>`
+    `<span class="mention">${echapper(seance.particularite)}</span>${complet}</span>`
   )
 }
 
 function ligneDeSeance(seance: SeanceProgramme): string {
-  const classe = seance.particularite ? 'seance double' : 'seance'
+  const hauteur = lignesDeLaSeance(seance)
+  const classe = ['seance', seance.particularite ? 'speciale' : '', hauteur > 1 ? `lignes-${hauteur}` : '']
+    .filter(Boolean)
+    .join(' ')
   return (
     `<tr class="${classe}">` +
     `<td class="heure">${echapper(seance.heure)}</td>` +
@@ -95,10 +114,10 @@ export interface DonneesFeuille {
   lundiEtMardi: readonly SeanceProgramme[]
 }
 
-/** Le nombre de lignes d'un tableau : une par jour, une par séance, une de plus pour la séance spéciale (sur deux lignes). */
+/** Le nombre de lignes d'un tableau : une par jour, puis une à trois par séance selon sa longueur. */
 function nombreDeLignes(programme: readonly SeanceProgramme[]): number {
-  const speciales = programme.filter((seance) => Boolean(seance.particularite)).length
-  return programme.length + speciales + parJour(programme).size
+  const deSeances = programme.reduce((total, seance) => total + lignesDeLaSeance(seance), 0)
+  return deSeances + parJour(programme).size
 }
 
 /** Le bandeau de la semaine : une ligne comme les autres, de la même hauteur. */

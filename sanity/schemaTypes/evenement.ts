@@ -196,15 +196,13 @@ export const evenement = defineType({
     }),
     defineField({
       name: "excerpt",
-      title: "Résumé en deux ou trois phrases",
+      title: "Résumé en deux ou trois phrases (facultatif)",
       type: "text",
       rows: 3,
       description:
-        "Le texte court affiché dans la liste des événements. C'est souvent tout ce que les gens liront : allez à l'essentiel (quoi, quand, combien).",
+        "Le texte court affiché dans la liste des événements. Facultatif : un événement sans résumé s'affiche sans lui. Si vous en écrivez un, allez à l'essentiel (quoi, quand, combien).",
       validation: (Rule) =>
-        Rule.required()
-          .max(400)
-          .error("Un résumé court est obligatoire (400 signes maximum)."),
+        Rule.max(400).error("Le résumé est limité à 400 signes."),
     }),
     defineField({
       name: "body",

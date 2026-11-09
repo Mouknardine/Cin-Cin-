@@ -206,8 +206,9 @@ const donnees = {
 const html = construireNewsletter(donnees, {projectId: 'test', dataset: 'production'})
 const grille = html.split('ACHETER UN BILLET')[0]
 verifier(
-  'dans la grille de la semaine, la séance spéciale a son bandeau noir juste dessous',
-  /SALLE 1<\/td><\/tr><tr><td colspan="3" style="[^"]*background-color:#100f0c;color:#ffffff;[^"]*">AVANT-PREMIÈRE · EN PRÉSENCE DE LA RÉALISATRICE JEANNE DUPONT<\/td>/.test(grille),
+  'dans la grille de la semaine, la mention suit le titre, après une virgule, dans la même case et en gras',
+  /LA NUIT(<\/a>)?, AVANT-PREMIÈRE · EN PRÉSENCE DE LA RÉALISATRICE JEANNE DUPONT<\/td>/.test(grille) &&
+    !grille.includes('<td colspan="3" style="background-color:#100f0c'),
 )
 verifier("une séance ordinaire du même film n'en a pas", (grille.match(/EN PRÉSENCE DE/g) ?? []).length, 1)
 const blocs = html.split('ACHETER UN BILLET')[1]
@@ -229,10 +230,11 @@ verifier(
 const feuille = construireFeuille({debutSemaine: DEBUT, finSemaine: FIN, programme, lundiEtMardi: []}, 'logo.png')
 verifier(
   'la feuille à imprimer met la mention dans la case du titre, après une virgule',
-  /<tr class="seance double"><td class="heure">[^<]*<\/td><td class="titre"><span class="titre-long">La Nuit, Avant-première · En présence de la réalisatrice Jeanne Dupont<\/span><\/td>/.test(feuille),
+  /<tr class="seance speciale lignes-\d"><td class="heure">[^<]*<\/td><td class="titre"><span class="titre-long">La Nuit, <span class="mention">Avant-première · En présence de la réalisatrice Jeanne Dupont<\/span><\/span><\/td>/.test(feuille),
 )
 verifier('plus de bandeau noir séparé', !feuille.includes('<tr class="special">'))
-verifier('la case prend deux lignes de hauteur', /tr\.double td \{[^}]*height: [\d.]+mm;/.test(feuille))
+verifier('la mention est en gras', /\.mention \{[^}]*font-weight: bold;/.test(feuille))
+verifier('la case prend deux ou trois lignes de hauteur selon sa longueur', /tr\.lignes-3 td \{[^}]*height: [\d.]+mm;/.test(feuille))
 verifier('et la feuille tient toujours sur une page', tientSurUnePage(programme, []))
 const chargee = Array.from({length: 7}, (_, j) =>
   ['19:00', '19:00', '21:00', '21:00', '17:00'].map((heure, i) => ({

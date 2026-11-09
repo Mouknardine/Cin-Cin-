@@ -56,6 +56,19 @@ export const REQUETE_EVENEMENTS = `*[_type == "evenement"
     "rendezVous": rendezVous[defined(date)]{date, heure, salle}
   }`
 
+/**
+ * Le Studio lit à la fois la version publiée d'un événement et son brouillon
+ * : sans tri, un événement modifié mais pas encore publié passait deux fois
+ * dans la newsletter (9 novembre 2026). On garde une seule version par
+ * événement, le brouillon quand il existe : c'est ce que le cinéma vient
+ * d'écrire, et la newsletter se prépare dans le Studio, avant la mise en ligne.
+ */
+export function uneVersionParEvenement(evenements: readonly EvenementNewsletter[]): EvenementNewsletter[] {
+  const idPublie = (id: string): string => id.replace(/^drafts\./, '')
+  const brouillons = new Set(evenements.filter((e) => e._id.startsWith('drafts.')).map((e) => idPublie(e._id)))
+  return evenements.filter((e) => e._id.startsWith('drafts.') || !brouillons.has(e._id))
+}
+
 function datesNotees(evenement: EvenementNewsletter): DateDeRendezVous[] {
   return (evenement.rendezVous ?? []).filter((rdv) => typeof rdv.date === 'string' && rdv.date !== '')
 }

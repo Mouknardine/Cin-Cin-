@@ -32,7 +32,7 @@ async function chargerModule(chemin) {
 }
 
 const DOSSIER = '../sanity/plugins/planification/'
-const {aLieuEntre, evenementsAnnonces, soireesEntre} = await chargerModule(`${DOSSIER}newsletter/evenements.ts`)
+const {aLieuEntre, evenementsAnnonces, soireesEntre, uneVersionParEvenement} = await chargerModule(`${DOSSIER}newsletter/evenements.ts`)
 const {periodeEnClair} = await chargerModule(`${DOSSIER}newsletter/rendez-vous.ts`)
 const {chargerNewsletter} = await chargerModule(`${DOSSIER}newsletter/donnees.ts`)
 const {construireNewsletter} = await chargerModule(`${DOSSIER}newsletter/gabarit.ts`)
@@ -172,7 +172,7 @@ verifier(
   'dans la grille, le titre de la soirée mène à la page de l’événement',
   grille.includes('href="https://www.zinema.ch/evenements/?e=cosmic-impro"'),
 )
-verifier('et sa salle est écrite', /LE COSMIC IMPRO CLUB<\/a><\/td><td[^>]*>HALL-BAR</.test(grille))
+verifier('et sa salle est écrite', /LE COSMIC IMPRO CLUB<\/a>[^<]*<\/td><td[^>]*>HALL-BAR</.test(grille))
 const rubrique = html.split('>RENDEZ-VOUS<')[1] ?? ''
 verifier('la rubrique « Rendez-vous » écrit la soirée de l’impro', rubrique.includes('JEUDI 12 NOVEMBRE · 20:00 · HALL-BAR'))
 verifier('et le jour de la cumbia, faute de soirée notée', rubrique.includes('SAMEDI 14 NOVEMBRE'))
@@ -181,7 +181,19 @@ verifier('l’information sans date n’y est pas', !rubrique.includes('PROJECTI
 const feuille = construireFeuille(chargees, 'logo.png')
 verifier(
   'la feuille à imprimer a la soirée aussi, son type après le titre',
-  /Le Cosmic Impro Club, [^<]*<\/span><\/td><td class="salle">Hall-Bar/.test(feuille),
+  /Le Cosmic Impro Club, <span class="mention">[^<]*<\/span><\/span><\/td><td class="salle">Hall-Bar/.test(feuille),
+)
+
+/* Un événement modifié mais pas publié existe en deux versions : une seule passe. */
+const DEUX_VERSIONS = [
+  {_id: 'impro', titre: 'Publié'},
+  {_id: 'drafts.impro', titre: 'Brouillon'},
+  {_id: 'quiz', titre: 'Sans brouillon'},
+]
+verifier(
+  'un événement avec brouillon et version publiée ne passe qu’une fois, par son brouillon',
+  uneVersionParEvenement(DEUX_VERSIONS).map((e) => e.titre).join('|'),
+  'Brouillon|Sans brouillon',
 )
 
 console.log(`\n${reussites} vérification(s) réussie(s), ${echecs} échec(s).`)

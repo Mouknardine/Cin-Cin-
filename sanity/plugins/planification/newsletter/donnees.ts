@@ -15,7 +15,7 @@ import type {SanityClient} from 'sanity'
 import {ordonnerSeances} from '../../../salles'
 import {ajouterJours, debutDeSemaine, finDeSemaine} from '../utils/dates'
 import {particulariteDeLaSeance, texteParticularite} from './particularite'
-import {JOURS_D_AVANCE_DU_RAPPEL, REQUETE_EVENEMENTS, avecLesSoirees, evenementsAnnonces} from './evenements'
+import {JOURS_D_AVANCE_DU_RAPPEL, REQUETE_EVENEMENTS, avecLesSoirees, evenementsAnnonces, uneVersionParEvenement} from './evenements'
 import type {EvenementNewsletter} from './rendez-vous'
 import {jourDeLEnvoi} from './seances'
 
@@ -224,7 +224,7 @@ export async function chargerNewsletter(
 
   /* Les soirées des événements prennent leur ligne dans le programme de leur
      jour, entre les séances (demande du cinéma, 4 novembre 2026). */
-  const evenements = reponse.evenements ?? []
+  const evenements = uneVersionParEvenement(reponse.evenements ?? [])
   const programme = avecLesSoirees(programmeEntre(films, debut, fin), evenements, debut, fin)
 
   /* La newsletter part le lundi, mais la semaine qu'elle annonce n'ouvre que

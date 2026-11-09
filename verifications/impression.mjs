@@ -109,8 +109,9 @@ verifier('Le logo est en tête', /<img class="logo" src="https:\/\/studio\.exemp
 verifier('Le format de page est A4', html.includes('size: A4 portrait'))
 verifier('Les salles sont en majuscules', /td\.salle \{[^}]*text-transform: uppercase;/.test(html))
 verifier(
-  'Seuls les titres sont en gras : la semaine et les jours',
-  (html.match(/font-weight: bold/g) ?? []).length === 2 &&
+  'Sont en gras : la semaine, les jours et la mention des séances spéciales',
+  (html.match(/font-weight: bold/g) ?? []).length === 3 &&
+    /\.mention \{[^}]*font-weight: bold;/.test(html) &&
     /\.titre-semaine \{[^}]*font-weight: bold;/.test(html) &&
     /tr\.jour td \{[^}]*font-weight: bold;/.test(html),
 )

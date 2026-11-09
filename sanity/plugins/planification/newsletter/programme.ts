@@ -53,32 +53,19 @@ function barreDuJour(date: string, couleur: Couleur): string {
   )}</tr>`
 }
 
-/**
- * Juste sous une séance spéciale, un bandeau d'encre sur toute la largeur :
- * « AVANT-PREMIÈRE · EN PRÉSENCE DE LA RÉALISATRICE » (demande du cinéma,
- * 3 novembre 2026). Il tranche sur les barres de couleur des jours et se
- * repère du premier coup d'œil. Le lundi et le mardi de l'envoi le gardent,
- * en grisé comme le reste.
- */
-function bandeauParticularite(seance: SeanceProgramme, grise: boolean): string {
-  if (!seance.particularite) return ''
-  return `<tr>${cellule(
-    echapper(capitales(seance.particularite)),
-    `background-color:${grise ? GRIS_CLAIR : ENCRE};color:${BLANC};padding:7px 12px;` +
-      `font-size:${TAILLE.petit};line-height:1.35;mso-line-height-rule:exactly;font-weight:bold;` +
-      `text-transform:uppercase;letter-spacing:0.04em;`,
-    'colspan="3"',
-  )}</tr>`
-}
-
 /** Le titre mène à la fiche du film, sans se déguiser en lien : la couleur et
     le soulignement d'une messagerie feraient de cette grille une bouillie bleue. */
-function ligneDeSeance(seance: SeanceProgramme, encre: string, grise: boolean): string {
+function ligneDeSeance(seance: SeanceProgramme, encre: string): string {
   /* La soirée d'un événement mène à sa page ; une séance, à la fiche du film. */
   const lien = seance.lien ? echapper(seance.lien) : lienDuFilm(seance.slug)
-  const titre = lien
+  const nom = lien
     ? `<a href="${lien}" style="color:${encre};text-decoration:none;">${echapper(capitales(seance.titre))}</a>`
     : echapper(capitales(seance.titre))
+  /* Une séance spéciale dit ce qu'elle a de spécial dans la même case, après
+     une virgule, en gras comme le reste : la ligne prend la hauteur qu'il
+     faut, une ligne ou trois (demande du cinéma, 9 novembre 2026). Même
+     écriture que sur la feuille à imprimer. */
+  const titre = seance.particularite ? `${nom}, ${echapper(capitales(seance.particularite))}` : nom
   return (
     '<tr>' +
     cellule(
@@ -98,8 +85,7 @@ function ligneDeSeance(seance: SeanceProgramme, encre: string, grise: boolean): 
         `text-transform:uppercase;white-space:nowrap;text-align:right;`,
       `width="${LARGEUR_SALLE}" valign="middle" align="right"`,
     ) +
-    '</tr>' +
-    bandeauParticularite(seance, grise)
+    '</tr>'
   )
 }
 
@@ -109,7 +95,7 @@ export function lignesDuProgramme(programme: SeanceProgramme[], grise = false): 
     .map(([date, seances], rang) => {
       const couleur = grise ? GRISE : COULEURS_DES_JOURS[rang % COULEURS_DES_JOURS.length]
       const encre = grise ? GRIS_CLAIR : ENCRE
-      return barreDuJour(date, couleur) + seances.map((seance) => ligneDeSeance(seance, encre, grise)).join('')
+      return barreDuJour(date, couleur) + seances.map((seance) => ligneDeSeance(seance, encre)).join('')
     })
     .join('')
 }
