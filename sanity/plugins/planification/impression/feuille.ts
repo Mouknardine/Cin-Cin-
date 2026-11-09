@@ -62,20 +62,23 @@ const LIGNES_MAX_D_UNE_SEANCE = 3
 const LARGEUR_DU_TITRE = 210 - 2 * 12 - 17 - 30 - 2 * 3
 /* La largeur d'une lettre, en fraction de la taille du texte : capitales
    d'Arial, en maigre et en gras. On calcule au plus grand texte possible
-   (3,6 mm) : plus le texte rapetisse, plus il en tient, jamais moins. Une
-   marge de 5 % tient compte des mots qui ne se coupent pas. */
-const LARGEUR_LETTRE_MAIGRE = 0.66
-const LARGEUR_LETTRE_GRAS = 0.7
+   (3,6 mm) pour commencer, puis à la taille réellement utilisée (voir
+   tailleDeCalcul) : plus le texte rapetisse, plus il en tient. Une marge de
+   3 % tient compte des mots qui ne se coupent pas. Largeurs mesurées sur
+   les capitales d'Arial, espaces compris. */
+const LARGEUR_LETTRE_MAIGRE = 0.58
+const LARGEUR_LETTRE_GRAS = 0.63
 const TAILLE_MAX_DU_TEXTE = 3.6
-const PLACE_UTILE = LARGEUR_DU_TITRE * 0.95
+const TAILLE_MIN_DU_TEXTE = 2
+const PLACE_UTILE = LARGEUR_DU_TITRE * 0.97
 
 /** Le nombre de lignes de hauteur qu'une séance occupe : de une à trois. */
-function lignesDeLaSeance(seance: SeanceProgramme): number {
+function lignesDeLaSeance(seance: SeanceProgramme, taille: number): number {
   const complet = seance.statut === 'complet' ? ' · Complet'.length : 0
   const titre = seance.titre.length + (seance.particularite ? 2 : 0) + complet
   const mention = seance.particularite?.length ?? 0
   const largeur =
-    (titre * LARGEUR_LETTRE_MAIGRE + mention * LARGEUR_LETTRE_GRAS) * TAILLE_MAX_DU_TEXTE
+    (titre * LARGEUR_LETTRE_MAIGRE + mention * LARGEUR_LETTRE_GRAS) * taille
   return Math.min(LIGNES_MAX_D_UNE_SEANCE, Math.max(1, Math.ceil(largeur / PLACE_UTILE)))
 }
 
@@ -88,8 +91,8 @@ function texteDuTitre(seance: SeanceProgramme): string {
   )
 }
 
-function ligneDeSeance(seance: SeanceProgramme): string {
-  const hauteur = lignesDeLaSeance(seance)
+function ligneDeSeance(seance: SeanceProgramme, taille: number): string {
+  const hauteur = lignesDeLaSeance(seance, taille)
   const classe = ['seance', seance.particularite ? 'speciale' : '', hauteur > 1 ? `lignes-${hauteur}` : '']
     .filter(Boolean)
     .join(' ')
@@ -102,12 +105,12 @@ function ligneDeSeance(seance: SeanceProgramme): string {
   )
 }
 
-function lignesDuTableau(programme: readonly SeanceProgramme[]): string {
+function lignesDuTableau(programme: readonly SeanceProgramme[], taille: number): string {
   if (programme.length === 0) {
     return `<tr class="seance"><td colspan="3" class="vide">Aucune séance cette semaine.</td></tr>`
   }
   return [...parJour(programme)]
-    .map(([date, seances]) => ligneDuJour(date) + seances.map(ligneDeSeance).join(''))
+    .map(([date, seances]) => ligneDuJour(date) + seances.map((seance) => ligneDeSeance(seance, taille)).join(''))
     .join('')
 }
 
@@ -122,8 +125,8 @@ export interface DonneesFeuille {
 }
 
 /** Le nombre de lignes d'un tableau : une par jour, puis une à trois par séance selon sa longueur. */
-function nombreDeLignes(programme: readonly SeanceProgramme[]): number {
-  const deSeances = programme.reduce((total, seance) => total + lignesDeLaSeance(seance), 0)
+function nombreDeLignes(programme: readonly SeanceProgramme[], taille: number): number {
+  const deSeances = programme.reduce((total, seance) => total + lignesDeLaSeance(seance, taille), 0)
   return deSeances + parJour(programme).size
 }
 
@@ -131,8 +134,35 @@ function nombreDeLignes(programme: readonly SeanceProgramme[]): number {
 const LIGNE_DU_BANDEAU = 1
 
 /** Les lignes de la semaine : une semaine vide en garde une, qui le dit. */
-function lignesDeLaSemaine(programme: readonly SeanceProgramme[]): number {
-  return Math.max(nombreDeLignes(programme), 1)
+function lignesDeLaSemaine(programme: readonly SeanceProgramme[], taille: number): number {
+  return Math.max(nombreDeLignes(programme, taille), 1)
+}
+
+/**
+ * La taille du texte d'après laquelle on compte les lignes des séances. Le
+ * texte rapetisse quand les lignes se multiplient, et plus il est petit,
+ * moins une mention a besoin de lignes. On cherche la plus petite taille
+ * « sûre » : celle où la page, une fois ses lignes comptées à cette taille,
+ * donne un texte qui n'est pas plus grand qu'elle. On ne compte alors jamais
+ * moins de lignes que la page n'en demandera. La plus grande taille (3,6 mm)
+ * l'est toujours ; on resserre par dichotomie.
+ */
+function tailleDeCalcul(
+  programme: readonly SeanceProgramme[],
+  lundiEtMardi: readonly SeanceProgramme[],
+): number {
+  const tailleObtenue = (taille: number): number =>
+    mesuresDeLaFeuille(
+      LIGNE_DU_BANDEAU + lignesDeLaSemaine(programme, taille) + nombreDeLignes(lundiEtMardi, taille),
+    ).tailleTexte
+  let sure = TAILLE_MAX_DU_TEXTE
+  let basse = TAILLE_MIN_DU_TEXTE
+  for (let essai = 0; essai < 20; essai++) {
+    const milieu = (sure + basse) / 2
+    if (tailleObtenue(milieu) <= milieu) sure = milieu
+    else basse = milieu
+  }
+  return sure
 }
 
 /**
@@ -145,8 +175,9 @@ export function tientSurUnePage(
   programme: readonly SeanceProgramme[],
   lundiEtMardi: readonly SeanceProgramme[] = [],
 ): boolean {
+  const taille = tailleDeCalcul(programme, lundiEtMardi)
   const mesures = mesuresDeLaFeuille(
-    LIGNE_DU_BANDEAU + lignesDeLaSemaine(programme) + nombreDeLignes(lundiEtMardi),
+    LIGNE_DU_BANDEAU + lignesDeLaSemaine(programme, taille) + nombreDeLignes(lundiEtMardi, taille),
   )
   return mesures.hauteurTotale <= mesures.place
 }
@@ -177,8 +208,9 @@ function part(hauteur: number, lignes: number, total: number): number {
  */
 export function construireFeuille(donnees: DonneesFeuille, logo: string): string {
   const lundiEtMardi = donnees.lundiEtMardi ?? []
-  const lignesGrisees = nombreDeLignes(lundiEtMardi)
-  const lignesSemaine = lignesDeLaSemaine(donnees.programme)
+  const taille = tailleDeCalcul(donnees.programme, lundiEtMardi)
+  const lignesGrisees = nombreDeLignes(lundiEtMardi, taille)
+  const lignesSemaine = lignesDeLaSemaine(donnees.programme, taille)
   const total = lignesGrisees + LIGNE_DU_BANDEAU + lignesSemaine
   /* Toutes les lignes se partagent la page : celles du lundi et du mardi
      comptent comme les autres, le bandeau de la semaine aussi, et chacun
@@ -191,10 +223,10 @@ export function construireFeuille(donnees: DonneesFeuille, logo: string): string
     `<div class="feuille">` +
     `<img class="logo" src="${echapper(logo)}" alt="ZINÉMA">` +
     (lignesGrisees
-      ? tableau(lignesDuTableau(lundiEtMardi), part(mesures.hauteurTableau, lignesGrisees, total), 'grise')
+      ? tableau(lignesDuTableau(lundiEtMardi, taille), part(mesures.hauteurTableau, lignesGrisees, total), 'grise')
       : '') +
     `<div class="titre-semaine">${echapper(titre)}</div>` +
-    tableau(lignesDuTableau(donnees.programme), part(mesures.hauteurTableau, lignesSemaine, total)) +
+    tableau(lignesDuTableau(donnees.programme, taille), part(mesures.hauteurTableau, lignesSemaine, total)) +
     `</div></body></html>`
   )
 }
