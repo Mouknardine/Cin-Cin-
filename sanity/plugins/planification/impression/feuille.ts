@@ -48,27 +48,31 @@ function ligneDuJour(date: string): string {
 }
 
 /* Ce qui rend la séance particulière — « Avant-première · En présence de
-   la réalisatrice » — a sa propre ligne, juste sous la séance : un bandeau
-   noir, texte blanc, qui se voit de loin sur la feuille au mur (demande du
-   cinéma, 3 novembre 2026). Il compte comme une ligne : la hauteur se
-   recalcule et la feuille tient toujours sur une page. Il reste en maigre :
-   seuls la semaine et les jours sont en gras (demande du 29 septembre 2026).
-   Trop longue, la mention se termine par des points de suspension plutôt
-   que de déborder. */
-function ligneParticularite(seance: SeanceProgramme): string {
-  if (!seance.particularite) return ''
-  return `<tr class="special"><td></td><td colspan="2">${echapper(seance.particularite)}</td></tr>`
+   la réalisatrice » — se lit dans la même case que le titre, après une
+   virgule : « WE ARE MAKING A FILM ABOUT MARK FISHER, EN PRÉSENCE DE… ».
+   Le bandeau noir qui le portait seul sous la séance ne disait pas de quel
+   film il parlait (demande du cinéma, 9 novembre 2026). La séance prend
+   alors deux lignes de hauteur et le texte passe à la ligne ; il compte
+   donc pour deux lignes, la hauteur se recalcule et la feuille tient
+   toujours sur une page. Trop longue, la mention se termine par des points
+   de suspension plutôt que de déborder. */
+function texteDuTitre(seance: SeanceProgramme): string {
+  const complet = seance.statut === 'complet' ? ' <span class="complet">· Complet</span>' : ''
+  if (!seance.particularite) return `${echapper(seance.titre)}${complet}`
+  return (
+    `<span class="titre-long">${echapper(seance.titre)}, ` +
+    `${echapper(seance.particularite)}${complet}</span>`
+  )
 }
 
 function ligneDeSeance(seance: SeanceProgramme): string {
-  const complet = seance.statut === 'complet' ? ' <span class="complet">· Complet</span>' : ''
+  const classe = seance.particularite ? 'seance double' : 'seance'
   return (
-    `<tr class="seance">` +
+    `<tr class="${classe}">` +
     `<td class="heure">${echapper(seance.heure)}</td>` +
-    `<td class="titre">${echapper(seance.titre)}${complet}</td>` +
+    `<td class="titre">${texteDuTitre(seance)}</td>` +
     `<td class="salle">${echapper(seance.salle)}</td>` +
-    `</tr>` +
-    ligneParticularite(seance)
+    `</tr>`
   )
 }
 
@@ -91,7 +95,7 @@ export interface DonneesFeuille {
   lundiEtMardi: readonly SeanceProgramme[]
 }
 
-/** Le nombre de lignes d'un tableau : une par jour, une par séance, une par séance spéciale. */
+/** Le nombre de lignes d'un tableau : une par jour, une par séance, une de plus pour la séance spéciale (sur deux lignes). */
 function nombreDeLignes(programme: readonly SeanceProgramme[]): number {
   const speciales = programme.filter((seance) => Boolean(seance.particularite)).length
   return programme.length + speciales + parJour(programme).size

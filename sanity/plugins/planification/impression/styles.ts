@@ -79,14 +79,17 @@ export function stylesDeLaFeuille(mesures: MesuresFeuille): string {
       font-weight: bold;
       text-transform: uppercase;
     }
-    tr.special td {
-      background: ${ENCRE};
-      color: ${BLANC};
-      text-transform: uppercase;
-      letter-spacing: 0.02em;
+    /* Une séance spéciale : le titre et la mention, sur deux lignes de
+       hauteur, dans la même case. */
+    tr.double td { height: ${Math.floor((2 * mesures.hauteurLigne + TRAIT) * 100) / 100}mm; }
+    tr.double td.titre { white-space: normal; line-height: 1.15; }
+    .titre-long {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      overflow: hidden;
     }
     table.grise td { color: ${GRIS_CLAIR}; }
-    table.grise tr.special td { background: ${GRIS_CLAIR}; color: ${BLANC}; }
     table.grise tr.jour td { background: ${GRIS_AVANT}; color: ${GRIS_CLAIR}; }
     col.col-heure { width: 17mm; }
     col.col-salle { width: 30mm; }

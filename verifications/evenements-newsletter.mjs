@@ -179,7 +179,10 @@ verifier('et le jour de la cumbia, faute de soirée notée', rubrique.includes('
 verifier('l’information sans date n’y est pas', !rubrique.includes('PROJECTIONS PRIVÉES'))
 
 const feuille = construireFeuille(chargees, 'logo.png')
-verifier('la feuille à imprimer a la soirée aussi', feuille.includes('Le Cosmic Impro Club</td><td class="salle">Hall-Bar'))
+verifier(
+  'la feuille à imprimer a la soirée aussi, son type après le titre',
+  /Le Cosmic Impro Club, [^<]*<\/span><\/td><td class="salle">Hall-Bar/.test(feuille),
+)
 
 console.log(`\n${reussites} vérification(s) réussie(s), ${echecs} échec(s).`)
 process.exit(echecs > 0 ? 1 : 0)

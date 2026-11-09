@@ -228,10 +228,11 @@ verifier(
 
 const feuille = construireFeuille({debutSemaine: DEBUT, finSemaine: FIN, programme, lundiEtMardi: []}, 'logo.png')
 verifier(
-  'la feuille à imprimer met la mention sur sa propre ligne, en bandeau, sous la séance',
-  /La Nuit<\/td><td class="salle">Salle 1<\/td><\/tr><tr class="special"><td><\/td><td colspan="2">Avant-première · En présence de la réalisatrice Jeanne Dupont<\/td><\/tr>/.test(feuille),
+  'la feuille à imprimer met la mention dans la case du titre, après une virgule',
+  /<tr class="seance double"><td class="heure">[^<]*<\/td><td class="titre"><span class="titre-long">La Nuit, Avant-première · En présence de la réalisatrice Jeanne Dupont<\/span><\/td>/.test(feuille),
 )
-verifier('ce bandeau est noir, texte blanc', /tr\.special td \{[^}]*background: #100f0c;[^}]*color: #ffffff;/.test(feuille))
+verifier('plus de bandeau noir séparé', !feuille.includes('<tr class="special">'))
+verifier('la case prend deux lignes de hauteur', /tr\.double td \{[^}]*height: [\d.]+mm;/.test(feuille))
 verifier('et la feuille tient toujours sur une page', tientSurUnePage(programme, []))
 const chargee = Array.from({length: 7}, (_, j) =>
   ['19:00', '19:00', '21:00', '21:00', '17:00'].map((heure, i) => ({
