@@ -50,26 +50,33 @@ function ligneDuJour(date: string): string {
 /* Ce qui rend la séance particulière — « Avant-première · En présence de
    la réalisatrice » — se lit dans la même case que le titre, après une
    virgule : « WE ARE MAKING A FILM ABOUT MARK FISHER, EN PRÉSENCE DE… ».
-   La mention seule passe en gras, le titre reste en maigre comme les autres séances (la newsletter, elle, est déjà toute en gras). Le texte passe à
+   La mention seule passe en gras, le titre reste en maigre comme les autres
+   séances (la newsletter, elle, est déjà toute en gras). Le texte passe à
    la ligne : la séance prend une, deux ou trois lignes de hauteur selon sa
    longueur (demande du cinéma, 9 novembre 2026). La hauteur se recalcule et
    la feuille tient toujours sur une page. Au-delà de trois lignes, la
    mention se termine par des points de suspension. */
 const LIGNES_MAX_D_UNE_SEANCE = 3
-/* Ce qui tient sur une ligne du titre, au plus prudent : en gras et en
-   capitales, à la plus grande taille du texte. Plus le texte rapetisse,
-   plus il en tient : on ne sous-estime jamais la place prise. */
-const CARACTERES_PAR_LIGNE = 48
-
-function intituleDeLaSeance(seance: SeanceProgramme): string {
-  return seance.particularite ? `${seance.titre}, ${seance.particularite}` : seance.titre
-}
+/* La place d'une ligne du titre, en millimètres : la page, moins les marges,
+   l'heure, la salle et le blanc de part et d'autre du texte (voir styles.ts). */
+const LARGEUR_DU_TITRE = 210 - 2 * 12 - 17 - 30 - 2 * 3
+/* La largeur d'une lettre, en fraction de la taille du texte : capitales
+   d'Arial, en maigre et en gras. On calcule au plus grand texte possible
+   (3,6 mm) : plus le texte rapetisse, plus il en tient, jamais moins. Une
+   marge de 5 % tient compte des mots qui ne se coupent pas. */
+const LARGEUR_LETTRE_MAIGRE = 0.66
+const LARGEUR_LETTRE_GRAS = 0.7
+const TAILLE_MAX_DU_TEXTE = 3.6
+const PLACE_UTILE = LARGEUR_DU_TITRE * 0.95
 
 /** Le nombre de lignes de hauteur qu'une séance occupe : de une à trois. */
 function lignesDeLaSeance(seance: SeanceProgramme): number {
   const complet = seance.statut === 'complet' ? ' · Complet'.length : 0
-  const longueur = intituleDeLaSeance(seance).length + complet
-  return Math.min(LIGNES_MAX_D_UNE_SEANCE, Math.max(1, Math.ceil(longueur / CARACTERES_PAR_LIGNE)))
+  const titre = seance.titre.length + (seance.particularite ? 2 : 0) + complet
+  const mention = seance.particularite?.length ?? 0
+  const largeur =
+    (titre * LARGEUR_LETTRE_MAIGRE + mention * LARGEUR_LETTRE_GRAS) * TAILLE_MAX_DU_TEXTE
+  return Math.min(LIGNES_MAX_D_UNE_SEANCE, Math.max(1, Math.ceil(largeur / PLACE_UTILE)))
 }
 
 function texteDuTitre(seance: SeanceProgramme): string {

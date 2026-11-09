@@ -90,6 +90,9 @@ export function stylesDeLaFeuille(mesures: MesuresFeuille): string {
     tr.lignes-2 td { height: ${hauteurDeLignes(mesures.hauteurLigne, 2)}mm; }
     tr.lignes-3 td { height: ${hauteurDeLignes(mesures.hauteurLigne, 3)}mm; }
     tr.lignes-2 td.titre, tr.lignes-3 td.titre { white-space: normal; line-height: 1.1; }
+    /* Sur plusieurs lignes, l'heure, le titre et la salle s'alignent en haut
+       de la case, sur la première ligne du titre (demande du cinéma, 9 novembre 2026). */
+    tr.lignes-2 td, tr.lignes-3 td { vertical-align: top; padding-top: 0.9mm; }
     .titre-long {
       display: -webkit-box;
       -webkit-box-orient: vertical;
