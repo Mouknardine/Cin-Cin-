@@ -904,3 +904,78 @@ a.m-seance:hover > *, a.m-seance:focus-visible > * { background: var(--case-fond
 .m-film--plus { justify-content: stretch; }
 .m-film--plus > .m-cell { flex: 1; justify-content: space-between; min-height: 10rem; }
 .m-film--plus .m-monde__nom { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; font-size: var(--taille-titre); line-height: .9; letter-spacing: -0.01em; }
+
+.m-budgette { flex: 1 1 18rem; width: 100%; height: auto; object-fit: cover; background: var(--paper); }
+.m-salle { width: 100%; height: auto; max-height: 34rem; object-fit: cover; }
+
+/* ============================================================
+   Page Radio : le bureau (idée de soso radio, langage du Zinéma)
+   ============================================================ */
+.bureau { position: relative; display: flex; flex-direction: column; gap: var(--ligne); background: var(--ink); }
+.fen { background: var(--paper); border: var(--ligne) solid var(--ink); min-width: 0; }
+.fen[hidden] { display: none; }
+.fen__barre { display: flex; align-items: stretch; border-bottom: var(--ligne) solid var(--ink); background: var(--case-fond); color: var(--case-texte); cursor: grab; touch-action: none; user-select: none; }
+.fen__titre { flex: 1; padding: 0.4rem 0.75rem; font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; font-size: var(--taille-texte); line-height: 1.2; }
+.fen__bouton { width: 2.6rem; border-left: var(--ligne) solid var(--ink); background: var(--paper); color: var(--ink); font-family: var(--font-display); font-weight: 900; font-size: var(--taille-texte); line-height: 1; }
+.fen__bouton:hover, .fen__bouton:focus-visible { background: var(--ink); color: var(--paper); }
+.fen.is-reduite .fen__corps { display: none; }
+.fen.is-reduite .fen__barre { border-bottom: 0; }
+.fen__corps { background: var(--paper); }
+.fen__corps .m-seance__titre { font-size: 1rem; }
+.fen__corps .m-seance__infos, .fen__corps .m-seance__heure { font-size: 1rem; padding: 0.6rem 0.75rem; }
+.fen__corps .m-cell p { font-size: 1rem; }
+
+.bureau__icones { display: flex; flex-wrap: wrap; gap: var(--ligne); background: var(--ink); }
+.icone { flex: 1 1 6rem; display: flex; flex-direction: column; align-items: center; gap: 0.15rem; padding: 0.6rem 0.4rem; background: var(--paper); font-family: var(--font-display); font-weight: 900; text-transform: uppercase; }
+.icone__glyphe { font-size: var(--taille-titre); line-height: 0.9; }
+.icone__nom { font-size: 1rem; letter-spacing: 0.02em; }
+
+/* Le lecteur */
+.lec__ecran { display: flex; gap: var(--ligne); background: var(--ink); border-bottom: var(--ligne) solid var(--ink); }
+.lec__ecran > * { background: var(--paper); padding: 0.7rem 0.8rem; }
+.lec__titre { flex: 1 1 auto; display: flex; flex-direction: column; gap: 0.2rem; font-weight: 900; text-transform: uppercase; font-size: var(--taille-texte); line-height: 1.1; min-width: 0; }
+.lec__titre small { font-weight: 400; text-transform: none; font-size: 1rem; }
+.lec__eq { flex: 0 0 8rem; display: flex; align-items: flex-end; gap: 2px; padding: 0.6rem; }
+.lec__eq i { flex: 1; height: 14%; background: var(--ink); transform-origin: bottom; }
+.lec__eq.is-jeu i { animation: eq 0.9s var(--d, 0s) ease-in-out infinite alternate; }
+@keyframes eq { from { height: 12%; } to { height: 100%; } }
+.lec__live { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 0.6rem 0.8rem; border-bottom: var(--ligne) solid var(--ink); font-weight: 800; font-size: 1rem; text-transform: uppercase; }
+.lec__ctrl { display: flex; flex-wrap: wrap; gap: var(--ligne); background: var(--ink); border-bottom: var(--ligne) solid var(--ink); }
+.lec__b { flex: 1 1 3rem; display: flex; align-items: center; justify-content: center; padding: 0.7rem 0.5rem; background: var(--paper); font-family: var(--font-display); font-weight: 900; font-size: var(--taille-texte); }
+.lec__b--play { flex-grow: 2; }
+.lec__vol { flex: 2 1 12rem; display: flex; gap: var(--ligne); background: var(--ink); }
+.lec__vol > * { background: var(--paper); }
+.lec__vol span { flex: 1; display: flex; align-items: center; justify-content: center; letter-spacing: 0.05em; font-size: 1rem; }
+.lec__liste { display: flex; flex-direction: column; gap: var(--ligne); background: var(--ink); border-bottom: var(--ligne) solid var(--ink); }
+.lec__piste { display: flex; gap: 0.75rem; width: 100%; align-items: center; padding: 0.55rem 0.8rem; background: var(--paper); text-align: left; font-weight: 800; font-size: 1rem; }
+.lec__piste small { display: block; font-weight: 400; }
+.lec__piste b { font-family: var(--font-display); font-weight: 900; }
+.lec__piste.is-actif, .lec__piste.is-actif:hover { background: var(--ink); color: var(--paper); }
+.lec__statut { padding: 0.5rem 0.8rem; font-size: 1rem; font-weight: 700; }
+
+/* La barre du bas */
+.barre-taches { display: flex; gap: var(--ligne); background: var(--ink); }
+.barre-taches > * { background: var(--paper); }
+.barre-taches__start { padding: 0.6rem 1.2rem; font-family: var(--font-display); font-weight: 900; text-transform: uppercase; font-size: var(--taille-texte); transition: background .2s; }
+.barre-taches__start:hover, .barre-taches__start:focus-visible { background: var(--rose-fluo); }
+.barre-taches__onglets { flex: 1; display: flex; gap: var(--ligne); background: var(--ink); overflow-x: auto; }
+.onglet { flex: 0 0 auto; padding: 0 1rem; background: var(--paper); font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: 1rem; }
+.onglet.is-actif { background: var(--ink); color: var(--paper); }
+.barre-taches__heure { display: flex; align-items: center; padding: 0 1rem; font-family: var(--font-display); font-weight: 900; font-size: var(--taille-texte); }
+
+/* Ordinateur : un vrai bureau aux fenêtres libres */
+@media (min-width: 900px) {
+  .bureau { display: block; height: calc(100dvh - 4.5rem - var(--ligne)); min-height: 38rem; overflow: hidden; background: var(--ink) var(--fond) center / cover; }
+  .bureau__icones { position: absolute; left: 0.9rem; top: 0.9rem; flex-direction: column; width: 7.5rem; z-index: 5; border: var(--ligne) solid var(--ink); }
+  .icone { flex: none; }
+  .icone__glyphe { font-size: 2.2rem; }
+  .fen { position: absolute; left: min(var(--x), calc(100% - 20rem)); top: var(--y); width: min(var(--l), calc(100% - 1.5rem)); box-shadow: 0.5rem 0.5rem 0 var(--ink); }
+  .fen__corps { max-height: calc(100dvh - 4.5rem - 10rem); overflow: auto; }
+  .fen--rect { }
+  .barre-taches { position: absolute; left: 0; right: 0; bottom: 0; z-index: 9999; border-top: var(--ligne) solid var(--ink); }
+  .fen[hidden] { display: none; }
+}
+@media (min-width: 900px) and (max-height: 760px) { .fen:nth-of-type(n+3) { max-height: 60%; overflow: auto; } }
+
+.m-film--plus { flex: 1 1 calc((100% - 2 * var(--ligne)) / 3); width: auto; }
+@media (min-width: 900px) { .fen.is-reduite { display: none; } }

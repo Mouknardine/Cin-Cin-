@@ -42,9 +42,11 @@
 
   /* ---------- Cinéma ---------- */
   function filmParId(id) { return D.films.filter(function (f) { return f.id === id; })[0]; }
-  function lienReserver(film, d, heure) {
-    if (C.billetterie) return C.billetterie;
-    return "mailto:" + C.courriel + "?subject=" + encodeURIComponent("Réservation — " + film.titre + (d ? " — " + dateLongue(d) + " à " + heure : ""));
+  function iso(d) { return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+  /* Séances d'un film un jour donné (dates réelles). */
+  function seancesFilm(f, d) {
+    var k = iso(d);
+    return f.seances.filter(function (x) { return x[0] === k; }).map(function (x) { return x[1]; });
   }
 
   /* ---------- Programme du jour : cinéma + radio + club mêlés ---------- */
@@ -53,9 +55,9 @@
     var out = [];
     if (!filtre || filtre === "tout" || filtre === "cinema") {
       D.films.forEach(function (f) {
-        (f.seances[n] || []).forEach(function (h) {
-          out.push({ type: "cinema", heure: h, titre: f.titre, sous: f.realisateur + " · " + f.langue,
-            href: root + "film/?id=" + f.id, action: "Réserver", actionHref: lienReserver(f, d, h), billet: true });
+        seancesFilm(f, d).forEach(function (h) {
+          out.push({ type: "cinema", heure: h, titre: f.titre, sous: f.realisateur + " · " + f.langue + (f.mention ? " — " + f.mention : ""),
+            href: root + "film/?id=" + f.id, action: "Fiche", actionHref: root + "film/?id=" + f.id });
         });
       });
     }
@@ -86,7 +88,7 @@
       '<span class="m-seance__type"><i class="m-forme m-forme--' + p.type + '"></i>' + NOMS_TYPE[p.type] + "</span>" +
       '<span class="m-seance__titre">' + esc(p.titre) + "</span>" +
       '<span class="m-seance__sous">' + esc(p.sous) + "</span></a>" +
-      '<a class="m-seance__action' + (p.billet ? " m-seance__action--billet" : " " + K.classe()) + '" href="' + esc(p.actionHref) + '">' + esc(p.action) + "</a>" +
+      '<a class="m-seance__action' + " " + K.classe() + '" href="' + esc(p.actionHref) + '">' + esc(p.action) + "</a>" +
       "</div>"
     );
   }
@@ -121,7 +123,7 @@
   function affiche(f) {
     if (f.img) {
       return '<div class="poster"><img src="' + root + "assets/img/affiches/" + esc(f.img) + '" alt="Affiche de ' + esc(f.titre) +
-        '" width="400" height="570" loading="lazy" decoding="async"></div>';
+        '" width="400" height="570" decoding="async"></div>';
     }
     var t = esc(f.titre), d = esc(f.realisateur), y = f.annee;
     var v = (f.titre.length + f.annee) % 5;
@@ -165,7 +167,7 @@
         return '<li class="main-nav__item" style="transition-delay:' + (0.08 + i * 0.05) + 's"><a href="' + root + n[0] +
           '" class="main-nav__link font-display"><span class="main-nav__link-label">' + n[1] + '</span><span class="main-nav__link-num">' + n[2] + "</span></a></li>";
       }).join("") + "</ul>" +
-      '<div class="main-nav__footer font-display"><span>Minimum — cinéma, radio, club</span><a href="' + root + 'agenda/" class="underline-hover">Voir la semaine</a></div>';
+      '<div class="main-nav__footer font-display"><span>Cinéma Minimum — Neuchâtel</span><a href="' + root + 'agenda/" class="underline-hover">Voir la semaine</a></div>';
     document.body.insertBefore(nav, document.body.firstChild);
     document.body.insertBefore(h, document.body.firstChild);
 
@@ -201,7 +203,7 @@
   window.Minimum = {
     D: D, esc: esc, maj: maj, root: root, K: K, heureAffichee: heureAffichee,
     semaine: semaine, labelJour: labelJour, dateLongue: dateLongue, dateCourte: dateCourte,
-    filmParId: filmParId, lienReserver: lienReserver, programmeDuJour: programmeDuJour,
+    filmParId: filmParId, seancesFilm: seancesFilm, programmeDuJour: programmeDuJour,
     ligne: ligne, liste: liste, antenne: antenne, voyant: voyant, affiche: affiche, pages: {},
   };
 

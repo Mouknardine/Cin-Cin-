@@ -26,13 +26,13 @@
       '<div class="m-film__affiche">' + M.affiche(f) + "</div>" +
       '<div class="m-cell m-film__entete ' + K.classe() + '"><span class="m-film__titre">' + esc(f.titre) + "</span>" +
       '<span class="m-film__infos">' + esc(f.realisateur) + "</span></div>" +
-      '<div class="m-cell ' + K.classe() + '"><span class="m-film__infos">' + esc(f.pays) + " · " + f.annee + " · " + f.duree + " min · " + esc(f.langue) + "</span></div></a>";
+      '<div class="m-cell ' + K.classe() + '"><span class="m-film__infos">' + esc(f.genre) + " · " + esc(f.pays) + " · " + f.annee + " · " + f.duree + " min · " + esc(f.langue) + "</span></div></a>";
   }
   function celluleSuite(href, label, nom) {
     return '<a class="m-film m-film--plus" href="' + href + '"><div class="m-cell ' + K.classe() + '"><span class="m-cell__label">' + label + '</span><span class="m-monde__nom">' + nom + " →</span></div></a>";
   }
   function defile() {
-    var mots = ["Cinéma", "Radio", "Club", "Minimum", "Lausanne"];
+    var mots = ["Cinéma", "Radio", "Club", "Minimum", "Neuchâtel"];
     var un = mots.map(function (m) { return "<span>" + m + "</span>"; }).join("");
     return '<div class="m-bande"><div class="m-defile" aria-hidden="true"><div class="m-defile__piste">' + un + un + un + un + un + un + "</div></div></div>";
   }
@@ -45,6 +45,7 @@
     var d = sem[Math.min(jourIdx, 6)];
     var cine = M.programmeDuJour(d, "cinema");
     var vedette = cine.length ? M.filmParId(cine[0].href.split("id=")[1]) : D.films[0];
+    var prochaines = cine.length ? cine : [];
     var a = M.antenne();
     var prochainClub = null, pj = 0;
     for (; pj < 7 && !prochainClub; pj++) { var s = M.programmeDuJour(sem[pj], "club"); if (s.length) prochainClub = { d: sem[pj], i: pj, s: s[0] }; }
@@ -65,7 +66,7 @@
 
     app.innerHTML =
       '<div class="mondrian">' +
-      '<h1 class="visually-hidden">Minimum — cinéma, radio et club à Lausanne</h1>' +
+      '<h1 class="visually-hidden">Cinéma Minimum — cinéma, radio et club à Neuchâtel</h1>' +
       '<div class="m-trois">' + cinema + radio + club + "</div>" +
       defile() +
       '<div class="m-titre"><p class="m-cell__label">Au programme</p><h2>' + esc(M.labelJour(d, jourIdx)) + "</h2><p class=\"m-sous\">" + esc(M.dateLongue(d)) + "</p></div>" +
@@ -80,12 +81,14 @@
   P.cinema = function (app) {
     app.innerHTML =
       '<div class="mondrian">' +
-      tete("Cinéma", "À l'affiche", "Toujours en version originale sous-titrée quand le film n'est pas en français.") +
+      tete("Cinéma", "À l'affiche", "Salle Anaïs Emery, à La Case à Chocs. Films en version originale sous-titrée français (VOSTFR) ou en français (VF).") +
       '<div class="m-films">' + D.films.map(carteFilm).join("") + celluleSuite(R + "agenda/?type=cinema", "Cinéma", "Toutes les séances") + "</div>" +
       '<div class="m-titre"><p class="m-cell__label">Billets</p><h2>Tarifs</h2></div>' +
       '<div class="m-bande">' + D.tarifs.map(function (t) {
-        return '<div class="m-cell ' + K.classe() + '"><span class="m-cell__label">' + esc(t.nom) + '</span><span class="m-cell__value">' + esc(t.prix) + "</span>" + (t.note ? "<span>" + esc(t.note) + "</span>" : "") + "</div>";
-      }).join("") + "</div></div>";
+        return '<div class="m-cell ' + K.classe() + '"><span class="m-cell__label">' + esc(t.nom) + '</span><span class="m-cell__value">CHF ' + esc(t.prix) + "</span>" + (t.note ? "<span>" + esc(t.note) + "</span>" : "") + "</div>";
+      }).join("") + "</div>" +
+      '<div class="m-bande"><div class="m-cell ' + K.classe() + '"><span class="m-cell__label">Réservation</span><span class="m-cell__value">' + esc(C.billets) + '</span></div>' +
+      '<div class="m-cell ' + K.classe() + '"><span class="m-cell__label">Paiement</span><span class="m-cell__value">' + esc(C.paiement) + "</span></div></div></div>";
   };
 
   /* --------------------------- Film -------------------------- */
@@ -96,62 +99,31 @@
         '<a class="m-action ' + K.classe() + '" href="' + R + 'cinema/">Voir les films</a></div>';
       return;
     }
-    document.title = f.titre + " — Minimum";
-    var sem = M.semaine(), seances = [];
-    sem.forEach(function (d, i) {
-      (f.seances[d.getDay() === 0 ? 7 : d.getDay()] || []).forEach(function (h) { seances.push({ d: d, i: i, h: h }); });
-    });
-    var lignes = seances.map(function (s) {
-      return '<div class="m-seance"><div class="m-seance__heure ' + K.classe() + '" style="flex-basis:auto;padding-inline:1.5rem">' + esc(M.labelJour(s.d, s.i)) + " " + M.dateCourte(s.d) + "</div>" +
-        '<div class="m-seance__heure ' + K.classe() + '">' + M.heureAffichee(s.h) + "</div>" +
-        '<div class="m-seance__infos ' + K.classe() + '"><span class="m-seance__sous">' + esc(f.langue) + "</span></div>" +
-        '<a class="m-seance__action m-seance__action--billet" href="' + esc(M.lienReserver(f, s.d, s.h)) + '">Réserver</a></div>';
+    document.title = f.titre + " — Cinéma Minimum";
+    var auj = new Date(); auj.setHours(0, 0, 0, 0);
+    var lignes = f.seances.filter(function (x) { return new Date(x[0] + "T12:00:00") >= auj; }).map(function (x) {
+      var d = new Date(x[0] + "T12:00:00");
+      return '<div class="m-seance"><div class="m-seance__heure ' + K.classe() + '" style="flex-basis:auto;padding-inline:1.5rem">' + esc(M.dateLongue(d)) + "</div>" +
+        '<div class="m-seance__heure ' + K.classe() + '">' + M.heureAffichee(x[1]) + "</div>" +
+        '<div class="m-seance__infos ' + K.classe() + '"><span class="m-seance__sous">' + esc(f.langue) + "</span></div></div>";
     }).join("");
     app.innerHTML =
       '<div class="mondrian">' +
       '<div class="m-fiche"><div class="m-fiche__affiche">' + M.affiche(f) + "</div>" +
       '<div class="m-fiche__colonne">' +
-      tete("Cinéma", f.titre, "de " + f.realisateur) +
+      tete(f.genre, f.titre, "de " + f.realisateur) +
+      (f.mention ? '<div class="m-cell ' + K.classe() + '"><span class="m-cell__value">' + esc(f.mention) + "</span></div>" : "") +
       '<div class="m-bande">' +
       cellule("Pays", esc(f.pays)) + cellule("Année", f.annee) + cellule("Durée", f.duree + " min") + cellule("Version", esc(f.langue)) + cellule("Âge", esc(f.age)) + "</div>" +
       '<div class="m-cell"><span class="m-cell__label">Synopsis</span><p>' + esc(f.synopsis) + "</p></div>" +
-      (f.bandeAnnonce ? '<a class="m-cell m-ba ' + K.classe() + '" href="' + esc(f.bandeAnnonce) + '" target="_blank" rel="noopener noreferrer">Bande-annonce ↗</a>' : "") +
-      "</div></div>" +
-      '<div class="m-titre"><p class="m-cell__label">Séances</p><h2>Cette semaine</h2></div>' +
-      (seances.length ? '<div class="m-seances-liste">' + lignes + "</div>" : vide("Pas de séance cette semaine.")) +
-      '<a class="m-action ' + K.classe() + '" href="' + R + 'cinema/">← Tous les films</a></div>';
-  };
-
-  /* --------------------------- Radio ------------------------- */
-  P.radio = function (app) {
-    var a = M.antenne();
-    var flux = C.radioFlux;
-    var sem = M.semaine();
-    var grille = D.emissions.slice().sort(function (x, y) { return x.jour - y.jour || (x.heure < y.heure ? -1 : 1); });
-    var noms = ["", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
-    app.innerHTML =
-      '<div class="mondrian">' +
       '<div class="m-bande">' +
-      '<div class="m-cell m-onair" style="flex:2 1 24rem"><span class="m-cell__label">' + M.voyant(a) + "</span>" +
-      '<span class="m-onair__titre">' + (a.emission ? esc(a.emission.titre) : esc(C.radioNom)) + "</span>" +
-      '<span class="m-cell__value">' + (a.emission ? (a.direct ? "" : esc(a.quand) + " à " + M.heureAffichee(a.emission.heure) + " · ") + esc(a.emission.texte) : "") + "</span></div>" +
-      '<button type="button" class="m-lecteur ' + K.classe() + '" id="lecteur" style="flex:1 1 14rem"' + (flux ? "" : " disabled") + ">" + (flux ? "Écouter" : "Bientôt en ligne") + "</button>" +
-      "</div>" +
-      defile() +
-      '<div class="m-titre"><p class="m-cell__label">' + esc(C.radioNom) + '</p><h2>La grille</h2><p class="m-sous">Chaque semaine, aux mêmes heures.</p></div>' +
-      '<div class="m-seances-liste">' + grille.map(function (e) {
-        return '<div class="m-seance"><div class="m-seance__heure ' + K.classe() + '" style="flex-basis:9rem">' + noms[e.jour] + "</div>" +
-          '<div class="m-seance__heure ' + K.classe() + '">' + M.heureAffichee(e.heure) + "</div>" +
-          '<div class="m-seance__infos ' + K.classe() + '"><span class="m-seance__titre">' + esc(e.titre) + '</span><span class="m-seance__sous">' + esc(e.texte) + "</span></div></div>";
-      }).join("") + "</div></div>";
-    var b = document.getElementById("lecteur");
-    if (flux) {
-      var audio = new Audio();
-      b.addEventListener("click", function () {
-        if (audio.paused) { audio.src = flux; audio.play(); b.textContent = "Pause"; b.classList.add("is-playing"); }
-        else { audio.pause(); audio.removeAttribute("src"); audio.load(); b.textContent = "Écouter"; b.classList.remove("is-playing"); }
-      });
-    }
+      (f.bandeAnnonce ? '<a class="m-cell m-ba ' + K.classe() + '" href="' + esc(f.bandeAnnonce) + '" target="_blank" rel="noopener noreferrer">Bande-annonce ↗</a>' : "") +
+      (f.lien ? '<a class="m-cell m-ba ' + K.classe() + '" href="' + esc(f.lien) + '" target="_blank" rel="noopener noreferrer">En savoir plus ↗</a>' : "") + "</div>" +
+      "</div></div>" +
+      '<div class="m-titre"><p class="m-cell__label">Séances</p><h2>À venir</h2></div>' +
+      (lignes ? '<div class="m-seances-liste">' + lignes + "</div>" : vide("Plus de séance annoncée pour ce film.")) +
+      '<div class="m-bande"><div class="m-cell ' + K.classe() + '"><span class="m-cell__label">Billets</span><span class="m-cell__value">' + esc(C.billets) + " " + esc(C.paiement) + "</span></div></div>" +
+      '<a class="m-action ' + K.classe() + '" href="' + R + 'cinema/">← Tous les films</a></div>';
   };
 
   /* ---------------------------- Club ------------------------- */
@@ -206,12 +178,14 @@
   P.location = function (app) {
     app.innerHTML =
       '<div class="mondrian">' + tete("Location", "Louer la salle", D.location.texte) +
+      '<div class="m-bande"><img class="m-budgette" src="' + R + 'assets/img/budgette.jpg" alt="Budgette — Rent your own Private Cinema" width="606" height="341">' +
+      '<img class="m-budgette" src="' + R + 'assets/img/salle.jpg" alt="La salle rouge du Minimum" width="603" height="401"></div>' +
       '<form id="formLoc" novalidate><div class="m-bande">' +
       '<div class="m-champ"><label for="f-nom">Nom</label><input id="f-nom" name="nom" required autocomplete="name"></div>' +
       '<div class="m-champ"><label for="f-mail">Courriel</label><input id="f-mail" name="courriel" type="email" required autocomplete="email"></div></div>' +
       '<div class="m-bande"><div class="m-champ"><label for="f-date">Date souhaitée</label><input id="f-date" name="date" type="date"></div>' +
-      '<div class="m-champ"><label for="f-nb">Nombre de personnes</label><input id="f-nb" name="nb" type="number" min="1" inputmode="numeric"></div></div>' +
-      '<div class="m-champ"><label for="f-msg">Votre projet</label><textarea id="f-msg" name="msg" rows="5"></textarea></div>' +
+      '<div class="m-champ"><label for="f-nb">Nombre de personnes (6 à 40)</label><input id="f-nb" name="nb" type="number" min="6" max="40" inputmode="numeric"></div></div>' +
+      '<div class="m-champ"><label for="f-msg">Le film de votre choix</label><textarea id="f-msg" name="msg" rows="5"></textarea></div>' +
       '<button class="m-action ' + K.classe() + '" type="submit" style="width:100%">Envoyer la demande</button>' +
       '<p class="m-etat" role="status" id="etat"></p></form></div>';
     var f = document.getElementById("formLoc");
@@ -223,7 +197,7 @@
         return;
       }
       var corps = "Nom : " + v.get("nom") + "\nCourriel : " + v.get("courriel") + "\nDate : " + (v.get("date") || "—") + "\nPersonnes : " + (v.get("nb") || "—") + "\n\n" + (v.get("msg") || "");
-      location.href = "mailto:" + C.courriel + "?subject=" + encodeURIComponent("Demande de location") + "&body=" + encodeURIComponent(corps);
+      location.href = "mailto:" + C.courriel + "?subject=" + encodeURIComponent("Demande de projection privée") + "&body=" + encodeURIComponent(corps);
       document.getElementById("etat").textContent = "Votre messagerie s'ouvre : il ne reste qu'à envoyer.";
     });
   };
@@ -232,14 +206,16 @@
   P.infos = function (app) {
     var c = [
       cellule("Adresse", C.adresse.map(esc).join("<br>")),
-      cellule("Ouverture", esc(C.ouverture)),
-      cellule("Accès", esc(C.acces)),
+      cellule("Lieu", esc(C.lieu) + "<br>" + esc(C.salle)),
+      '<a class="m-cell ' + K.classe() + '" href="tel:' + esc(C.telephone.replace(/\s/g, "")) + '"><span class="m-cell__label">Cinéma</span><span class="m-cell__value">' + esc(C.telephone) + "</span></a>",
+      '<a class="m-cell ' + K.classe() + '" href="tel:' + esc(C.telephoneBureau.replace(/\s/g, "")) + '"><span class="m-cell__label">Bureau</span><span class="m-cell__value">' + esc(C.telephoneBureau) + "</span></a>",
       '<a class="m-cell ' + K.classe() + '" href="mailto:' + esc(C.courriel) + '"><span class="m-cell__label">Courriel</span><span class="m-cell__value">' + esc(C.courriel) + "</span></a>",
+      '<a class="m-cell ' + K.classe() + '" href="https://www.zinema.ch" target="_blank" rel="noopener noreferrer"><span class="m-cell__label">Même équipe</span><span class="m-cell__value">Zinéma, Lausanne ↗</span></a>',
     ];
-    if (C.telephone) c.push('<a class="m-cell ' + K.classe() + '" href="tel:' + esc(C.telephone.replace(/\s/g, "")) + '"><span class="m-cell__label">Téléphone</span><span class="m-cell__value">' + esc(C.telephone) + "</span></a>");
-    c.push('<a class="m-cell ' + K.classe() + '" href="https://www.zinema.ch" target="_blank" rel="noopener noreferrer"><span class="m-cell__label">La salle d\'à côté</span><span class="m-cell__value">Zinéma ↗</span></a>');
-    app.innerHTML = '<div class="mondrian">' + tete("Infos", "Venir, écrire, appeler") + '<div class="m-bande">' + c.join("") + "</div>" +
-      '<div class="m-titre"><p class="m-cell__label">Rendez-vous</p><h2>Au fil des semaines</h2></div><div class="m-bande">' +
-      D.rendezVous.map(function (r) { return '<div class="m-cell ' + K.classe() + '"><span class="m-cell__label">' + esc(r.titre) + "</span><p>" + esc(r.texte) + "</p></div>"; }).join("") + "</div></div>";
+    app.innerHTML = '<div class="mondrian">' + tete("Infos", "Venir, écrire, appeler") +
+      '<div class="m-bande">' + c.join("") + "</div>" +
+      '<div class="m-bande"><div class="m-cell ' + K.classe() + '"><span class="m-cell__label">Billets</span><span class="m-cell__value">' + esc(C.billets) + '</span></div>' +
+      '<div class="m-cell ' + K.classe() + '"><span class="m-cell__label">Paiement</span><span class="m-cell__value">' + esc(C.paiement) + "</span></div></div>" +
+      '<img class="m-salle" src="' + R + 'assets/img/salle.jpg" alt="La salle rouge du Cinéma Minimum" width="603" height="401"></div>';
   };
 })();
