@@ -78,7 +78,15 @@
       FONDS.map(function (f) { return '<button type="button" class="fond" data-fond="' + f.id + '" aria-label="' + esc(f.nom) + '" title="' + esc(f.nom) + '"><i style="background:' + f.css.replace("SALLE", new URL(R + "assets/img/salle.jpg", location.href).href) + '"></i><span>' + esc(f.nom) + "</span></button>"; }).join("") + "</div>" +
       '<label class="m-action fond__import ' + K.classe() + '" style="cursor:pointer">Importer mon image<input type="file" accept="image/*" id="fond-fichier" hidden></label>';
 
-    var icones = [["lecteur", "♪", "Musique"], ["grille", "▦", "Grille"], ["apropos", "i", "À propos"], ["mail", "@", "Programme"], ["reglages", "⚙", "Réglages"]];
+    /* Icônes dessinées au même trait (2,5 px, angles droits) : une famille cohérente. */
+    function svg(d) { return '<svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">' + d + "</svg>"; }
+    var icones = [
+      ["lecteur", svg('<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>'), "Musique"],
+      ["grille", svg('<rect x="3" y="4" width="18" height="17"/><path d="M3 9h18M8 2v4M16 2v4M8 14h2M14 14h2M8 18h2"/>'), "Grille"],
+      ["apropos", svg('<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>'), "À propos"],
+      ["mail", svg('<rect x="3" y="5" width="18" height="14"/><path d="M3 6l9 7 9-7"/>'), "Courriel"],
+      ["reglages", svg('<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/>'), "Réglages"],
+    ];
 
     app.innerHTML =
       '<div class="mondrian"><div class="bureau" id="bureau">' +
@@ -99,6 +107,7 @@
     var etat = {}; /* id → "ouvert" | "reduit" | "ferme" */
 
     function majOnglets() {
+      Array.prototype.forEach.call(document.querySelectorAll(".icone[data-ouvre]"), function (b) { b.classList.toggle("is-ouvert", etat[b.dataset.ouvre] === "ouvert"); });
       document.getElementById("onglets").innerHTML = Array.prototype.map.call(fens, function (f) {
         var id = f.dataset.id;
         if (etat[id] === "ferme") return "";
