@@ -136,9 +136,72 @@ window.MIN = {
     { titre: "Space Jazz", artiste: "Kevin MacLeod", url: "assets/audio/space-jazz.mp3" },
   ],
 
-  /* ---------------- CLUB — ⚠ EXEMPLES ---------------- */
+  /* ---------------- CLUB — ⚠ EXEMPLES ----------------
+     Une soirée = une date, des heures de portes, et un line-up par salle.
+     Les heures après minuit se notent normalement ("00:30", "02:00") : le site comprend
+     qu'elles suivent l'ouverture. Les noms d'artistes ci-dessous sont inventés. */
   soirees: [
-    { jour: 5, heure: "23:00", nom: "Minimum Club", artistes: "Résident·es + invité·e" },
-    { jour: 6, heure: "23:00", nom: "Minimum Club", artistes: "Deux DJ, une nuit" },
+    {
+      date: "2026-11-20", nom: "Minimum Club", ouverture: "23:00", fermeture: "05:00", entree: "À confirmer",
+      salles: [
+        { nom: "Grande salle", sets: [
+          { artiste: "Nox", debut: "23:00", fin: "00:30" },
+          { artiste: "Léa K", debut: "00:30", fin: "02:00" },
+          { artiste: "Atlas b2b Brise", debut: "02:00", fin: "04:00" },
+          { artiste: "Mercure", debut: "04:00", fin: "05:00" },
+        ] },
+        { nom: "Salle rouge", sets: [
+          { artiste: "Selecta Marie", debut: "23:30", fin: "01:00" },
+          { artiste: "Ondes", debut: "01:30", fin: "03:00" },
+          { artiste: "Veda", debut: "03:00", fin: "05:00" },
+        ] },
+      ],
+    },
+    {
+      date: "2026-11-21", nom: "Minimum Club", ouverture: "23:00", fermeture: "05:00", entree: "À confirmer",
+      salles: [
+        { nom: "Grande salle", sets: [
+          { artiste: "Cassis", debut: "23:00", fin: "01:00" },
+          { artiste: "Tomás R.", debut: "01:00", fin: "03:00" },
+          { artiste: "Noor", debut: "03:00", fin: "05:00" },
+        ] },
+        { nom: "Salle rouge", sets: [
+          { artiste: "Radio Minimum (live)", debut: "23:00", fin: "00:00" },
+          { artiste: "Juno", debut: "00:00", fin: "01:30" },
+          { artiste: "Kiosque", debut: "01:30", fin: "02:30" },
+          { artiste: "Esteban & Lou", debut: "02:30", fin: "05:00" },
+        ] },
+      ],
+    },
+    {
+      date: "2026-11-27", nom: "Minimum Club", ouverture: "23:00", fermeture: "05:00", entree: "À confirmer",
+      salles: [
+        { nom: "Grande salle", sets: [
+          { artiste: "Fable", debut: "23:00", fin: "00:30" },
+          { artiste: "Mira", debut: "00:30", fin: "03:00" },
+          { artiste: "Dune", debut: "03:00", fin: "05:00" },
+        ] },
+        { nom: "Salle rouge", sets: [
+          { artiste: "Opale", debut: "23:00", fin: "01:00" },
+          { artiste: "Sacha", debut: "01:00", fin: "02:30" },
+          { artiste: "Vertige", debut: "02:30", fin: "05:00" },
+        ] },
+      ],
+    },
+    {
+      date: "2026-11-28", nom: "Minimum Club — nuit du cinéma", ouverture: "22:00", fermeture: "04:00", entree: "À confirmer",
+      salles: [
+        { nom: "Grande salle", sets: [
+          { artiste: "Bande originale (DJ set)", debut: "22:00", fin: "00:00" },
+          { artiste: "Clap", debut: "00:00", fin: "02:00" },
+          { artiste: "Lumen", debut: "02:00", fin: "04:00" },
+        ] },
+        { nom: "Salle rouge", sets: [
+          { artiste: "Projection + son", debut: "22:00", fin: "23:30" },
+          { artiste: "Zoé V.", debut: "23:30", fin: "01:30" },
+          { artiste: "Fondu", debut: "01:30", fin: "04:00" },
+        ] },
+      ],
+    },
   ],
 };

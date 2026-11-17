@@ -69,12 +69,18 @@
     }
     if (!filtre || filtre === "tout" || filtre === "club") {
       D.soirees.forEach(function (s) {
-        if (s.jour === n) out.push({ type: "club", heure: s.heure, titre: s.nom, sous: s.artistes,
-          href: root + "club/", action: "Infos", actionHref: root + "club/" });
+        if (s.date === iso(d)) out.push({ type: "club", heure: s.ouverture, titre: s.nom, sous: "Portes " + heureAffichee(s.ouverture) + " · " + artistesSoiree(s),
+          href: root + "club/?date=" + s.date, action: "Line-up", actionHref: root + "club/?date=" + s.date });
       });
     }
     out.sort(function (a, b) { return a.heure < b.heure ? -1 : a.heure > b.heure ? 1 : 0; });
     return out;
+  }
+  /* Les noms d'une soirée, mis bout à bout (3 premiers). */
+  function artistesSoiree(s) {
+    var noms = [];
+    s.salles.forEach(function (sa) { sa.sets.forEach(function (x) { if (noms.indexOf(x.artiste) < 0) noms.push(x.artiste); }); });
+    return noms.slice(0, 3).join(", ") + (noms.length > 3 ? "…" : "");
   }
   var NOMS_TYPE = { cinema: "Cinéma", radio: "Radio", club: "Club" };
 
@@ -213,10 +219,10 @@
   }
 
   window.Minimum = {
-    D: D, esc: esc, maj: maj, root: root, K: K, heureAffichee: heureAffichee,
+    D: D, JOURS: JOURS, esc: esc, maj: maj, root: root, K: K, heureAffichee: heureAffichee,
     semaine: semaine, labelJour: labelJour, dateLongue: dateLongue, dateCourte: dateCourte,
     filmParId: filmParId, seancesFilm: seancesFilm, programmeDuJour: programmeDuJour,
-    ligne: ligne, liste: liste, antenne: antenne, voyant: voyant, affiche: affiche, pages: {},
+    ligne: ligne, liste: liste, iso: iso, artistesSoiree: artistesSoiree, antenne: antenne, voyant: voyant, affiche: affiche, pages: {},
   };
 
   document.addEventListener("DOMContentLoaded", function () {

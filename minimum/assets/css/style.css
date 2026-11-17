@@ -1139,3 +1139,45 @@ a.m-seance:hover > *, a.m-seance:focus-visible > * { background: var(--case-fond
 }
 
 .credit { font-size: 0.8rem !important; margin-top: 0.8rem; }
+
+/* ============================================================
+   Club — la grille horaire Mondrian
+   Ordinateur : les heures courent de gauche à droite, une rangée par salle.
+   Téléphone : les heures descendent, une colonne par salle (comme un planning).
+   Chaque set est un bloc de taille proportionnelle à sa durée, séparé par le trait de 4 px.
+   ============================================================ */
+.m-portes { gap: 0.2rem; }
+.m-portes__temps { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; font-size: var(--taille-titre); line-height: 0.95; font-variant-numeric: tabular-nums; }
+.m-grille-scroll { overflow-x: auto; background: var(--ink); }
+.m-grille {
+  display: grid; gap: var(--ligne); background: var(--ink); min-width: 0;
+  grid-template-columns: 6.5rem repeat(var(--n), minmax(3.6rem, 1fr));
+  grid-template-rows: auto repeat(var(--rooms), minmax(7rem, auto));
+}
+.m-g__heure, .m-g__salle, .m-g__set { background: var(--paper); min-width: 0; }
+.m-g__heure { grid-column: calc(var(--s) + 2) / span 2; grid-row: 1; padding: 0.5rem 0.6rem; font-family: var(--font-display); font-weight: 900; font-size: 1rem; font-variant-numeric: tabular-nums; }
+.m-g__salle { grid-column: 1; grid-row: calc(var(--r) + 2); display: flex; align-items: center; padding: 0.6rem; font-family: var(--font-display); font-weight: 900; text-transform: uppercase; font-size: 0.85rem; line-height: 1.1; }
+.m-g__set { grid-column: calc(var(--s) + 2) / span var(--l); grid-row: calc(var(--r) + 2); display: flex; flex-direction: column; justify-content: space-between; gap: 0.4rem; padding: 0.7rem; overflow: hidden; }
+.m-g__set b { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; line-height: 1; font-size: 1.05rem; overflow-wrap: anywhere; hyphens: auto; }
+.m-g__set span { font-weight: 700; font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.m-g__set--rouge { background: var(--red); color: #fff; }
+.m-g__set--bleu { background: var(--blue); color: #fff; }
+.m-g__set--jaune { background: var(--jaune); color: var(--ink); }
+.m-g__set--papier { background: var(--paper); color: var(--ink); }
+.m-g__set--vide { background: repeating-linear-gradient(135deg, var(--paper) 0 7px, #dedede 7px 9px); }
+.m-g__set:not(.m-g__set--vide) { transition: filter 0.15s; }
+.m-g__set:not(.m-g__set--vide):hover { filter: brightness(1.08); }
+
+@media (max-width: 899px) {
+  .m-portes__temps { font-size: clamp(2rem, 10vw, 3rem); }
+  .m-grille-scroll { overflow: visible; }
+  .m-grille {
+    grid-template-columns: 3.2rem repeat(var(--rooms), minmax(0, 1fr));
+    grid-template-rows: auto repeat(var(--n), 3.6rem);
+  }
+  .m-g__heure { grid-column: 1; grid-row: calc(var(--s) + 2) / span 2; padding: 0.4rem 0.3rem; font-size: 0.85rem; }
+  .m-g__salle { grid-column: calc(var(--r) + 2); grid-row: 1; justify-content: flex-start; padding: 0.5rem; font-size: 0.7rem; }
+  .m-g__set { grid-column: calc(var(--r) + 2); grid-row: calc(var(--s) + 2) / span var(--l); padding: 0.45rem 0.5rem; gap: 0.2rem; justify-content: flex-start; }
+  .m-g__set b { font-size: 0.85rem; }
+  .m-g__set span { font-size: 0.68rem; }
+}
