@@ -4,8 +4,8 @@
 
    ⚠ Les valeurs marquées « À CONFIRMER » sont des textes
    provisoires, à remplacer par les vraies informations du cinéma.
-   Les films et horaires sont des EXEMPLES pour montrer le site
-   vivant : à remplacer par le vrai programme.
+   Les films et leurs affiches viennent du dépôt (sanity/import) ;
+   les HORAIRES sont des exemples, à remplacer par les vrais.
    ============================================================ */
 window.MIN = {
   config: {
@@ -39,46 +39,44 @@ window.MIN = {
      d'aujourd'hui. */
   films: [
     {
-      id: "stalker", titre: "Stalker", realisateur: "Andreï Tarkovski", annee: 1979,
-      pays: "URSS", duree: 162, langue: "VO russe, st. français",
-      synopsis: "Un guide mène un écrivain et un professeur dans la Zone, territoire interdit où, dit-on, un lieu exauce les désirs les plus intimes.",
-      forme: "cercle", couleur: "noir",
+      id: "drowak", titre: "Drowak", realisateur: "Nicolas Steiner", annee: 2025,
+      pays: "Allemagne", duree: 127, langue: "VO, st. français", age: "16/16 ans",
+      synopsis: "Lena, une étudiante optimiste, anime un atelier d'écriture dont le seul participant est Hugo Drowak, un misanthrope aigri et alcoolique. Autrefois, il écrivait des poèmes d'amour passionnés, mais une déception l'a poussé à se réfugier dans l'alcool et l'isolement. Malgré ses remarques désobligeantes, Lena ne baisse pas les bras et tente de raviver sa créativité, car elle croit aux secondes chances.",
+      bandeAnnonce: "https://www.youtube.com/watch?v=9V-duM99N58",
+      img: "", forme: "cercle", couleur: "noir",
       seances: { 1: ["18:00"], 3: ["20:30"], 5: ["18:00"], 7: ["17:00"] },
     },
     {
-      id: "paris-texas", titre: "Paris, Texas", realisateur: "Wim Wenders", annee: 1984,
-      pays: "Allemagne / France", duree: 147, langue: "VO anglaise, st. français",
-      synopsis: "Un homme sorti du désert après quatre ans de silence tente de retrouver son fils, puis la femme qu'il a perdue.",
-      forme: "barre", couleur: "orange",
+      id: "le-dernier-pour-la-route", titre: "Le Dernier pour la route", realisateur: "Francesco Sossai", annee: 2025,
+      pays: "Italie", duree: 98, langue: "VO, st. français", age: "16/16 ans",
+      synopsis: "Carlobianchi et Doriano, deux cinquantenaires fauchés, errent la nuit en voiture de bar en bar, obsédés par l'idée d'un dernier verre, lorsqu'ils croisent la route de Giulio, un étudiant en architecture aussi timide que naïf. Entre confidences et gueule de bois, cette rencontre inattendue avec ces deux mentors improbables va bouleverser la vision que Giulio porte sur le monde, l'amour et son avenir.",
+      bandeAnnonce: "https://www.youtube.com/watch?v=X8uIpic_AyM",
+      img: "le-dernier-pour-la-route.jpg",
       seances: { 2: ["18:30"], 4: ["20:30"], 6: ["20:30"], 7: ["14:30"] },
     },
     {
-      id: "in-the-mood", titre: "In the Mood for Love", realisateur: "Wong Kar-wai", annee: 2000,
-      pays: "Hong Kong", duree: 98, langue: "VO cantonaise, st. français",
-      synopsis: "Hong Kong, 1962. Deux voisins découvrent que leurs conjoints entretiennent une liaison, et se rapprochent à leur tour.",
-      forme: "carre", couleur: "blanc",
+      id: "de-la-comedie-francaise", titre: "De la Comédie Française", realisateur: "Bertrand Usclat & Martin Darondeau", annee: 2026,
+      pays: "France", duree: 75, langue: "VF", age: "10/12 ans",
+      synopsis: "Dans 3 heures, Nina dévoile sa première mise en scène à la Comédie-Française. Mais dans l'agitation des dernières répétitions, rien ne se passe comme prévu : retards, coups de stress, problèmes techniques et problèmes d'égo secouent la troupe. Pourtant, Nina n'a pas d'autre choix que d'aller jusqu'au bout car s'il y a bien une règle d'or à la Comédie-Française, c'est qu'on n'annule pas.",
+      bandeAnnonce: "https://www.youtube.com/watch?v=8A2MVXcMhQQ",
+      img: "de-la-comedie-francaise.jpg",
       seances: { 1: ["20:30"], 2: ["16:30"], 5: ["20:30"], 6: ["18:00"] },
     },
     {
-      id: "jeanne-dielman", titre: "Jeanne Dielman", realisateur: "Chantal Akerman", annee: 1975,
-      pays: "Belgique / France", duree: 201, langue: "VO française",
-      synopsis: "Trois jours de la vie d'une veuve bruxelloise, ses gestes quotidiens, et la fissure qui s'ouvre dans leur ordonnancement.",
-      forme: "moitie", couleur: "gris",
-      seances: { 3: ["17:00"], 7: ["19:30"] },
+      id: "les-matins-merveilleux", titre: "Les Matins merveilleux", realisateur: "Avril Besson", annee: 2026,
+      pays: "France", duree: 86, langue: "VF", age: "12/16 ans",
+      synopsis: "De vieux vinyles disco dans le coffre de sa Twingo, à peine remise de la mort de sa grand-mère, Charlie roule. Elle ne sait pas encore que ces disques ressusciteront les pas de danse de sa mère dans les yeux humides de Titou, caviste rêveur, ni qu'une plage méditerranéenne désertée sera le théâtre de sa rencontre avec Marina. Pour l'instant, elle roule.",
+      bandeAnnonce: "https://www.youtube.com/watch?v=6rG0jikzSM4",
+      img: "les-matins-merveilleux.jpg",
+      seances: { 3: ["17:00"], 4: ["18:00"], 6: ["16:00"], 7: ["19:30"] },
     },
     {
-      id: "playtime", titre: "Playtime", realisateur: "Jacques Tati", annee: 1967,
-      pays: "France", duree: 124, langue: "VO française",
-      synopsis: "Un groupe de touristes américains et monsieur Hulot se perdent dans un Paris de verre et d'acier.",
-      forme: "grille", couleur: "orange",
-      seances: { 4: ["18:00"], 6: ["16:00"], 7: ["16:30"] },
-    },
-    {
-      id: "sans-soleil", titre: "Sans soleil", realisateur: "Chris Marker", annee: 1983,
-      pays: "France", duree: 100, langue: "VO française",
-      synopsis: "Un cinéaste voyageur écrit des lettres depuis le Japon, l'Afrique et l'Islande : un essai sur la mémoire et les images.",
-      forme: "cercle", couleur: "blanc",
-      seances: { 2: ["20:30"], 5: ["16:30"] },
+      id: "ah-que-le-bonheur-est-proche", titre: "Ah que le bonheur est proche !", realisateur: "François-Christophe Marzal", annee: 2026,
+      pays: "Suisse", duree: 70, langue: "VF", age: "16/16 ans",
+      synopsis: "À 85 ans, Jean-Luc doit incarner le personnage de Don Quichotte sur la scène d'un théâtre prestigieux. Hélas, ses défaillances mémorielles contraignent la production à engager une doublure. Peu à peu, le vieil acteur se persuade que ladite doublure complote pour prendre sa place.",
+      bandeAnnonce: "https://www.youtube.com/watch?v=TqFkuyKAOHc",
+      img: "ah-que-le-bonheur-est-proche.jpg",
+      seances: { 2: ["20:30"], 5: ["16:30"], 7: ["16:30"] },
     },
   ],
 

@@ -1,0 +1,40 @@
+name: Déploiement GitHub Pages — Cinéma Minimum
+
+# Publie le site du Cinéma Minimum (dossier « minimum ») sur GitHub Pages.
+# Aucun build : les fichiers sont publiés tels quels.
+#
+# À faire UNE fois : Settings → Pages → Source : « GitHub Actions ».
+# L'adresse sera https://<utilisateur>.github.io/Cin-Cin-/
+# Tous les liens du site sont relatifs : il fonctionne sous ce sous-dossier.
+on:
+  push:
+    branches:
+      - claude/jolly-ride-82fab6
+    paths:
+      - "minimum/**"
+      - ".github/workflows/deploy-minimum.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./minimum
+      - id: deployment
+        uses: actions/deploy-pages@v4

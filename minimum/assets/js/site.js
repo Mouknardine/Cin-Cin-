@@ -68,6 +68,9 @@
      CSS — un titre, une forme, un fond. Quand le cinéma aura les
      vraies affiches, on les mettra dans <img> à la place. */
   function affiche(f) {
+    if (f.img) {
+      return '<div class="aff aff--photo"><img src="' + root + "assets/img/affiches/" + esc(f.img) + '" alt="Affiche de ' + esc(f.titre) + '" width="400" height="570" loading="lazy" decoding="async"></div>';
+    }
     return (
       '<div class="aff aff--' + f.couleur + " aff--" + f.forme + '" role="img" aria-label="Affiche de ' + esc(f.titre) + '">' +
       '<span class="aff__forme"></span>' +

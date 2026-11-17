@@ -130,11 +130,12 @@
       '<article class="fiche">' +
       '<div class="fiche__aff">' + M.affiche(f) + "</div>" +
       '<div class="fiche__texte">' +
-      '<p class="fiche__meta">' + esc(f.pays) + " · " + f.annee + " · " + f.duree + " min</p>" +
+      '<p class="fiche__meta">' + esc(f.pays) + " · " + f.annee + " · " + f.duree + " min" + (f.age ? " · " + esc(f.age) : "") + "</p>" +
       "<h1>" + esc(f.titre) + "</h1>" +
       '<p class="fiche__real">de ' + esc(f.realisateur) + "</p>" +
       '<p class="fiche__langue">' + esc(f.langue) + "</p>" +
       '<p class="fiche__synopsis">' + esc(f.synopsis) + "</p>" +
+      (f.bandeAnnonce ? '<a class="lien fiche__ba" href="' + esc(f.bandeAnnonce) + '" target="_blank" rel="noopener noreferrer">Voir la bande-annonce ↗</a>' : "") +
       "</div></article>" +
       '<section class="bloc"><div class="bloc__tete"><h2>Séances</h2></div>' +
       (seances.length
