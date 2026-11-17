@@ -143,6 +143,30 @@
     return '<div class="poster">' + h[v] + "</div>";
   }
 
+  /* ---------- « Éteindre la lumière » : le site passe en noir, comme une salle quand le film commence ---------- */
+  var CLE_LUMIERE = "minimum-lumiere";
+  function eteint() { return document.documentElement.dataset.lumiere === "eteinte"; }
+  function libelleLumiere() { return eteint() ? "Rallumer la lumière" : "Éteindre la lumière"; }
+  function majLumiere() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-lumiere-toggle]"), function (b) {
+      b.textContent = libelleLumiere();
+      b.setAttribute("aria-pressed", eteint() ? "true" : "false");
+    });
+    var th = document.querySelector('meta[name="theme-color"]');
+    if (th) th.setAttribute("content", eteint() ? "#100f0c" : "#ededed");
+  }
+  function basculeLumiere() {
+    var h = document.documentElement;
+    h.classList.add("lumiere-fondu");
+    if (eteint()) { delete h.dataset.lumiere; } else { h.dataset.lumiere = "eteinte"; }
+    try { localStorage.setItem(CLE_LUMIERE, eteint() ? "eteinte" : "allumee"); } catch (e) {}
+    majLumiere();
+    setTimeout(function () { h.classList.remove("lumiere-fondu"); }, 800);
+  }
+  document.addEventListener("click", function (e) {
+    if (e.target.closest("[data-lumiere-toggle]")) basculeLumiere();
+  });
+
   /* ---------- En-tête & menu : la construction du Zinéma ---------- */
   var NAV = [
     ["cinema/", "Cinéma", "01", "cinema"],
@@ -173,7 +197,7 @@
         return '<li class="main-nav__item" style="transition-delay:' + (0.08 + i * 0.05) + 's"><a href="' + root + n[0] +
           '" class="main-nav__link font-display"><span class="main-nav__link-label">' + n[1] + '</span><span class="main-nav__link-num">' + n[2] + "</span></a></li>";
       }).join("") + "</ul>" +
-      '<div class="main-nav__footer font-display"><span>Cinéma Minimum — Neuchâtel</span><a href="' + root + 'agenda/" class="underline-hover">Voir la semaine</a></div>';
+      '<div class="main-nav__footer font-display"><span>Cinéma Minimum — Neuchâtel</span><a href="' + root + 'agenda/" class="underline-hover">Voir la semaine</a><button type="button" class="underline-hover main-nav__lumiere" data-lumiere-toggle></button></div>';
     document.body.insertBefore(nav, document.body.firstChild);
     document.body.insertBefore(h, document.body.firstChild);
 
@@ -214,11 +238,13 @@
     if (C.telephone) cases.push('<a class="site-footer__case ' + K.classe() + '" href="tel:' + esc(C.telephone.replace(/\s/g, "")) + '">' + esc(C.telephone) + "</a>");
     cases.push('<a class="site-footer__case ' + K.classe() + '" href="mailto:' + esc(C.courriel) + '">' + esc(C.courriel) + "</a>");
     cases.push('<a class="site-footer__case ' + K.classe() + '" href="https://www.zinema.ch" target="_blank" rel="noopener noreferrer">Zinéma ↗</a>');
+    cases.push('<button type="button" class="site-footer__case site-footer__lumiere ' + K.classe() + '" data-lumiere-toggle></button>');
     cases.push('<a class="site-footer__case site-footer__signature" href="https://wearebrothers.ch" target="_blank" rel="noopener noreferrer">Site par We Are Brothers</a>');
     el.innerHTML = '<footer class="site-footer">' + cases.join("") + "</footer>";
   }
 
   window.Minimum = {
+    lumiere: basculeLumiere, majLumiere: majLumiere,
     D: D, JOURS: JOURS, esc: esc, maj: maj, root: root, K: K, heureAffichee: heureAffichee,
     semaine: semaine, labelJour: labelJour, dateLongue: dateLongue, dateCourte: dateCourte,
     filmParId: filmParId, seancesFilm: seancesFilm, programmeDuJour: programmeDuJour,
@@ -228,6 +254,7 @@
   document.addEventListener("DOMContentLoaded", function () {
     header();
     footer();
+    majLumiere();
     var f = window.Minimum.pages[page];
     if (f) f(document.getElementById("app"));
   });

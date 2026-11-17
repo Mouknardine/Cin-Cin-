@@ -1181,3 +1181,42 @@ a.m-seance:hover > *, a.m-seance:focus-visible > * { background: var(--case-fond
   .m-g__set b { font-size: 0.85rem; }
   .m-g__set span { font-size: 0.68rem; }
 }
+
+/* ============================================================
+   « Éteindre la lumière » — le site passe en noir.
+   On n'inverse que le papier et l'encre : fond noir, traits et
+   texte clairs. Les couleurs Mondrian ne bougent pas, elles
+   brillent davantage. Ce que l'encre noire écrivait sur une
+   couleur claire (jaune, rose fluo) reste noir.
+   ============================================================ */
+html[data-lumiere="eteinte"] {
+  --ink: #ededed;
+  --paper: #100f0c;
+  color-scheme: dark;
+}
+html[data-lumiere="eteinte"] body {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E");
+}
+html[data-lumiere="eteinte"] .c-jaune { --case-texte: #100f0c; }
+html[data-lumiere="eteinte"] .c-noir { --case-fond: #2a2925; --case-texte: #ededed; }
+html[data-lumiere="eteinte"] .site-header__nom:hover,
+html[data-lumiere="eteinte"] .site-header__nom:focus-visible,
+html[data-lumiere="eteinte"] .site-footer__signature:hover,
+html[data-lumiere="eteinte"] .site-footer__signature:focus-visible { color: #100f0c; }
+html[data-lumiere="eteinte"] .m-g__set--jaune { color: #100f0c; }
+html[data-lumiere="eteinte"] .m-g__set--rouge, html[data-lumiere="eteinte"] .m-g__set--bleu { color: #fff; }
+html[data-lumiere="eteinte"] .m-g__set--vide { background: repeating-linear-gradient(135deg, var(--paper) 0 7px, #2a2925 7px 9px); }
+html[data-lumiere="eteinte"] .m-defile { background: var(--ink) !important; color: var(--paper); }
+html[data-lumiere="eteinte"] .m-defile__piste span:nth-child(3n+2) { color: var(--red); }
+html[data-lumiere="eteinte"] ::selection { background: var(--rose-fluo); color: #100f0c; }
+html[data-lumiere="eteinte"] .skip:focus { color: var(--paper); }
+html[data-lumiere="eteinte"] .bureau__icones .icone { background: rgba(16, 15, 12, 0.92); }
+html[data-lumiere="eteinte"] .m-film__affiche .poster img, html[data-lumiere="eteinte"] .m-monde__affiche .poster img { filter: brightness(0.92); }
+/* Le fondu : les couleurs glissent pendant 0,7 s au lieu de claquer. */
+html.lumiere-fondu, html.lumiere-fondu *, html.lumiere-fondu *::before, html.lumiere-fondu *::after {
+  transition: background-color 0.7s ease, color 0.7s ease, border-color 0.7s ease, fill 0.7s ease !important;
+}
+.site-footer__lumiere, .main-nav__lumiere { font: inherit; text-align: left; }
+.site-footer__lumiere { font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; font-family: var(--font-display); }
+.m-lumiere { width: 100%; }
+.site-footer__lumiere { font-size: var(--taille-texte); line-height: 1.35; }

@@ -176,6 +176,7 @@
       '<div class="mondrian">' +
       tete("Club", "Les nuits", "Deux salles, une nuit. Le programme se lit comme un tableau : une couleur, un set.") +
       '<div class="m-bande"><div class="m-cell m-portes ' + K.classe() + '"><span class="m-cell__label" id="portes-label">Prochaines portes</span><span class="m-portes__temps" id="portes-temps"></span></div></div>' +
+      '<button type="button" class="m-action m-lumiere ' + K.classe() + '" data-lumiere-toggle></button>' +
       '<div class="m-filtres" id="soirees"></div>' +
       '<div class="m-titre" id="soiree-titre"></div>' +
       '<div id="grille"></div>' +
@@ -215,6 +216,7 @@
       el.textContent = (j ? j + " j " : "") + ("0" + hh).slice(-2) + ":" + ("0" + mm).slice(-2) + ":" + ("0" + ss).slice(-2);
     }
     tic(); setInterval(tic, 1000);
+    M.majLumiere();
   };
 
   /* -------------------------- Agenda ------------------------- */
