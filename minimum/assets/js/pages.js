@@ -10,7 +10,7 @@
   var P = M.pages;
 
   function titre(t, sous) {
-    return '<header class="titre"><h1>' + esc(t) + "</h1>" + (sous ? "<p>" + esc(sous) + "</p>" : "") + "</header>";
+    return '<header class="titre"><h1>' + esc(t) + "<span>.</span></h1>" + (sous ? "<p>" + esc(sous) + "</p>" : "") + "</header>";
   }
 
   /* ------------------------- Accueil ------------------------- */
@@ -25,43 +25,44 @@
     var jour = prochains[0];
 
     var ce = jour
-      ? '<ul class="seances">' + jour.s.map(function (s) { return M.ligneSeance(s, jour.d); }).join("") + "</ul>"
+      ? '<ul class="tickets">' + jour.s.map(function (s) { return M.ligneSeance(s, jour.d); }).join("") + "</ul>"
       : '<p class="vide">Pas de séance au programme pour l\'instant.</p>';
     var quand = jour ? (jour.i === 0 ? "Ce soir" : M.labelJour(jour.d, jour.i)) : "Programme";
 
-    var mini = D.films.slice(0, 6).map(function (f) {
-      return '<a class="vignette rev" href="' + M.root + "film/?id=" + esc(f.id) + '">' + M.affiche(f) + "</a>";
+    var vedette = (jour ? jour.s[0].film : D.films[0]);
+    var mini = D.films.map(function (f) {
+      return '<a class="carte" href="' + M.root + "film/?id=" + esc(f.id) + '">' + M.affiche(f) +
+        '<span class="carte__legende"><b>' + esc(f.titre) + "</b>" + esc(f.realisateur) + "</span></a>";
     }).join("");
 
     app.innerHTML =
       '<section class="hero">' +
-      '<h1 class="hero__mot" aria-label="' + esc(C.nomLong) + '">' +
-      '<span class="hero__ligne">Mini</span><span class="hero__ligne hero__ligne--2">mum</span></h1>' +
-      '<div class="hero__cote">' +
+      '<div class="hero__texte">' +
+      '<p class="etiquette">Cinéma d\'art et d\'essai</p>' +
+      '<h1 class="hero__mot"><span class="visually-hidden">' + esc(C.nomLong) + " — </span>Un écran.<br>Pas <em>plus.</em></h1>" +
       '<p class="hero__slogan">' + esc(C.slogan) + "</p>" +
-      '<a class="bouton bouton--grand" href="' + M.root + 'programme/">Voir le programme</a>' +
-      "</div></section>" +
+      '<div class="hero__actions"><a class="bouton bouton--grand" href="' + M.root + 'programme/">Voir le programme</a>' +
+      '<a class="bouton bouton--creux bouton--grand" href="' + M.root + 'infos/">Venir</a></div>' +
+      "</div>" +
+      '<div class="hero__scene" aria-hidden="false"><span class="soleil"></span>' +
+      '<a class="hero__affiche" href="' + M.root + "film/?id=" + esc(vedette.id) + '">' + M.affiche(vedette) + "</a>" +
+      '<span class="pastille">' + esc(quand) + "<br>à l'écran</span></div></section>" +
 
-      '<section class="bloc">' +
-      '<div class="bloc__tete"><h2>' + esc(quand) + "</h2>" +
-      (jour ? '<p>' + esc(M.dateLongue(jour.d)) + "</p>" : "") + "</div>" + ce + "</section>" +
+      '<section class="section"><div class="section__tete"><h2>' + esc(quand) + "<span>.</span></h2>" +
+      (jour ? "<p>" + esc(M.dateLongue(jour.d)) + "</p>" : "") + "</div>" + ce + "</section>" +
 
-      '<section class="manifeste">' +
-      '<p class="manifeste__texte rev">Moins de salles, moins de bruit, moins de pub. <strong>Plus de films.</strong></p>' +
-      '<ul class="chiffres">' +
-      '<li class="rev"><b>1</b><span>écran</span></li>' +
-      '<li class="rev"><b>VO</b><span>sous-titrée français</span></li>' +
-      '<li class="rev"><b>0</b><span>publicité</span></li>' +
-      "</ul></section>" +
+      '<section class="manifeste"><p class="manifeste__texte rev">Moins de salles, moins de bruit, moins de pub. <em>Plus de films.</em></p>' +
+      '<ul class="ronds">' +
+      '<li class="rond rond--orange rev"><b>1</b><span>écran</span></li>' +
+      '<li class="rond rond--creux rev"><b>VO</b><span>sous-titrée</span></li>' +
+      '<li class="rond rond--paper rev"><b>0</b><span>pub</span></li></ul></section>' +
 
-      '<section class="bloc">' +
-      '<div class="bloc__tete"><h2>À l\'affiche</h2><a class="lien" href="' + M.root + 'films/">Tous les films →</a></div>' +
-      '<div class="vignettes">' + mini + "</div></section>" +
+      '<section class="section section--bord"><div class="section__tete"><h2>À l\'affiche<span>.</span></h2><a class="lien" href="' + M.root + 'films/">Tous les films →</a></div>' +
+      '<div class="rail">' + mini + "</div></section>" +
 
-      '<section class="bloc">' +
-      '<div class="bloc__tete"><h2>Rendez-vous</h2></div>' +
-      '<ul class="rdv">' + D.rendezVous.map(function (r, i) {
-        return '<li class="rdv__case rev"><span>0' + (i + 1) + "</span><h3>" + esc(r.titre) + "</h3><p>" + esc(r.texte) + "</p></li>";
+      '<section class="section"><div class="section__tete"><h2>Rendez-vous<span>.</span></h2></div>' +
+      '<ul class="arches">' + D.rendezVous.map(function (r, i) {
+        return '<li class="arche rev"><span>0' + (i + 1) + "</span><h3>" + esc(r.titre) + "</h3><p>" + esc(r.texte) + "</p></li>";
       }).join("") + "</ul></section>";
   };
 
@@ -73,7 +74,7 @@
     if (h !== null && +h >= 0 && +h < 7) actif = +h;
 
     app.innerHTML = titre("Programme", "Les sept prochains jours.") +
-      '<div class="jours" role="tablist"></div><div class="bloc" id="jour"></div>';
+      '<div class="jours" role="tablist"></div><div class="section" id="jour"></div>';
     var onglets = app.querySelector(".jours");
     var zone = app.querySelector("#jour");
 
@@ -90,10 +91,10 @@
       Array.prototype.forEach.call(onglets.children, function (b, k) {
         b.setAttribute("aria-selected", k === i ? "true" : "false");
       });
-      zone.innerHTML = '<div class="bloc__tete"><h2>' + esc(M.JOURS[d.getDay()].replace(/^./, function (c) { return c.toUpperCase(); })) +
-        "</h2><p>" + esc(M.dateLongue(d)) + "</p></div>" +
+      zone.innerHTML = '<div class="section__tete"><h2>' + esc(M.JOURS[d.getDay()].replace(/^./, function (c) { return c.toUpperCase(); })) +
+        "<span>.</span></h2><p>" + esc(M.dateLongue(d)) + "</p></div>" +
         (s.length
-          ? '<ul class="seances">' + s.map(function (x) { return M.ligneSeance(x, d); }).join("") + "</ul>"
+          ? '<ul class="tickets">' + s.map(function (x) { return M.ligneSeance(x, d); }).join("") + "</ul>"
           : '<p class="vide">Le Minimum est fermé ce jour-là. À demain.</p>');
     }
     onglets.addEventListener("click", function (e) {
@@ -106,9 +107,9 @@
   /* -------------------------- Films -------------------------- */
   P.films = function (app) {
     app.innerHTML = titre("Films", "Tout ce qui passe au Minimum.") +
-      '<div class="vignettes vignettes--grand">' + D.films.map(function (f) {
-        return '<a class="vignette rev" href="' + M.root + "film/?id=" + esc(f.id) + '">' + M.affiche(f) +
-          '<span class="vignette__legende"><b>' + esc(f.titre) + "</b>" + esc(f.realisateur) + ", " + f.annee + "</span></a>";
+      '<div class="galerie">' + D.films.map(function (f) {
+        return '<a class="carte rev" href="' + M.root + "film/?id=" + esc(f.id) + '">' + M.affiche(f) +
+          '<span class="carte__legende"><b>' + esc(f.titre) + "</b>" + esc(f.realisateur) + ", " + f.annee + "</span></a>";
       }).join("") + "</div>";
   };
 
@@ -117,7 +118,7 @@
     var f = M.filmParId(new URLSearchParams(location.search).get("id"));
     if (!f) {
       app.innerHTML = titre("Film introuvable", "Il a peut-être quitté l'affiche.") +
-        '<div class="bloc"><a class="bouton" href="' + M.root + 'films/">Voir tous les films</a></div>';
+        '<div class="section"><a class="bouton" href="' + M.root + 'films/">Voir tous les films</a></div>';
       return;
     }
     document.title = f.titre + " — " + C.nomLong;
@@ -137,26 +138,25 @@
       '<p class="fiche__synopsis">' + esc(f.synopsis) + "</p>" +
       (f.bandeAnnonce ? '<a class="lien fiche__ba" href="' + esc(f.bandeAnnonce) + '" target="_blank" rel="noopener noreferrer">Voir la bande-annonce ↗</a>' : "") +
       "</div></article>" +
-      '<section class="bloc"><div class="bloc__tete"><h2>Séances</h2></div>' +
+      '<section class="section"><div class="section__tete"><h2>Séances<span>.</span></h2></div>' +
       (seances.length
-        ? '<ul class="seances seances--film">' + seances.map(function (s) {
-            return '<li class="seance"><span class="seance__jour">' + esc(M.labelJour(s.d, s.i)) + " " + s.d.getDate() + "." + ("0" + (s.d.getMonth() + 1)).slice(-2) +
-              '</span><span class="seance__heure">' + M.heureAffichee(s.h) + '</span><span class="seance__langue">' + esc(f.langue) +
-              '</span><a class="bouton" href="' + esc(M.lienReserver(f, s.d, s.h)) + '">Réserver</a></li>';
+        ? '<ul class="tickets">' + seances.map(function (s) {
+            return '<li class="ticket"><div class="ticket__haut"><span class="ticket__jour">' + esc(M.labelJour(s.d, s.i)) + " " + s.d.getDate() + "." + ("0" + (s.d.getMonth() + 1)).slice(-2) +
+              '</span><span class="ticket__heure">' + M.heureAffichee(s.h) + '</span><span class="ticket__meta">' + esc(f.langue) +
+              '</span></div><div class="ticket__talon"><a class="bouton" href="' + esc(M.lienReserver(f, s.d, s.h)) + '">Réserver</a></div></li>';
           }).join("") + "</ul>"
         : '<p class="vide">Pas de séance cette semaine.</p>') +
       "</section>" +
-      '<div class="bloc"><a class="lien" href="' + M.root + 'films/">← Tous les films</a></div>';
+      '<div class="section section--fin"><a class="lien" href="' + M.root + 'films/">← Tous les films</a></div>';
   };
 
   /* -------------------------- Tarifs ------------------------- */
   P.tarifs = function (app) {
     app.innerHTML = titre("Tarifs", "Simples, comme le reste.") +
       '<ul class="tarifs">' + D.tarifs.map(function (t) {
-        return '<li class="tarif rev"><div><h3>' + esc(t.nom) + "</h3>" + (t.note ? "<p>" + esc(t.note) + "</p>" : "") +
-          '</div><b class="tarif__prix">' + esc(t.prix) + "</b></li>";
+        return '<li class="tarif rev"><b class="tarif__prix">' + esc(t.prix) + '</b><div><h3>' + esc(t.nom) + "</h3>" + (t.note ? "<p>" + esc(t.note) + "</p>" : "") + "</div></li>";
       }).join("") + "</ul>" +
-      '<section class="bloc"><div class="bloc__tete"><h2>Réserver</h2></div>' +
+      '<section class="section"><div class="section__tete"><h2>Réserver<span>.</span></h2></div>' +
       '<p class="texte">Réservez votre place pour une séance depuis le programme, ou écrivez-nous : ' +
       '<a class="souligne" href="mailto:' + esc(C.courriel) + '">' + esc(C.courriel) + "</a>.</p></section>";
   };
@@ -164,8 +164,8 @@
   /* ------------------------- Location ------------------------ */
   P.location = function (app) {
     app.innerHTML = titre("Location", "Une salle pour vous.") +
-      '<section class="bloc"><p class="texte texte--grand">' + esc(D.location.texte) + "</p></section>" +
-      '<section class="bloc"><div class="bloc__tete"><h2>Votre demande</h2></div>' +
+      '<section class="section"><p class="texte texte--grand">' + esc(D.location.texte) + "</p></section>" +
+      '<section class="section"><div class="section__tete"><h2>Votre demande<span>.</span></h2></div>' +
       '<form class="form" id="formLoc" novalidate>' +
       '<label>Nom<input name="nom" required autocomplete="name"></label>' +
       '<label>Courriel<input name="courriel" type="email" required autocomplete="email"></label>' +

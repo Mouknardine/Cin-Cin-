@@ -97,11 +97,10 @@
     var el = document.getElementById("entete");
     el.innerHTML =
       '<div class="entete">' +
-      '<a class="entete__nom" href="' + (root || "./") + '">' + esc(C.nom) + "</a>" +
+      '<a class="logo" href="' + (root || "./") + '" aria-label="' + esc(C.nomLong) + ', accueil"><i class="logo__rond"></i><span>minimum</span></a>' +
       '<button class="entete__bouton" type="button" aria-expanded="false" aria-controls="menu">Menu</button>' +
       '<nav class="nav" id="menu" aria-label="Navigation principale"><ul>' + links + "</ul></nav>" +
-      "</div>" +
-      '<div class="regle" aria-hidden="true"></div>';
+      "</div>";
     var b = el.querySelector(".entete__bouton");
     b.addEventListener("click", function () {
       var o = document.body.classList.toggle("menu-ouvert");
@@ -113,30 +112,32 @@
   /* ---------- Pied de page ---------- */
   function footer() {
     var el = document.getElementById("pied");
-    var social = [];
-    if (C.instagram) social.push('<a class="pied__case" href="' + esc(C.instagram) + '" target="_blank" rel="noopener noreferrer">Instagram</a>');
-    if (C.facebook) social.push('<a class="pied__case" href="' + esc(C.facebook) + '" target="_blank" rel="noopener noreferrer">Facebook</a>');
+    var liens = [];
+    if (C.instagram) liens.push('<a href="' + esc(C.instagram) + '" target="_blank" rel="noopener noreferrer">Instagram</a>');
+    if (C.facebook) liens.push('<a href="' + esc(C.facebook) + '" target="_blank" rel="noopener noreferrer">Facebook</a>');
     el.innerHTML =
       '<footer class="pied">' +
-      '<p class="pied__case pied__case--nom">' + esc(C.nomLong) + "</p>" +
-      '<p class="pied__case">' + C.adresse.map(esc).join(", ") + "</p>" +
-      (C.telephone ? '<a class="pied__case" href="tel:' + esc(C.telephone.replace(/\s/g, "")) + '">' + esc(C.telephone) + "</a>" : "") +
-      '<a class="pied__case" href="mailto:' + esc(C.courriel) + '">' + esc(C.courriel) + "</a>" +
-      social.join("") +
-      '<a class="pied__case pied__case--soeur" href="https://www.zinema.ch" target="_blank" rel="noopener noreferrer">Zinéma, la salle d\'à côté →</a>' +
-      "</footer>";
+      '<p class="pied__mot" aria-hidden="true">minimum<span>.</span></p>' +
+      '<div class="pied__infos">' +
+      "<p>" + C.adresse.map(esc).join("<br>") + "</p>" +
+      '<p><a href="mailto:' + esc(C.courriel) + '">' + esc(C.courriel) + "</a>" +
+      (C.telephone ? '<br><a href="tel:' + esc(C.telephone.replace(/\s/g, "")) + '">' + esc(C.telephone) + "</a>" : "") + "</p>" +
+      (liens.length ? "<p>" + liens.join("<br>") + "</p>" : "") +
+      '<p><a class="pied__soeur" href="https://www.zinema.ch" target="_blank" rel="noopener noreferrer">Zinéma, la salle d\'à côté ↗</a></p>' +
+      "</div></footer>";
   }
 
-  /* ---------- Ligne de séance (tableau horaire) ---------- */
+  /* ---------- Billet de séance : une carte perforée ---------- */
   function ligneSeance(s, d) {
     var f = s.film;
     return (
-      '<li class="seance">' +
-      '<span class="seance__heure">' + heureAffichee(s.heure) + "</span>" +
-      '<a class="seance__titre" href="' + root + "film/?id=" + esc(f.id) + '">' + esc(f.titre) +
-      '<small>' + esc(f.realisateur) + ", " + f.annee + "</small></a>" +
-      '<span class="seance__langue">' + esc(f.langue) + "</span>" +
-      '<a class="bouton" href="' + esc(lienReserver(f, d, s.heure)) + '">Réserver</a>' +
+      '<li class="ticket">' +
+      '<div class="ticket__haut">' +
+      '<span class="ticket__heure">' + heureAffichee(s.heure) + "</span>" +
+      '<a class="ticket__titre" href="' + root + "film/?id=" + esc(f.id) + '">' + esc(f.titre) + "</a>" +
+      '<span class="ticket__meta">' + esc(f.realisateur) + " · " + esc(f.langue) + "</span>" +
+      "</div>" +
+      '<div class="ticket__talon"><a class="bouton" href="' + esc(lienReserver(f, d, s.heure)) + '">Réserver</a></div>' +
       "</li>"
     );
   }
