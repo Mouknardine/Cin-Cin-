@@ -1137,3 +1137,5 @@ a.m-seance:hover > *, a.m-seance:focus-visible > * { background: var(--case-fond
   .icone__nom { font-size: 0.66rem; letter-spacing: 0.06em; line-height: 1; }
   .icone.is-ouvert::after { content: ""; position: absolute; left: 50%; bottom: 0.28rem; width: 1.1rem; height: 3px; background: currentColor; transform: translateX(-50%); }
 }
+
+.credit { font-size: 0.8rem !important; margin-top: 0.8rem; }
