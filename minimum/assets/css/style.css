@@ -1220,3 +1220,36 @@ html.lumiere-fondu, html.lumiere-fondu *, html.lumiere-fondu *::before, html.lum
 .site-footer__lumiere { font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; font-family: var(--font-display); }
 .m-lumiere { width: 100%; }
 .site-footer__lumiere { font-size: var(--taille-texte); line-height: 1.35; }
+
+/* ============================================================
+   Radio sur téléphone : un vrai lecteur (voir radioMobile)
+   ============================================================ */
+.rm-hero { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem; min-height: 21rem; padding: 0.9rem; color: #fff; background: var(--ink); overflow: hidden; }
+.rm-hero__haut { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.rm-voyant { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; padding: 0.3rem 0.6rem; background: rgba(16, 15, 12, 0.82); font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; }
+.rm-voyant .m-direct { font-size: 0.8rem; }
+.rm-fond { padding: 0.5rem 0.8rem; min-height: 2.75rem; background: var(--paper); color: var(--ink); font-family: var(--font-display); font-weight: 900; text-transform: uppercase; font-size: 0.8rem; border: var(--ligne) solid var(--ink); }
+.rm-now__label { font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.75rem; opacity: 0.9; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6); }
+.rm-now__titre { margin-top: 0.3rem; font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; line-height: 0.92; font-size: clamp(2.2rem, 12vw, 3.4rem); overflow-wrap: anywhere; text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55); }
+.rm-now__artiste { margin-top: 0.5rem; font-weight: 700; font-size: 1.05rem; text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6); }
+.rm-eq { display: flex; align-items: flex-end; gap: 3px; height: 2.2rem; }
+.rm-eq i { flex: 1; height: 10%; background: #fff; opacity: 0.9; }
+.rm-eq.is-jeu i { animation: eq 0.9s var(--d, 0s) ease-in-out infinite alternate; }
+.rm-prog { position: relative; height: 1.5rem; background: var(--paper); cursor: pointer; touch-action: none; }
+.rm-prog i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--red); }
+.rm-prog:focus-visible { outline: var(--ligne) solid var(--ink); outline-offset: -4px; }
+.rm-temps { display: flex; justify-content: space-between; padding: 0.35rem 0.9rem; font-size: 0.85rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.rm-ctrl { display: flex; gap: var(--ligne); background: var(--ink); }
+.rm-b { flex: 1 1 0; display: flex; align-items: center; justify-content: center; min-height: 4.6rem; background: var(--paper); color: var(--ink); }
+.rm-b--play { flex: 2 1 0; }
+.rm-b svg { display: block; }
+.rm-tabs { position: sticky; top: calc(3.5rem - var(--ligne)); z-index: 5; }
+.rm-tabs .m-filtre { flex: 1 1 0; min-height: 3rem; }
+.rm-liste { display: flex; flex-direction: column; gap: var(--ligne); background: var(--ink); }
+.rm-piste { display: flex; align-items: center; gap: 0.9rem; width: 100%; min-height: 4rem; padding: 0.7rem 0.9rem; background: var(--paper); text-align: left; font-weight: 800; font-size: 1rem; }
+.rm-piste b { font-family: var(--font-display); font-weight: 900; min-width: 1.2rem; }
+.rm-piste small { display: block; font-weight: 400; font-size: 0.85rem; }
+.rm-piste.is-actif, .rm-piste.is-actif:hover { background: var(--ink); color: var(--paper); }
+#rm-panneau .m-champ { padding: 0.8rem; }
+.rm-prog { height: 1.1rem; background: color-mix(in srgb, var(--ink) 18%, var(--paper)); }
+.rm-prog::after { content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: var(--ligne); background: var(--ink); opacity: 0; }
