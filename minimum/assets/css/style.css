@@ -965,7 +965,7 @@ a.m-seance:hover > *, a.m-seance:focus-visible > * { background: var(--case-fond
 
 /* Ordinateur : un vrai bureau aux fenêtres libres */
 @media (min-width: 900px) {
-  .bureau { display: block; height: calc(100dvh - 4.5rem - var(--ligne)); min-height: 38rem; overflow: hidden; background: var(--ink) var(--fond) center / cover; }
+  .bureau { display: block; height: calc(100dvh - 4.5rem - var(--ligne)); min-height: 38rem; overflow: hidden; background: #100f0c; }
   .bureau__icones { position: absolute; left: 0.9rem; top: 0.9rem; flex-direction: column; width: 7.5rem; z-index: 5; border: var(--ligne) solid var(--ink); }
   .icone { flex: none; }
   .icone__glyphe { font-size: 2.2rem; }
@@ -1087,3 +1087,33 @@ a.m-seance:hover > *, a.m-seance:focus-visible > * { background: var(--case-fond
 .m-seance__heure--jour { flex-direction: column; gap: 0.1rem; flex-basis: 6.5rem; }
 .m-seance__heure--jour span { font-weight: 700; font-size: 0.85em; opacity: 0.75; }
 .skip:focus { position: fixed; z-index: 100; left: 0.5rem; top: 0.5rem; width: auto; height: auto; clip: auto; padding: 0.8rem 1rem; background: var(--ink); color: var(--paper); font-weight: 800; }
+
+/* ---- Radio « ultra clean » : une seule fenêtre au départ, barres de titre d'encre ---- */
+.fen__barre { background: var(--ink); color: var(--paper); }
+.fen__barre .fen__bouton { background: var(--ink); color: var(--paper); border-left-color: var(--paper); }
+.fen__barre .fen__bouton:hover, .fen__barre .fen__bouton:focus-visible { background: var(--paper); color: var(--ink); }
+.bureau::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0.16; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.fen { z-index: 10; }
+.icone { background: rgba(237, 237, 237, 0.92); }
+.icone__glyphe { font-size: 1.8rem; }
+.icone__nom { font-size: 0.8rem; }
+.barre-taches__start { padding: 0.35rem 1rem; font-size: 1rem; }
+.onglet { font-size: 0.8rem; }
+.barre-taches__heure { font-size: 1rem; }
+@media (min-width: 900px) {
+  .bureau__icones { width: 6.2rem; }
+  .bureau__icones .icone { padding: 0.5rem 0.2rem; }
+}
+.fonds { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--ligne); background: var(--ink); }
+.fond { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.5rem; background: var(--paper); font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: 0.7rem; text-align: left; }
+.fond i { display: block; aspect-ratio: 16 / 10; border: var(--ligne) solid var(--ink); }
+.fond.is-actif { background: var(--ink); color: var(--paper); }
+.fond.is-actif i { border-color: var(--paper); }
+.fond__import { width: 100%; font-size: 0.9rem; }
+@media (max-width: 899px) { #fen-reglages, [data-ouvre="reglages"] { display: none !important; } }
+.fonds { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.fond { min-width: 0; }
+.fond span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#fen-reglages .m-cell { padding: 0.6rem 0.8rem; }
+#fen-reglages .m-cell__label { font-size: 0.8rem; }
+.fonds::after { content: ""; grid-column: span 2; background: var(--paper); }

@@ -17,9 +17,27 @@
   var D = M.D, C = D.config, K = M.K, esc = M.esc, R = M.root;
   var NOMS = ["", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
+
+  /* ---------- Fonds d'écran : tous générés (aucune image à charger), plus la salle ---------- */
+  var FONDS = [
+    { id: "salle", nom: "La salle", css: "url(SALLE) center / cover" },
+    { id: "noir", nom: "Noir", css: "#100f0c" },
+    { id: "bleu", nom: "Bleu", css: "#2f49c2" },
+    { id: "rouge", nom: "Rouge", css: "#c22a1d" },
+    { id: "rose", nom: "Rose fluo", css: "#ff00a0" },
+    { id: "mondrian", nom: "Mondrian", css: "linear-gradient(#c22a1d,#c22a1d) 0 0 / 34% 52% no-repeat, linear-gradient(#f7c600,#f7c600) 100% 0 / 26% 24% no-repeat, linear-gradient(#2f49c2,#2f49c2) 100% 100% / 36% 36% no-repeat, linear-gradient(#100f0c,#100f0c) 34% 0 / 1.1% 100% no-repeat, linear-gradient(#100f0c,#100f0c) 0 52% / 74% 1.6% no-repeat, linear-gradient(#100f0c,#100f0c) 74% 0 / 1.1% 100% no-repeat, linear-gradient(#100f0c,#100f0c) 74% 24% / 26% 1.6% no-repeat, #ededed" },
+    { id: "brume", nom: "Brume", css: "radial-gradient(60% 55% at 18% 28%, #ff4d1a, transparent 70%), radial-gradient(55% 60% at 82% 22%, #2f49c2, transparent 70%), radial-gradient(60% 60% at 62% 92%, #ff00a0, transparent 70%), #100f0c" },
+    { id: "aube", nom: "Aube", css: "radial-gradient(60% 60% at 15% 20%, #ffd3b8, transparent 70%), radial-gradient(55% 55% at 85% 30%, #cdd6ff, transparent 70%), radial-gradient(60% 60% at 50% 95%, #ffc6e4, transparent 70%), #f4efe9" },
+    { id: "trame", nom: "Trame", css: "radial-gradient(#100f0c 21%, transparent 23%) 0 0 / 16px 16px, #ff4d1a" },
+    { id: "nuit", nom: "Nuit", css: "radial-gradient(70% 70% at 50% 120%, #2f49c2, transparent 70%), radial-gradient(50% 50% at 20% 10%, #3b2a7a, transparent 70%), #0a0a12" },
+  ];
+  var CLE = "minimum-fond";
+  function lireFond() { try { return localStorage.getItem(CLE); } catch (e) { return null; } }
+  function ecrireFond(v) { try { localStorage.setItem(CLE, v); } catch (e) {} }
+
   function fenetre(id, titre, corps, pos) {
     return '<section class="fen" id="fen-' + id + '" data-id="' + id + '" style="--x:' + pos[0] + ";--y:" + pos[1] + ";--l:" + pos[2] + '" aria-label="' + esc(titre) + '">' +
-      '<header class="fen__barre ' + K.classeVive() + '"><span class="fen__titre">' + esc(titre) + "</span>" +
+      '<header class="fen__barre"><span class="fen__titre">' + esc(titre) + "</span>" +
       '<button type="button" class="fen__bouton" data-act="reduire" aria-label="Réduire">_</button>' +
       '<button type="button" class="fen__bouton" data-act="fermer" aria-label="Fermer">×</button></header>' +
       '<div class="fen__corps">' + corps + "</div></section>";
@@ -55,17 +73,22 @@
     var mail = '<form class="fen__form" id="form-mail" novalidate><div class="m-champ"><label for="rm-mail">Courriel</label><input id="rm-mail" type="email" required autocomplete="email" placeholder="vous@exemple.ch"></div>' +
       '<button type="submit" class="m-action ' + K.classe() + '" style="width:100%">Recevoir le programme</button><p class="m-etat" id="rm-etat" role="status"></p></form>';
 
-    var icones = [["lecteur", "♪", "Musique"], ["grille", "▦", "Grille"], ["apropos", "i", "À propos"], ["mail", "@", "Programme"]];
+    var reglages = '<div class="m-cell"><span class="m-cell__label">Fond d\'écran</span></div><div class="fonds" id="fonds">' +
+      FONDS.map(function (f) { return '<button type="button" class="fond" data-fond="' + f.id + '" aria-label="' + esc(f.nom) + '" title="' + esc(f.nom) + '"><i style="background:' + f.css.replace("SALLE", new URL(R + "assets/img/salle.jpg", location.href).href) + '"></i><span>' + esc(f.nom) + "</span></button>"; }).join("") + "</div>" +
+      '<label class="m-action fond__import ' + K.classe() + '" style="cursor:pointer">Importer mon image<input type="file" accept="image/*" id="fond-fichier" hidden></label>';
+
+    var icones = [["lecteur", "♪", "Musique"], ["grille", "▦", "Grille"], ["apropos", "i", "À propos"], ["mail", "@", "Programme"], ["reglages", "⚙", "Réglages"]];
 
     app.innerHTML =
-      '<div class="mondrian"><div class="bureau" id="bureau" style="--fond:url(' + new URL(R + 'assets/img/salle.jpg', location.href).href + ')">' +
+      '<div class="mondrian"><div class="bureau" id="bureau">' +
       '<nav class="bureau__icones" aria-label="Fenêtres">' + icones.map(function (i) {
         return '<button type="button" class="icone ' + K.classe() + '" data-ouvre="' + i[0] + '"><span class="icone__glyphe">' + i[1] + '</span><span class="icone__nom">' + i[2] + "</span></button>";
       }).join("") + "</nav>" +
-      fenetre("lecteur", "Lecteur — " + C.radioNom, lecteur, ["10rem", "1rem", "24rem"]) +
-      fenetre("grille", "La grille de la semaine", grilleHTML, ["36rem", "1rem", "30rem"]) +
-      fenetre("apropos", "À propos", apropos, ["14rem", "5rem", "22rem"]) +
-      fenetre("mail", "Programme par courriel", mail, ["40rem", "7rem", "22rem"]) +
+      fenetre("lecteur", "Lecteur — " + C.radioNom, lecteur, ["12rem", "2.5rem", "24rem"]) +
+      fenetre("grille", "La grille de la semaine", grilleHTML, ["38rem", "2rem", "30rem"]) +
+      fenetre("apropos", "À propos", apropos, ["16rem", "6rem", "22rem"]) +
+      fenetre("mail", "Programme par courriel", mail, ["42rem", "8rem", "22rem"]) +
+      fenetre("reglages", "Réglages", reglages, ["40rem", "3rem", "28rem"]) +
       '<div class="barre-taches"><button type="button" class="barre-taches__start" id="start">Start</button>' +
       '<div class="barre-taches__onglets" id="onglets"></div><span class="barre-taches__heure" id="horloge"></span></div></div></div>';
 
@@ -90,9 +113,32 @@
       majOnglets();
     }
     Array.prototype.forEach.call(fens, function (f) { etat[f.dataset.id] = "ouvert"; f.style.zIndex = ++z; });
-    /* Au départ : le lecteur et la grille. Le reste attend dans la barre du bas. */
-    if (window.matchMedia("(min-width: 900px)").matches) ["apropos", "mail"].forEach(function (i) { etat[i] = "reduit"; document.getElementById("fen-" + i).classList.add("is-reduite"); });
+    /* Au départ : seulement le lecteur — rien d'autre à l'écran. Le reste s'ouvre par les icônes. */
+    var grand = window.matchMedia("(min-width: 900px)").matches;
+    ["grille", "apropos", "mail", "reglages"].forEach(function (i) {
+      if (i === "reglages" || grand) { etat[i] = "ferme"; document.getElementById("fen-" + i).hidden = true; }
+    });
     majOnglets();
+
+    /* ---- Fond d'écran ---- */
+    var salleUrl = new URL(R + "assets/img/salle.jpg", location.href).href;
+    function poseFond(id) {
+      var f = FONDS.filter(function (x) { return x.id === id; })[0] || FONDS[0];
+      bureau.style.background = f.css.replace("SALLE", salleUrl);
+      Array.prototype.forEach.call(document.querySelectorAll(".fond"), function (b) { b.classList.toggle("is-actif", b.dataset.fond === f.id); });
+      bureau.classList.toggle("is-clair", f.id === "mondrian" || f.id === "aube");
+    }
+    poseFond(lireFond() || "salle");
+    document.getElementById("fonds").addEventListener("click", function (e) {
+      var b = e.target.closest(".fond"); if (!b) return;
+      poseFond(b.dataset.fond); ecrireFond(b.dataset.fond);
+    });
+    document.getElementById("fond-fichier").addEventListener("change", function (e) {
+      var fic = e.target.files && e.target.files[0]; if (!fic) return;
+      var url = URL.createObjectURL(fic);
+      bureau.style.background = "url(" + url + ") center / cover";
+      Array.prototype.forEach.call(document.querySelectorAll(".fond"), function (b) { b.classList.remove("is-actif"); });
+    });
 
     bureau.addEventListener("click", function (e) {
       var b = e.target.closest("button"); if (!b) return;
