@@ -51,6 +51,7 @@
     var lecteur =
       '<div class="lec__ecran"><div class="lec__titre"><span id="lec-titre">' + esc(pistes[0].titre) + '</span><small id="lec-artiste">' + esc(pistes[0].artiste) + "</small></div>" +
       '<div class="lec__eq" id="lec-eq" aria-hidden="true">' + new Array(16 + 1).join("<i></i>") + "</div></div>" +
+      '<div class="lec__video" id="lec-video"><div id="yt"></div></div>' +
       '<div class="lec__live ' + K.classe() + '">' + M.voyant(a) + "<span>" + (a.emission ? esc(a.emission.titre) : esc(C.radioNom)) + "</span></div>" +
       '<div class="lec__ctrl"><button type="button" class="lec__b ' + K.classe() + '" data-c="prec" aria-label="Précédent">⏮</button>' +
       '<button type="button" class="lec__b lec__b--play ' + K.classe() + '" data-c="play" id="lec-play" aria-label="Lecture">▶</button>' +
@@ -84,7 +85,7 @@
       '<nav class="bureau__icones" aria-label="Fenêtres">' + icones.map(function (i) {
         return '<button type="button" class="icone ' + K.classe() + '" data-ouvre="' + i[0] + '"><span class="icone__glyphe">' + i[1] + '</span><span class="icone__nom">' + i[2] + "</span></button>";
       }).join("") + "</nav>" +
-      fenetre("lecteur", "Lecteur — " + C.radioNom, lecteur, ["12rem", "2.5rem", "24rem"]) +
+      fenetre("lecteur", "Lecteur — " + C.radioNom, lecteur, ["12rem", "1rem", "26rem"]) +
       fenetre("grille", "La grille de la semaine", grilleHTML, ["38rem", "2rem", "30rem"]) +
       fenetre("apropos", "À propos", apropos, ["16rem", "6rem", "22rem"]) +
       fenetre("mail", "Programme par courriel", mail, ["42rem", "8rem", "22rem"]) +
@@ -172,26 +173,64 @@
     function tic() { var n = new Date(); h.textContent = ("0" + n.getHours()).slice(-2) + ":" + ("0" + n.getMinutes()).slice(-2); }
     tic(); setInterval(tic, 15000);
 
-    /* ---- Lecteur ---- */
+    /* ---- Lecteur : fichiers audio (url) ou vidéos YouTube (yt) ---- */
     var audio = new Audio(); audio.preload = "none";
     var cur = 0, vol = 6, jouant = false;
     var eq = document.getElementById("lec-eq").children;
     var play = document.getElementById("lec-play");
     var statut = document.getElementById("lec-statut");
-    function barreVol() { var s = ""; for (var i = 0; i < 10; i++) s += i < vol ? "■" : "□"; document.getElementById("lec-vol").textContent = s; audio.volume = vol / 10; }
+    var yt = null, ytPret = false, enAttente = null;
+
     function piste() { return pistes[cur]; }
+    function barreVol() {
+      var s = ""; for (var i = 0; i < 10; i++) s += i < vol ? "■" : "□";
+      document.getElementById("lec-vol").textContent = s;
+      audio.volume = vol / 10; if (yt && ytPret) yt.setVolume(vol * 10);
+    }
     function maj() {
       document.getElementById("lec-titre").textContent = piste().titre;
       document.getElementById("lec-artiste").textContent = piste().artiste;
       Array.prototype.forEach.call(document.querySelectorAll(".lec__piste"), function (b, i) { b.classList.toggle("is-actif", i === cur); });
       play.textContent = jouant ? "❚❚" : "▶";
       document.getElementById("lec-eq").classList.toggle("is-jeu", jouant);
-      var dispo = !!(piste().url || C.radioFlux);
+      var dispo = !!(piste().yt || piste().url || C.radioFlux);
       statut.textContent = (jouant ? "Lecture" : "Pause") + " — piste " + (cur + 1) + " sur " + pistes.length + (dispo ? "" : " — bientôt en ligne");
     }
+    function initYT() {
+      var premier = pistes.filter(function (p) { return p.yt; })[0];
+      if (!premier || !document.getElementById("yt")) return;
+      yt = new YT.Player("yt", {
+        host: "https://www.youtube-nocookie.com", width: "100%", height: "100%",
+        videoId: piste().yt || premier.yt,
+        playerVars: { playsinline: 1, rel: 0, modestbranding: 1 },
+        events: {
+          onReady: function () { ytPret = true; yt.setVolume(vol * 10); if (enAttente !== null) { var i = enAttente; enAttente = null; lance(i); } },
+          onStateChange: function (e) {
+            if (e.data === 0) lance(cur + 1);
+            else if (e.data === 1) { jouant = true; maj(); }
+            else if (e.data === 2) { jouant = false; maj(); }
+          },
+        },
+      });
+    }
+    if (pistes.some(function (p) { return p.yt; })) {
+      if (window.YT && window.YT.Player) initYT();
+      else { window.onYouTubeIframeAPIReady = initYT; var sc = document.createElement("script"); sc.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(sc); }
+    }
+    document.getElementById("lec-video").classList.toggle("is-vide", !pistes[0].yt);
+
+    function arret() { try { audio.pause(); } catch (e) {} if (yt && ytPret) { try { yt.pauseVideo(); } catch (e) {} } }
     function lance(i) {
       cur = (i + pistes.length) % pistes.length;
-      var src = piste().url || C.radioFlux;
+      var p = piste();
+      document.getElementById("lec-video").classList.toggle("is-vide", !p.yt);
+      if (p.yt) {
+        audio.pause();
+        if (!ytPret) { enAttente = cur; maj(); return; }
+        yt.loadVideoById(p.yt); jouant = true; maj(); return;
+      }
+      if (yt && ytPret) yt.pauseVideo();
+      var src = p.url || C.radioFlux;
       if (!src) { jouant = false; maj(); return; }
       audio.src = src; audio.play().then(function () { jouant = true; maj(); }).catch(function () { jouant = false; maj(); });
     }
@@ -199,7 +238,11 @@
     document.getElementById("fen-lecteur").addEventListener("click", function (e) {
       var b = e.target.closest("button"); if (!b) return;
       if (b.dataset.i) { lance(+b.dataset.i); }
-      else if (b.dataset.c === "play") { if (jouant) { audio.pause(); jouant = false; maj(); } else lance(cur); }
+      else if (b.dataset.c === "play") {
+        if (jouant) { arret(); jouant = false; maj(); }
+        else if (piste().yt && yt && ytPret) { yt.playVideo(); jouant = true; maj(); }
+        else lance(cur);
+      }
       else if (b.dataset.c === "prec") lance(cur - 1);
       else if (b.dataset.c === "suiv") lance(cur + 1);
       else if (b.dataset.c === "moins") { vol = Math.max(0, vol - 1); barreVol(); }

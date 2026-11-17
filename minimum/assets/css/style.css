@@ -1117,3 +1117,8 @@ a.m-seance:hover > *, a.m-seance:focus-visible > * { background: var(--case-fond
 #fen-reglages .m-cell { padding: 0.6rem 0.8rem; }
 #fen-reglages .m-cell__label { font-size: 0.8rem; }
 .fonds::after { content: ""; grid-column: span 2; background: var(--paper); }
+
+/* Le lecteur vidéo : l'écran du lecteur radio (YouTube intégré) */
+.lec__video { position: relative; aspect-ratio: 16 / 9; background: var(--ink); border-bottom: var(--ligne) solid var(--ink); }
+.lec__video iframe, .lec__video > div { position: absolute; inset: 0; width: 100%; height: 100%; }
+.lec__video.is-vide { display: none; }

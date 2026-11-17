@@ -123,13 +123,17 @@ window.MIN = {
     { jour: 6, heure: "14:00", duree: 180, titre: "Samedi Minimum", texte: "Un après-midi de musique, de rencontres et de bruits en tout genre." },
     { jour: 7, heure: "16:00", duree: 120, titre: "Bande originale", texte: "Les musiques de films, de A à Z." },
   ],
-  /* Pistes du lecteur (comme une playlist). url vide = bientôt en ligne. */
+  /* Pistes du lecteur (comme une playlist).
+     ⚠ EXEMPLES : vidéos officielles YouTube (Daft Punk, Boiler Room), lues dans le
+     lecteur grâce à l'intégration YouTube — rien n'est hébergé sur le site.
+     Pour mettre vos propres mixes : "yt" = identifiant d'une vidéo YouTube
+     (la fin de l'adresse après v=), ou "url" = fichier audio (.mp3) ou flux. */
   pistes: [
-    { titre: "minimum_mix_1", artiste: "Radio Minimum", url: "" },
-    { titre: "minimum_mix_2", artiste: "Radio Minimum", url: "" },
-    { titre: "minimum_mix_3", artiste: "Radio Minimum", url: "" },
-    { titre: "minimum_mix_4", artiste: "Radio Minimum", url: "" },
-    { titre: "minimum_mix_5", artiste: "Radio Minimum", url: "" },
+    { titre: "Alive 1997 — album complet", artiste: "Daft Punk", yt: "3JSQVYhNcRs" },
+    { titre: "Around the World / Harder, Better, Faster, Stronger", artiste: "Daft Punk — Alive 2007", yt: "x84m3YyO2oU" },
+    { titre: "Human After All / Together / One More Time", artiste: "Daft Punk — Alive 2007", yt: "uOdm7-YMoUU" },
+    { titre: "Television Rules the Nation / Crescendolls", artiste: "Daft Punk — Alive 2007", yt: "Hg3G1E2tNCA" },
+    { titre: "Boiler Room Paris", artiste: "Cassius", yt: "_d_8fp8dneI" },
   ],
 
   /* ---------------- CLUB — ⚠ EXEMPLES ---------------- */
