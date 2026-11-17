@@ -21,12 +21,12 @@
   function cellule(label, valeur, extra) {
     return '<div class="m-cell ' + K.classe() + (extra ? " " + extra : "") + '"><span class="m-cell__label">' + esc(label) + '</span><span class="m-cell__value">' + valeur + "</span></div>";
   }
-  function carteFilm(f) {
+  function carteFilm(f, i) {
     return '<a class="m-film" href="' + R + "film/?id=" + esc(f.id) + '">' +
-      '<div class="m-film__affiche">' + M.affiche(f) + "</div>" +
+      '<div class="m-film__affiche">' + M.affiche(f, i > 3) + "</div>" +
       '<div class="m-cell m-film__entete ' + K.classe() + '"><span class="m-film__titre">' + esc(f.titre) + "</span>" +
       '<span class="m-film__infos">' + esc(f.realisateur) + "</span></div>" +
-      '<div class="m-cell ' + K.classe() + '"><span class="m-film__infos">' + esc(f.genre) + " · " + esc(f.pays) + " · " + f.annee + " · " + f.duree + " min · " + esc(f.langue) + "</span></div></a>";
+      '<div class="m-cell m-film__plus ' + K.classe() + '"><span class="m-film__infos">' + esc(f.genre) + " · " + esc(f.pays) + " · " + f.annee + " · " + f.duree + " min · " + esc(f.langue) + "</span></div></a>";
   }
   function celluleSuite(href, label, nom) {
     return '<a class="m-film m-film--plus" href="' + href + '"><div class="m-cell ' + K.classe() + '"><span class="m-cell__label">' + label + '</span><span class="m-monde__nom">' + nom + " →</span></div></a>";
@@ -73,7 +73,7 @@
       (prog.length ? M.liste(prog) : vide("Rien au programme pour l'instant.")) +
       '<a class="m-action ' + K.classe() + '" href="' + R + 'agenda/">Toute la semaine</a>' +
       '<div class="m-titre"><p class="m-cell__label">Cinéma</p><h2>À l\'affiche</h2></div>' +
-      '<div class="m-films">' + D.films.map(carteFilm).join("") + celluleSuite(R + "cinema/", "Cinéma", "Tous les films") + "</div>" +
+      '<div class="m-films">' + D.films.map(function (f, i) { return carteFilm(f, i); }).join("") + celluleSuite(R + "cinema/", "Cinéma", "Tous les films") + "</div>" +
       "</div>";
   };
 
@@ -82,7 +82,7 @@
     app.innerHTML =
       '<div class="mondrian">' +
       tete("Cinéma", "À l'affiche", "Salle Anaïs Emery, à La Case à Chocs. Films en version originale sous-titrée français (VOSTFR) ou en français (VF).") +
-      '<div class="m-films">' + D.films.map(carteFilm).join("") + celluleSuite(R + "agenda/?type=cinema", "Cinéma", "Toutes les séances") + "</div>" +
+      '<div class="m-films">' + D.films.map(function (f, i) { return carteFilm(f, i); }).join("") + celluleSuite(R + "agenda/?type=cinema", "Cinéma", "Toutes les séances") + "</div>" +
       '<div class="m-titre"><p class="m-cell__label">Billets</p><h2>Tarifs</h2></div>' +
       '<div class="m-bande">' + D.tarifs.map(function (t) {
         return '<div class="m-cell ' + K.classe() + '"><span class="m-cell__label">' + esc(t.nom) + '</span><span class="m-cell__value">CHF ' + esc(t.prix) + "</span>" + (t.note ? "<span>" + esc(t.note) + "</span>" : "") + "</div>";

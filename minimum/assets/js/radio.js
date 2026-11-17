@@ -45,8 +45,7 @@
       '<p class="lec__statut" id="lec-statut"></p>';
 
     var grilleHTML = '<div class="m-seances-liste">' + grille.map(function (e) {
-      return '<div class="m-seance"><div class="m-seance__heure ' + K.classe() + '" style="flex-basis:7rem">' + NOMS[e.jour].slice(0, 3) + ".</div>" +
-        '<div class="m-seance__heure ' + K.classe() + '" style="flex-basis:5rem">' + M.heureAffichee(e.heure) + "</div>" +
+      return '<div class="m-seance"><div class="m-seance__heure m-seance__heure--jour ' + K.classe() + '"><span>' + NOMS[e.jour].slice(0, 3) + ".</span><b>" + M.heureAffichee(e.heure) + "</b></div>" +
         '<div class="m-seance__infos ' + K.classe() + '"><span class="m-seance__titre">' + esc(e.titre) + '</span><span class="m-seance__sous">' + esc(e.texte) + "</span></div></div>";
     }).join("") + "</div>";
 
@@ -91,8 +90,6 @@
       majOnglets();
     }
     Array.prototype.forEach.call(fens, function (f) { etat[f.dataset.id] = "ouvert"; f.style.zIndex = ++z; });
-    /* Sur téléphone, seul le lecteur est ouvert au départ : le reste s'ouvre d'un toucher. */
-    if (window.matchMedia("(max-width: 899px)").matches) ["grille", "apropos", "mail"].forEach(function (i) { etat[i] = "ferme"; document.getElementById("fen-" + i).hidden = true; });
     /* Au départ : le lecteur et la grille. Le reste attend dans la barre du bas. */
     if (window.matchMedia("(min-width: 900px)").matches) ["apropos", "mail"].forEach(function (i) { etat[i] = "reduit"; document.getElementById("fen-" + i).classList.add("is-reduite"); });
     majOnglets();

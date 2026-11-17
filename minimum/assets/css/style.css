@@ -979,3 +979,111 @@ a.m-seance:hover > *, a.m-seance:focus-visible > * { background: var(--case-fond
 
 .m-film--plus { flex: 1 1 calc((100% - 2 * var(--ligne)) / 3); width: auto; }
 @media (min-width: 900px) { .fen.is-reduite { display: none; } }
+
+/* ============================================================
+   MOBILE D'ABORD — téléphone et tablette (< 900 px)
+
+   Le site se lit surtout sur un téléphone : programme du soir en
+   premier, pouce sur une barre d'onglets en bas, affiches sur
+   deux colonnes, cibles tactiles d'au moins 44 px.
+   ============================================================ */
+
+/* Barre d'onglets du bas : les rubriques essentielles sous le pouce.
+   Même langage que le reste : cases séparées par le trait de 4 px. */
+.tabbar { display: none; }
+@media (max-width: 1199px) {
+  .tabbar {
+    position: fixed; inset: auto 0 0 0; z-index: 45;
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--ligne);
+    background: var(--ink); border-top: var(--ligne) solid var(--ink);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .tabbar__lien {
+    display: flex; align-items: center; justify-content: center; min-height: 3.4rem; padding: 0 0.2rem;
+    background: var(--paper); font-family: var(--font-display); font-weight: 900; text-transform: uppercase;
+    letter-spacing: -0.01em; font-size: 0.8rem; text-align: center; color: var(--ink);
+    transition: background 0.2s ease-out, color 0.2s ease-out;
+  }
+  .tabbar__lien[aria-current="page"] { background: var(--ink); color: var(--paper); }
+  body { padding-bottom: calc(3.4rem + var(--ligne) + env(safe-area-inset-bottom)); }
+  .main-nav { z-index: 60; }
+  .site-header__nom { padding-block: 0.6rem; }
+  .menu-toggle__box { height: 2.75rem; width: 2.75rem; }
+}
+@media (max-width: 380px) { .tabbar__lien { font-size: 0.7rem; } }
+
+@media (max-width: 899px) {
+  :root {
+    --taille-texte: 1.05rem;
+    --taille-titre: clamp(2.2rem, 11.5vw, 3.6rem);
+  }
+  .m-cell { padding: 0.8rem; gap: 0.35rem; }
+  .m-titre { padding: 1rem 0.8rem; }
+
+  /* Accueil : les trois activités forment une rangée compacte, juste sous
+     l'en-tête ; le programme du soir vient aussitôt après. */
+  .m-trois { grid-template-columns: repeat(3, 1fr); }
+  .m-monde { min-height: 6.5rem; padding: 0.7rem; gap: 0.5rem; justify-content: flex-start; }
+  .m-monde__nom { font-size: 1.15rem; line-height: 1; }
+  .m-monde__label { font-size: 0.7rem; }
+  .m-monde__label .m-direct { font-size: 0.7rem; gap: 0.3rem; }
+  .m-monde__affiche { display: none; }
+  .m-monde__texte { font-size: 0.8rem; line-height: 1.2; font-weight: 700; }
+
+  /* Lignes de programme : l'action passe sous le texte, en pleine largeur et facile à toucher. */
+  .m-seance__heure { flex-basis: 4.6rem; padding: 0.8rem 0.3rem; }
+  .m-seance__infos { flex: 1 1 8rem; padding: 0.75rem; }
+  .m-seance__sous { font-size: 0.9rem; }
+  .m-seance__action { min-height: 2.9rem; padding: 0.6rem 1rem; }
+
+  /* Affiches sur deux colonnes (comme tous les écrans de films des apps) ;
+     la deuxième case d'infos disparaît pour ne garder que titre + réalisateur. */
+  .m-film { width: calc((100% - var(--ligne)) / 2); }
+  .m-film--plus { flex: 1 1 calc((100% - var(--ligne)) / 2); }
+  .m-film__plus { display: none; }
+  .m-film__titre { font-size: 0.95rem; }
+  .m-film__infos { font-size: 0.85rem; }
+  .m-film--plus .m-monde__nom { font-size: 1.4rem; }
+
+  /* Agenda : les filtres défilent sur une ligne et restent collés sous l'en-tête. */
+  .m-filtres { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; scroll-snap-type: x proximity; }
+  .m-filtres::-webkit-scrollbar { display: none; }
+  .m-filtre { flex: 0 0 auto; min-height: 3rem; scroll-snap-align: start; }
+  #types.m-filtres .m-filtre { flex: 1 0 auto; }
+  .m-filtre--jour { min-width: 6.6rem; }
+  .mondrian > #types, .mondrian > #jours { position: sticky; z-index: 5; }
+  .mondrian > #types { top: calc(3.5rem - var(--ligne)); }
+  .mondrian > #jours { top: calc(3.5rem - var(--ligne) + 3.2rem); }
+
+  /* Fiche film : l'affiche prend toute la largeur, puis les cases. */
+  .m-fiche__affiche { max-height: 52vh; display: flex; justify-content: center; background: var(--ink); }
+  .m-fiche__affiche .poster { height: auto; max-height: 52vh; width: auto; aspect-ratio: var(--format-affiche); }
+  .m-fiche__affiche .poster img { position: static; height: 100%; width: auto; }
+
+  /* Radio : plus de faux bureau sur un téléphone — un lecteur, puis la grille. */
+  .bureau__icones, .barre-taches { display: none; }
+  .fen { border: 0; }
+  .fen__bouton { display: none; }
+  .fen__barre { cursor: default; }
+  .fen[hidden] { display: block; }
+  .fen.is-reduite .fen__corps { display: block; }
+  .bureau { gap: var(--ligne); }
+  .lec__eq { flex-basis: 5rem; }
+  .lec__titre span { overflow-wrap: anywhere; }
+  .lec__b { min-height: 3.4rem; }
+}
+
+/* Le titre du lecteur ne déborde jamais, sur aucun écran. */
+.lec__titre span { overflow-wrap: anywhere; min-width: 0; }
+.lec__titre { font-size: 1.05rem; }
+
+@media (max-width: 599px) {
+  /* Toute la rangée est déjà un lien : le bouton d'action en doublon disparaît. */
+  .m-seance__action { display: none; }
+  .m-monde__label:not(:has(.m-direct)) { display: none; }
+  .m-monde__nom { margin-top: 0; }
+}
+
+.m-seance__heure--jour { flex-direction: column; gap: 0.1rem; flex-basis: 6.5rem; }
+.m-seance__heure--jour span { font-weight: 700; font-size: 0.85em; opacity: 0.75; }
+.skip:focus { position: fixed; z-index: 100; left: 0.5rem; top: 0.5rem; width: auto; height: auto; clip: auto; padding: 0.8rem 1rem; background: var(--ink); color: var(--paper); font-weight: 800; }

@@ -120,10 +120,10 @@
   }
 
   /* ---------- Affiches : la vraie image, ou une affiche générée comme au Zinéma ---------- */
-  function affiche(f) {
+  function affiche(f, tard) {
     if (f.img) {
       return '<div class="poster"><img src="' + root + "assets/img/affiches/" + esc(f.img) + '" alt="Affiche de ' + esc(f.titre) +
-        '" width="400" height="570" decoding="async"></div>';
+        '" width="400" height="570" decoding="async"' + (tard ? ' loading="lazy"' : "") + "></div>";
     }
     var t = esc(f.titre), d = esc(f.realisateur), y = f.annee;
     var v = (f.titre.length + f.annee) % 5;
@@ -171,6 +171,16 @@
     document.body.insertBefore(nav, document.body.firstChild);
     document.body.insertBefore(h, document.body.firstChild);
 
+    /* Barre d'onglets du bas : l'essentiel sous le pouce (téléphone et tablette). */
+    var tabs = document.createElement("nav");
+    tabs.className = "tabbar";
+    tabs.setAttribute("aria-label", "Rubriques");
+    tabs.innerHTML = NAV.slice(0, 4).map(function (n) {
+      return '<a href="' + root + n[0] + '" class="tabbar__lien ' + K.classe() + '"' +
+        (n[3] === page || (n[3] === "cinema" && page === "film") ? ' aria-current="page"' : "") + ">" + n[1] + "</a>";
+    }).join("") + '<button type="button" class="tabbar__lien tabbar__plus ' + K.classe() + '" aria-label="Plus de rubriques">Plus</button>';
+    document.body.appendChild(tabs);
+
     var toggle = h.querySelector(".menu-toggle");
     var open = false;
     function set(v) {
@@ -182,6 +192,8 @@
       document.documentElement.style.overflow = v ? "hidden" : "";
     }
     toggle.addEventListener("click", function () { set(!open); });
+    tabs.querySelector(".tabbar__plus").addEventListener("click", function () { set(!open); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && open) set(false); });
     nav.querySelectorAll("a").forEach(function (a) { a.addEventListener("click", function () { set(false); }); });
   }
 
