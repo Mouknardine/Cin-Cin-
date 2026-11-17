@@ -1,29 +1,38 @@
 /* ============================================================
    Minimum — TOUT le contenu du site vit dans ce fichier.
-   C'est le seul à modifier : coordonnées, tarifs, films, séances.
+   C'est le seul à modifier : coordonnées, tarifs, films,
+   émissions de radio, soirées du club.
 
-   ⚠ Les valeurs marquées « À CONFIRMER » sont des textes
-   provisoires, à remplacer par les vraies informations du cinéma.
-   Les films et leurs affiches viennent du dépôt (sanity/import) ;
-   les HORAIRES sont des exemples, à remplacer par les vrais.
+   ⚠ Ce qui est marqué « À CONFIRMER » est provisoire.
+   Les films et leurs affiches viennent du dépôt du Zinéma ;
+   les HORAIRES, les ÉMISSIONS et les SOIRÉES sont des exemples,
+   à remplacer par le vrai programme.
+
+   Les horaires sont écrits par jour de la semaine
+   (1 = lundi … 7 = dimanche) : le site affiche toujours les
+   7 prochains jours à partir d'aujourd'hui.
    ============================================================ */
 window.MIN = {
   config: {
     nom: "Minimum",
-    nomLong: "Cinéma Minimum",
-    slogan: "Le cinéma, au minimum. Le reste est en trop.",
+    nomLong: "Minimum — cinéma, radio, club",
     // À CONFIRMER
     adresse: ["Adresse à confirmer", "Lausanne"],
     telephone: "",
     courriel: "info@cineminimum.ch",
-    // Lien de la billetterie. Vide = le bouton « Réserver » ouvre un courriel.
-    billetterie: "",
     instagram: "",
     facebook: "",
-    ouverture: "Une demi-heure avant la première séance.",
-    acces: "Transports publics, vélo ou à pied : on vous laisse choisir. Précisions à confirmer.",
-    salles: "Une petite salle",
-    places: "",
+    // Lien de la billetterie. Vide = « Réserver » ouvre un courriel.
+    billetterie: "",
+    ouverture: "À confirmer.",
+    acces: "À confirmer.",
+    // Radio : adresse du flux audio (https://…/live.mp3). Vide = le lecteur affiche « bientôt ».
+    radioFlux: "",
+    radioNom: "Radio Minimum",
+    // Club : renseignements pratiques. À CONFIRMER
+    clubEntree: "À confirmer",
+    clubPorte: "À confirmer",
+    clubRegles: "Ici on danse, on écoute, on respecte. Aucune discrimination, aucun harcèlement.",
   },
 
   tarifs: [
@@ -34,16 +43,14 @@ window.MIN = {
     { nom: "Carte de membre", prix: "—", note: "Entrées à tarif préférentiel, valable un an" },
   ],
 
-  /* Séances : jours de la semaine (1 = lundi … 7 = dimanche) → heures.
-     Le site affiche toujours les 7 prochains jours à partir
-     d'aujourd'hui. */
+  /* ---------------- CINÉMA ---------------- */
   films: [
     {
       id: "drowak", titre: "Drowak", realisateur: "Nicolas Steiner", annee: 2025,
       pays: "Allemagne", duree: 127, langue: "VO, st. français", age: "16/16 ans",
       synopsis: "Lena, une étudiante optimiste, anime un atelier d'écriture dont le seul participant est Hugo Drowak, un misanthrope aigri et alcoolique. Autrefois, il écrivait des poèmes d'amour passionnés, mais une déception l'a poussé à se réfugier dans l'alcool et l'isolement. Malgré ses remarques désobligeantes, Lena ne baisse pas les bras et tente de raviver sa créativité, car elle croit aux secondes chances.",
       bandeAnnonce: "https://www.youtube.com/watch?v=9V-duM99N58",
-      img: "", forme: "cercle", couleur: "noir",
+      img: "",
       seances: { 1: ["18:00"], 3: ["20:30"], 5: ["18:00"], 7: ["17:00"] },
     },
     {
@@ -80,14 +87,30 @@ window.MIN = {
     },
   ],
 
-  /* Rendez-vous réguliers. */
+  /* ---------------- RADIO — EXEMPLES ---------------- */
+  emissions: [
+    { jour: 1, heure: "17:00", duree: 120, titre: "Le Lundi du Minimum", texte: "La playlist de la maison, du réveil au dernier métro." },
+    { jour: 2, heure: "18:00", duree: 60, titre: "Écran Large", texte: "On parle des films de la semaine avec celles et ceux qui les voient." },
+    { jour: 3, heure: "19:00", duree: 120, titre: "Sillons", texte: "Disques rares, disques oubliés, disques à partager." },
+    { jour: 4, heure: "18:00", duree: 60, titre: "Carte blanche", texte: "Une personne invitée, une heure, zéro contrainte." },
+    { jour: 5, heure: "20:00", duree: 120, titre: "Avant la nuit", texte: "L'échauffement avant le club, en direct de la salle." },
+    { jour: 6, heure: "14:00", duree: 180, titre: "Samedi Minimum", texte: "Un après-midi de musique, de rencontres et de bruits en tout genre." },
+    { jour: 7, heure: "16:00", duree: 120, titre: "Bande originale", texte: "Les musiques de films, de A à Z." },
+  ],
+
+  /* ---------------- CLUB — EXEMPLES ---------------- */
+  soirees: [
+    { jour: 5, heure: "23:00", nom: "Minimum Club", artistes: "Résident·es + invité·e", entree: "À confirmer" },
+    { jour: 6, heure: "23:00", nom: "Minimum Club", artistes: "Deux DJ, une nuit", entree: "À confirmer" },
+  ],
+
   rendezVous: [
     { titre: "Le mardi du minimum", texte: "Une séance, un film, une discussion après la projection." },
-    { titre: "Carte blanche", texte: "Chaque mois, une personne choisit le film et vient le présenter." },
+    { titre: "Carte blanche", texte: "Chaque mois, une personne choisit le film, le disque ou la soirée." },
     { titre: "Séance du dimanche", texte: "Un film pour toute la famille, en fin d'après-midi." },
   ],
 
   location: {
-    texte: "La salle se loue pour une projection privée, une avant-première, une présentation ou un anniversaire. Dites-nous la date, le nombre de personnes et ce que vous voulez projeter.",
+    texte: "La salle se loue pour une projection privée, une avant-première, une soirée ou un anniversaire. Dites-nous la date, le nombre de personnes et ce que vous voulez projeter ou jouer.",
   },
 };

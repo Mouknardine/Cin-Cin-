@@ -1,259 +1,906 @@
 /* ============================================================
-   Minimum — feuille de style unique, écrite à la main.
-
-   Même famille que le Zinéma (Aileron, papier bruité, noir
-   d'encre) mais un autre langage de formes. Le Zinéma est un
-   tableau de Mondrian : des rectangles, des traits épais, quatre
-   couleurs. Le Minimum est tout en courbes :
-     · le rond  — le faisceau du projecteur, les pastilles ;
-     · l'arche  — la porte de la salle, l'écran ;
-     · le billet perforé — chaque séance est un ticket ;
-     · la pilule — boutons, onglets, menu.
-   Une seule couleur (l'orange), des filets fins de 2 px, de
-   l'air, et des titres en bas de casse qui finissent par un
-   point orange : le « minimum » de ponctuation.
+   Minimum — feuille de style unique (même base que le Zinéma), écrite à la main (pas de
+   build, pas de préprocesseur). Toutes les valeurs (couleurs,
+   espacements, tailles) reprennent exactement le design existant.
    ============================================================ */
-@font-face { font-family: "Aileron"; src: url("../fonts/Aileron-Regular.woff2") format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Aileron"; src: url("../fonts/Aileron-Bold.woff2") format("woff2"); font-weight: 700; font-display: swap; }
-@font-face { font-family: "Aileron"; src: url("../fonts/Aileron-Heavy.woff2") format("woff2"); font-weight: 800; font-display: swap; }
-@font-face { font-family: "Aileron"; src: url("../fonts/Aileron-Black.woff2") format("woff2"); font-weight: 900; font-display: swap; }
+
+/* Police unique du site : Aileron (proche d'Akzidenz-Grotesk),
+   hébergée localement. Quatre graisses seulement :
+   400 = texte courant · 700 = liens & étiquettes ·
+   800 = valeurs & boutons · 900 = titres. */
+@font-face {
+  font-family: "Aileron";
+  src: url("../fonts/Aileron-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Aileron";
+  src: url("../fonts/Aileron-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Aileron";
+  src: url("../fonts/Aileron-Heavy.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Aileron";
+  src: url("../fonts/Aileron-Black.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
-  --font: "Aileron", "Helvetica Neue", Arial, sans-serif;
-  --ink: #14120f;
-  --paper: #efebe3;
-  --carte: #fbfaf6;
-  --orange: #ff4d1a;
-  --orange-fonce: #c93a0e;
-  --fil: 2px;
-  --rayon: 28px;
+  --font-display: "Aileron", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Aileron", "Helvetica Neue", Arial, sans-serif;
+  --ink: #100f0c;
+  /* Le « papier » du site : un gris clair neutre (référence
+     publicrecords.nyc) — toute la surface du site, cases comprises. */
+  --paper: #ededed;
+  --red: #c22a1d;
+  --blue: #2f49c2;
+  --jaune: #f7c600;
+  /* Le noir du mur d'affiches quand une case attend son image :
+     l'encre à peine éclaircie, invisible de loin. */
+  --mur-vide: #1d1c18;
+  /* Le vert du billet : un vert fougère profond. C'est la seule
+     couleur du site qui a un sens fixe — elle ne sert qu'à acheter
+     un billet, nulle part ailleurs.
+     Les deux valeurs ont exactement la même teinte et la même
+     saturation : seule la luminosité change, pour que le survol se
+     lise comme le même vert qui s'assombrit, jamais comme une
+     autre couleur. Le blanc dessus tient largement le contraste
+     (8,2:1 au repos, 11,7:1 au survol). */
+  --vert: #275a1b;
+  --vert-fonce: #1b4014;
+  /* Le rose fluo : la seule couleur du site qui ne vienne pas du
+     tirage au sort des cases. Elle ne sert qu'au survol de deux
+     choses, le nom du cinéma en haut et la signature de l'agence
+     en bas — les deux bornes de la page.
+
+     Le texte posé dessus est l'encre du site, pas du blanc : noir
+     sur ce rose tient 5,8:1, blanc n'en tiendrait que 3,7 et
+     passerait sous le seuil de lisibilité. */
+  --rose-fluo: #ff00a0;
+  /* Le trait du site. Il n'y en a qu'un : la même épaisseur pour
+     TOUS les traits, partout — le quadrillage des tableaux, la
+     barre de navigation, le pied de page, les cases de l'accueil,
+     les pastilles d'horaire. Changer ce seul chiffre change tout
+     le site d'un coup.
+
+     Deuxième règle : deux traits qui se touchent n'en font qu'un.
+     Là où deux blocs se rejoignent (la barre de navigation et le
+     tableau, le tableau et le pied de page), le bloc du dessous
+     remonte d'exactement une épaisseur de trait pour venir se
+     poser sur celui du dessus — jamais un trait deux fois plus
+     épais à la jonction. */
+  --ligne: 4px;
+  /* LE format d'affiche du site. Toutes les affiches de film sont
+     montrées dans ce même rectangle, partout : sur l'accueil, sur la
+     page Films, sur la fiche du film, dans les événements. Une
+     affiche livrée dans un autre format est recadrée sur son point
+     important (choisi dans le Studio) — jamais deux cases de tailles
+     différentes côte à côte. C'est le format des affiches suisses et
+     françaises (A0, A1, F4 : 1 sur 1,41). */
   --format-affiche: 1 / 1.41;
-  --texte: clamp(1.15rem, 1.02rem + .55vw, 1.4rem);
-  --marge: clamp(1.1rem, 4vw, 3.5rem);
-  --ease: cubic-bezier(.65, 0, .35, 1);
+  --ease-editorial: cubic-bezier(0.65, 0, 0.35, 1);
+  /* Les deux seules tailles de texte du site : titres et tout le reste.
+     La hiérarchie se fait avec les graisses, jamais avec la taille. */
+  --taille-titre: clamp(2.75rem, 1.5rem + 5.5vw, 6rem);
+  --taille-texte: clamp(1.375rem, 1.1rem + 0.75vw, 1.75rem);
+  /* Seule exception à ces deux tailles : la barre de navigation.
+     Six rubriques + le nom du cinéma doivent tenir sur une ligne dès
+     1200px de large ; elle grandit ensuite avec l'écran et
+     rejoint la taille courante du site sur les grands moniteurs. */
+  --taille-nav: clamp(1.3rem, 0.7rem + 0.85vw, 1.75rem);
 }
 
-* { box-sizing: border-box; }
-html { background: var(--paper); font-size: 112.5%; scroll-behavior: smooth; }
-body {
-  margin: 0; min-height: 100dvh; display: flex; flex-direction: column;
-  color: var(--ink); font-family: var(--font); font-size: var(--texte); line-height: 1.35;
-  -webkit-font-smoothing: antialiased; overflow-x: hidden;
-  background-color: var(--paper);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+* {
+  box-sizing: border-box;
 }
-h1, h2, h3, p, ul, figure { margin: 0; padding: 0; }
-ul { list-style: none; }
-a { color: inherit; text-decoration: none; }
-button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
-img { max-width: 100%; display: block; }
-:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; border-radius: 6px; }
-::selection { background: var(--orange); color: var(--ink); }
-main { flex: 1; }
-.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ------------------------------------------------------------
+   Les quatre couleurs Mondrian, tirées au hasard
+   ------------------------------------------------------------
+   Aucune couleur n'a de signification : couleurs.js pose une de
+   ces quatre classes au hasard sur chaque case, à chaque
+   affichage. La classe ne peint rien elle-même — elle renseigne
+   trois variables que les feuilles de style utilisent ensuite :
+     --case-fond   : la couleur de remplissage (au survol)
+     --case-texte  : le texte lisible sur ce fond
+     --case-accent : la même couleur en version « texte sur
+                     papier » (le jaune y est assombri, illisible
+                     sinon sur fond clair).
+   Le vert du bouton d'achat ne fait pas partie du tirage. */
+.c-rouge { --case-fond: var(--red);   --case-texte: #fff;      --case-accent: var(--red); }
+.c-bleu  { --case-fond: var(--blue);  --case-texte: #fff;      --case-accent: var(--blue); }
+.c-noir  { --case-fond: var(--ink);   --case-texte: var(--paper); --case-accent: var(--ink); }
+.c-jaune { --case-fond: var(--jaune); --case-texte: var(--ink);   --case-accent: #8a6d00; }
+
+/* Une case « teintée » se remplit de sa couleur au survol. */
+.m-teinte {
+  transition: background 0.2s ease-out, color 0.2s ease-out;
+}
+.m-teinte:hover,
+.m-teinte:focus-visible {
+  background: var(--case-fond);
+  color: var(--case-texte);
+}
+
+html {
+  background: var(--paper);
+  scroll-behavior: smooth;
+  /* Caractères agrandis sur tout le site (clientèle âgée) :
+     toutes les tailles en rem grossissent proportionnellement. */
+  font-size: 112.5%;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
-/* ---------------- En-tête : logo rond + menu en pilule ---------------- */
-#entete { position: sticky; top: 0; z-index: 30; padding: .8rem var(--marge) 0; pointer-events: none; }
-.entete { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-.entete > * { pointer-events: auto; }
-.logo { display: inline-flex; align-items: center; gap: .55rem; background: var(--carte); border: var(--fil) solid var(--ink); border-radius: 999px; padding: .35rem 1.1rem .35rem .4rem; font-weight: 900; font-size: 1.25rem; letter-spacing: -.03em; }
-.logo__rond { width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--orange); border: var(--fil) solid var(--ink); transition: transform .5s var(--ease); }
-.logo:hover .logo__rond { transform: translateX(.35rem) scale(1.15); }
-.nav { background: var(--carte); border: var(--fil) solid var(--ink); border-radius: 999px; padding: .25rem; }
-.nav ul { display: flex; gap: .15rem; }
-.nav__lien { display: block; padding: .35rem 1.05rem; border-radius: 999px; font-weight: 700; transition: background .2s, color .2s; }
-.nav__lien:hover { background: var(--orange); }
-.nav__lien[aria-current="page"] { background: var(--ink); color: var(--paper); }
-.entete__bouton { display: none; background: var(--ink); color: var(--paper); font-weight: 800; border-radius: 999px; padding: .55rem 1.2rem; }
-@media (max-width: 860px) {
-  .entete__bouton { display: block; }
-  .nav { display: none; width: 100%; border-radius: 28px; padding: .5rem; }
-  .menu-ouvert .nav { display: block; }
-  .nav ul { flex-direction: column; }
-  .nav__lien { font-size: 1.7rem; font-weight: 900; padding: .6rem 1rem; letter-spacing: -.02em; }
+/* Le corps du site occupe toujours au moins toute la hauteur
+   visible, et le contenu pousse le pied de page vers le bas : sur
+   une page courte (un jour d'agenda avec deux séances, une page
+   d'histoire encore vide), le pied de page se cale au bas de
+   l'écran au lieu de flotter au milieu. Sur une page longue, il
+   reprend sa place normale, à la suite du contenu.
+   L'en-tête et le menu plein écran sont en position fixe : ils ne
+   participent pas à cet empilement. */
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  background-color: var(--paper);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
 }
 
-/* ---------------- Boutons ---------------- */
-.bouton { display: inline-block; background: var(--ink); color: var(--paper); font-weight: 800; padding: .55rem 1.3rem; border: var(--fil) solid var(--ink); border-radius: 999px; font-size: .78em; letter-spacing: .03em; transition: background .2s, color .2s, transform .25s var(--ease); }
-.bouton:hover { background: var(--orange); color: var(--ink); transform: translateY(-2px) rotate(-1.5deg); }
-.bouton--grand { font-size: 1rem; padding: .85rem 1.8rem; }
-.bouton--creux { background: transparent; color: var(--ink); }
-.lien { font-weight: 800; border-bottom: 3px solid var(--orange); border-radius: 2px; }
-.lien:hover { background: var(--orange); }
-.souligne { font-weight: 700; border-bottom: 2px solid var(--ink); }
-.souligne:hover { background: var(--orange); }
-.etiquette { display: inline-block; border: var(--fil) solid var(--ink); border-radius: 999px; padding: .15rem .9rem; font-weight: 800; font-size: .72em; margin-bottom: 1.2rem; }
-
-/* ---------------- Accueil : la scène ---------------- */
-.hero { display: grid; grid-template-columns: 1.1fr .9fr; align-items: center; gap: 2rem; padding: clamp(2rem, 6vw, 5rem) var(--marge) clamp(2rem, 5vw, 4rem); position: relative; }
-.hero__mot { font-weight: 900; font-size: clamp(3.4rem, 1rem + 9vw, 9.5rem); line-height: .86; letter-spacing: -.06em; }
-.hero__mot em { font-style: normal; color: var(--orange); }
-.hero__slogan { margin: 1.6rem 0 1.8rem; max-width: 26ch; font-weight: 700; font-size: 1.2em; line-height: 1.15; }
-.hero__actions { display: flex; flex-wrap: wrap; gap: .8rem; }
-.hero__scene { position: relative; aspect-ratio: 1; display: grid; place-items: center; max-width: 36rem; width: 100%; justify-self: center; }
-.soleil { position: absolute; inset: 0; border-radius: 50%; background: var(--orange); animation: respire 7s ease-in-out infinite; }
-@keyframes respire { 50% { transform: scale(1.04); } }
-.hero__affiche { position: relative; width: 52%; transform: rotate(-5deg); border-radius: 14px; box-shadow: 14px 14px 0 var(--ink); transition: transform .5s var(--ease); }
-.hero__affiche:hover { transform: rotate(0) scale(1.04); }
-.hero__affiche .aff { border-radius: 14px; border: var(--fil) solid var(--ink); }
-.pastille { position: absolute; right: 2%; bottom: 6%; width: 7.2rem; aspect-ratio: 1; border-radius: 50%; background: var(--ink); color: var(--paper); display: grid; place-items: center; text-align: center; font-weight: 800; font-size: .78em; line-height: 1.1; transform: rotate(12deg); }
-@media (max-width: 860px) { .hero { grid-template-columns: 1fr; } .hero__scene { max-width: 24rem; } .pastille { width: 5.6rem; font-size: .66em; } }
-
-/* ---------------- Sections ---------------- */
-.section { padding: clamp(1.8rem, 5vw, 4rem) var(--marge); }
-.section--fin { padding-top: 0; }
-.section__tete { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.6rem; }
-.section__tete h2, .titre h1 { font-weight: 900; letter-spacing: -.055em; line-height: .9; }
-.section__tete h2 { font-size: clamp(2.2rem, 1rem + 4vw, 4.5rem); }
-.section__tete p { font-weight: 700; }
-.section__tete h2 span, .titre h1 span, .pied__mot span { color: var(--orange); }
-.titre { padding: clamp(2.5rem, 7vw, 6rem) var(--marge) 1rem; }
-.titre h1 { font-size: clamp(3.4rem, 1rem + 9vw, 9rem); }
-.titre p { font-weight: 700; margin-top: 1rem; }
-.texte { margin: 0 0 1rem; }
-.texte--grand { font-weight: 800; font-size: 1.5em; line-height: 1.12; max-width: 32ch; letter-spacing: -.01em; }
-.vide { font-weight: 700; }
-
-/* ---------------- Billets de séance ---------------- */
-.tickets { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: 1.1rem; }
-.ticket {
-  --talon: 4.2rem; --cut: calc(100% - var(--talon));
-  position: relative; display: flex; flex-direction: column; background: var(--carte); border-radius: 22px; min-height: 13rem;
-  -webkit-mask: radial-gradient(circle 13px at 0 var(--cut), #0000 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 13px at 100% var(--cut), #0000 98%, #000) right / 51% 100% no-repeat;
-          mask: radial-gradient(circle 13px at 0 var(--cut), #0000 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle 13px at 100% var(--cut), #0000 98%, #000) right / 51% 100% no-repeat;
-  transition: background .25s, transform .3s var(--ease);
+h1, h2, h3, p, ul, ol, blockquote, figure {
+  margin: 0;
+  padding: 0;
 }
-.ticket:hover { background: var(--orange); transform: translateY(-4px) rotate(-.8deg); }
-.ticket__haut { flex: 1; padding: 1.2rem 1.4rem .9rem; display: flex; flex-direction: column; gap: .25rem; }
-.ticket__heure { font-weight: 900; font-size: 2.6em; letter-spacing: -.05em; line-height: .95; font-variant-numeric: tabular-nums; }
-.ticket__jour { font-weight: 800; font-size: .8em; text-transform: uppercase; letter-spacing: .04em; }
-.ticket__titre { font-weight: 900; font-size: 1.2em; line-height: 1.05; margin-top: .3rem; }
-.ticket__titre:hover { text-decoration: underline; text-decoration-thickness: 3px; text-underline-offset: 3px; }
-.ticket__meta { font-size: .72em; font-weight: 700; opacity: .8; margin-top: auto; }
-.ticket__talon { height: var(--talon); border-top: 2px dashed var(--ink); display: flex; align-items: center; padding: 0 1.4rem; }
-.ticket:hover .bouton { background: var(--ink); color: var(--paper); }
+ul, ol {
+  list-style: none;
+}
+img {
+  max-width: 100%;
+  display: block;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--paper);
+}
+/* Seul « trait » du site à ne pas valoir --ligne, et ce n'en est
+   pas un : ces 2px de papier ne dessinent rien, ils affinent le
+   curseur à l'intérieur de sa glissière de 10px. À --ligne, il ne
+   resterait qu'un filet de 2px à saisir. */
+::-webkit-scrollbar-thumb {
+  background: var(--ink);
+  border: 2px solid var(--paper);
+}
 
-/* ---------------- Onglets des jours (pilules) ---------------- */
-.jours { display: flex; gap: .6rem; padding: 1.2rem var(--marge) .4rem; overflow-x: auto; scrollbar-width: none; }
-.jour { display: flex; flex-direction: column; flex: 0 0 auto; min-width: 7.2rem; text-align: left; padding: .7rem 1.2rem; border: var(--fil) solid var(--ink); border-radius: 22px; background: var(--carte); transition: background .2s, transform .25s var(--ease); }
-.jour:hover { background: var(--orange); transform: translateY(-2px); }
-.jour[aria-selected="true"] { background: var(--ink); color: var(--paper); border-radius: 26px; }
-.jour b { font-weight: 900; }
-.jour span { font-weight: 700; font-size: .85em; }
-.jour i { font-style: normal; font-size: .62em; opacity: .75; }
+/* Sur le site actuel, tout élément en "font-display" garde toujours cet
+   espacement des lettres (-0.01em), même quand un espacement plus large
+   est aussi défini sur le même élément (comportement du site en ligne
+   aujourd'hui, reproduit ici à l'identique pour ne rien changer au rendu). */
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.01em !important;
+}
+.stroke-text {
+  -webkit-text-stroke: 1.5px var(--ink);
+  color: transparent;
+}
+@media (min-width: 1080px) {
+  .stroke-text { -webkit-text-stroke: 2px var(--ink); }
+}
 
-/* ---------------- Manifeste : bande noire arrondie + ronds ---------------- */
-.manifeste { background: var(--ink); color: var(--paper); border-radius: clamp(36px, 7vw, 90px); margin: clamp(1rem, 4vw, 3rem) clamp(.6rem, 2vw, 1.5rem); padding: clamp(2rem, 6vw, 5rem) var(--marge); display: grid; grid-template-columns: 1.3fr 1fr; align-items: center; gap: 2.5rem; }
-.manifeste__texte { font-weight: 900; font-size: clamp(2rem, 1rem + 3.4vw, 4.2rem); line-height: .98; letter-spacing: -.045em; }
-.manifeste__texte em { font-style: normal; color: var(--orange); }
-.ronds { display: flex; flex-wrap: wrap; gap: .8rem; justify-content: center; }
-.rond { width: clamp(6.8rem, 12vw, 9rem); aspect-ratio: 1; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; transition: transform .4s var(--ease); }
-.rond:nth-child(2) { transform: translateY(1.6rem); }
-.rond:hover { transform: rotate(-8deg) scale(1.06); }
-.rond b { font-weight: 900; font-size: 2.6rem; letter-spacing: -.05em; }
-.rond span { font-size: .62em; font-weight: 800; margin-top: .2rem; }
-.rond--orange { background: var(--orange); color: var(--ink); }
-.rond--creux { border: 3px solid var(--paper); }
-.rond--paper { background: var(--paper); color: var(--ink); }
-@media (max-width: 860px) { .manifeste { grid-template-columns: 1fr; } .rond:nth-child(2) { transform: none; } }
+.underline-hover {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 1px;
+  transition: background-size 0.4s var(--ease-editorial);
+}
+.underline-hover:hover { background-size: 100% 1px; }
 
-/* ---------------- Affiches ---------------- */
-.aff { position: relative; aspect-ratio: var(--format-affiche); overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; padding: 7%; container-type: inline-size; border-radius: 14px; }
-.aff--photo { padding: 0; background: var(--ink); display: block; }
-.aff--photo img { width: 100%; height: 100%; object-fit: cover; }
-.aff--noir { background: var(--ink); color: var(--paper); }
-.aff--orange { background: var(--orange); color: var(--ink); }
-.aff--blanc { background: var(--carte); color: var(--ink); }
-.aff--gris { background: #bdbab2; color: var(--ink); }
-.aff__annee { font-weight: 800; font-size: 7cqw; position: relative; z-index: 1; }
-.aff__titre { font-weight: 900; letter-spacing: -.05em; line-height: .86; font-size: 16cqw; position: relative; z-index: 1; overflow-wrap: anywhere; }
-.aff__real { font-weight: 700; font-size: 6.4cqw; position: relative; z-index: 1; margin-top: 4cqw; }
-.aff__forme { position: absolute; z-index: 0; background: var(--orange); }
-.aff--orange .aff__forme { background: var(--ink); }
-.aff--cercle .aff__forme { width: 70%; aspect-ratio: 1; border-radius: 50%; right: -12%; top: 10%; }
-.aff--barre .aff__forme { width: 100%; height: 14%; left: 0; top: 36%; }
-.aff--carre .aff__forme { width: 46%; aspect-ratio: 1; right: 8%; top: 14%; border-radius: 50%; }
-.aff--moitie .aff__forme { width: 100%; height: 50%; left: 0; top: 0; background: var(--ink); border-radius: 0 0 50% 50%; }
-.aff--moitie .aff__annee { color: var(--paper); }
-.aff--grille .aff__forme { inset: 0; background: radial-gradient(circle, var(--ink) 0 5cqw, transparent 5.4cqw) 0 0 / 22% 16%; }
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
 
-/* Rail d'affiches : défilement horizontal, rangées décalées */
-.rail { display: flex; gap: 1.2rem; overflow-x: auto; scroll-snap-type: x proximity; padding: 1rem var(--marge) 2.5rem; margin: 0 calc(var(--marge) * -1); scrollbar-width: thin; scrollbar-color: var(--ink) transparent; }
-.rail .carte { flex: 0 0 clamp(12rem, 22vw, 17rem); scroll-snap-align: start; }
-.rail .carte:nth-child(even) { transform: translateY(1.6rem); }
-.carte { display: block; transition: transform .4s var(--ease); }
-.carte .aff { border: var(--fil) solid var(--ink); transition: border-radius .4s var(--ease), box-shadow .3s; }
-.carte:hover { transform: translateY(-6px) rotate(-1deg); }
-.rail .carte:nth-child(even):hover { transform: translateY(1.2rem) rotate(1deg); }
-.carte:hover .aff { border-radius: 90px 90px 14px 14px; box-shadow: 8px 8px 0 var(--orange); }
-.carte__legende { display: block; margin-top: .7rem; font-size: .75em; }
-.carte__legende b { display: block; font-size: 1.2em; font-weight: 900; letter-spacing: -.02em; }
-.galerie { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: 2.2rem 1.5rem; padding: 1.5rem var(--marge) 4rem; }
-.galerie .carte:nth-child(3n+2) { margin-top: 2rem; }
+/* ------------------------------------------------------------
+   En-tête + menu plein écran
+   ------------------------------------------------------------ */
+.site-header {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* Hauteur fixe : le contenu des pages se cale pile dessous. */
+  height: 3.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: var(--ligne) solid var(--ink);
+  background: var(--paper);
+}
+@media (min-width: 768px) {
+  .site-header {
+    height: 4.5rem;
+    padding: 1rem 2rem;
+  }
+}
 
-/* ---------------- Rendez-vous : des arches ---------------- */
-.arches { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; align-items: end; }
-.arche { border: var(--fil) solid var(--ink); background: var(--carte); border-radius: 999px 999px 24px 24px; padding: 4.5rem 1.6rem 2rem; transition: background .25s, transform .35s var(--ease); }
-.arche:nth-child(2) { padding-top: 6.5rem; }
-.arche:hover { background: var(--orange); transform: translateY(-6px); }
-.arche span { font-weight: 900; font-size: .8em; border: var(--fil) solid var(--ink); border-radius: 50%; width: 2.2rem; height: 2.2rem; display: inline-grid; place-items: center; }
-.arche h3 { font-weight: 900; font-size: 1.6em; line-height: 1; letter-spacing: -.03em; margin: 1rem 0 .5rem; }
-.arche p { font-size: .85em; }
-@media (max-width: 860px) { .arches { grid-template-columns: 1fr; } .arche, .arche:nth-child(2) { padding-top: 3.5rem; } }
+/* Le nom du cinéma ramène à l'accueil. Il est écrit, pas dessiné :
+   mêmes capitales, même graisse et même taille que les rubriques
+   voisines — la barre est d'un seul tenant typographique, le nom
+   se distingue par sa place, tout à gauche, pas par sa taille.
+   Au survol — à la souris seulement —, sa case se remplit de rose
+   fluo, comme la signature de l'agence tout en bas : les deux
+   bornes de la page réagissent de la même façon. */
+.site-header__nom {
+  display: flex;
+  position: relative;
+  z-index: 10;
+  align-items: center;
+  /* Le rose du survol a besoin de respirer autour des lettres ; le
+     calage négatif ramène le nom au bord de la barre, aligné sur le
+     reste du site. */
+  padding: 0.15em 0.4em;
+  margin-left: -0.4em;
+  font-family: var(--font-display);
+  font-size: var(--taille-nav);
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  transition: background 0.2s ease-out;
+}
+/* Le rose n'existe que là où l'on survole vraiment. Sur un écran
+   tactile il n'y a pas de survol : le doigt « survole » en touchant,
+   et le carré rose restait allumé sous le nom du cinéma bien après
+   qu'on ait relâché. Il est donc réservé aux appareils qui pointent.
 
-/* ---------------- Fiche film ---------------- */
-.fiche { display: grid; grid-template-columns: minmax(15rem, 30%) 1fr; gap: clamp(1.5rem, 5vw, 4rem); align-items: start; padding: clamp(2rem, 5vw, 4rem) var(--marge); }
-.fiche__aff { transform: rotate(-2deg); box-shadow: 12px 12px 0 var(--orange); border-radius: 14px; }
-.fiche__aff .aff { border: var(--fil) solid var(--ink); }
-.fiche__texte { display: flex; flex-direction: column; gap: .7rem; padding-top: .5rem; }
-.fiche__meta { font-weight: 700; font-size: .8em; }
-.fiche h1 { font-weight: 900; letter-spacing: -.055em; line-height: .88; font-size: clamp(2.8rem, 1rem + 6vw, 6.5rem); overflow-wrap: anywhere; }
-.fiche__real { font-weight: 800; font-size: 1.3em; }
-.fiche__langue { align-self: flex-start; border: var(--fil) solid var(--ink); border-radius: 999px; padding: .1rem .9rem; font-weight: 800; font-size: .72em; }
-.fiche__synopsis { max-width: 46ch; margin-top: .6rem; }
-.fiche__ba { align-self: flex-start; margin-top: .6rem; }
-@media (max-width: 760px) { .fiche { grid-template-columns: 1fr; } .fiche__aff { max-width: 17rem; } }
+   Le rose du clavier, lui, reste sur tous les appareils : c'est le
+   seul repère qui dit où l'on se trouve en tabulant, et il ne
+   s'allume jamais au doigt ni à la souris. */
+@media (hover: hover) and (pointer: fine) {
+  .site-header__nom:hover {
+    background: var(--rose-fluo);
+  }
+}
+.site-header__nom:focus-visible {
+  background: var(--rose-fluo);
+}
 
-/* ---------------- Tarifs / Infos ---------------- */
-.tarifs { display: flex; flex-wrap: wrap; gap: 1.2rem; padding: 1.5rem var(--marge) 1rem; }
-.tarif { flex: 1 1 15rem; display: flex; flex-direction: column; gap: 1rem; align-items: flex-start; }
-.tarif__prix { width: 8.5rem; aspect-ratio: 1; border-radius: 50%; background: var(--orange); display: grid; place-items: center; font-weight: 900; font-size: 2.4rem; letter-spacing: -.05em; border: var(--fil) solid var(--ink); transition: transform .4s var(--ease), background .2s, color .2s; }
-.tarif:nth-child(even) .tarif__prix { background: var(--ink); color: var(--paper); }
-.tarif:hover .tarif__prix { transform: rotate(-10deg) scale(1.06); }
-.tarif h3 { font-weight: 900; font-size: 1.5em; letter-spacing: -.03em; line-height: 1; }
-.tarif p { font-size: .8em; margin-top: .3rem; max-width: 22ch; }
-.infos { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1.1rem; padding: 1.5rem var(--marge) 4rem; }
-.info { background: var(--carte); border: var(--fil) solid var(--ink); border-radius: var(--rayon); padding: 1.6rem 1.6rem 2rem; transition: transform .35s var(--ease), background .2s; }
-.info:nth-child(3n+1) { border-radius: 90px 28px 28px 28px; }
-.info:nth-child(3n) { border-radius: 28px 28px 90px 28px; }
-.info:hover { background: var(--orange); transform: translateY(-4px); }
-.info h3 { font-weight: 900; text-transform: uppercase; font-size: .72em; letter-spacing: .08em; margin-bottom: .6rem; }
-.info p { font-weight: 700; font-size: 1.15em; line-height: 1.2; }
+/* ---------- Menu déroulant ouvert ----------
+   Dans le menu, le nom du cinéma est une entrée comme les autres :
+   il s'écrit donc à la taille des rubriques (--taille-titre), et la
+   barre s'ouvre pour le laisser passer. Écrit plus petit, il avait
+   l'air d'une étiquette posée au-dessus de la liste plutôt que de
+   sa première ligne.
 
-/* ---------------- Formulaire ---------------- */
-.form { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem 1.5rem; max-width: 52rem; }
-.form label { display: flex; flex-direction: column; gap: .4rem; font-weight: 800; font-size: .78em; }
-.form__large, .form .bouton, .form__etat { grid-column: 1 / -1; }
-.form input, .form textarea { font: inherit; font-weight: 400; color: var(--ink); background: var(--carte); border: var(--fil) solid var(--ink); border-radius: 18px; padding: .7rem 1rem; width: 100%; }
-.form input:focus, .form textarea:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 4px color-mix(in srgb, var(--orange) 35%, transparent); }
-.form .bouton { justify-self: start; }
-.form__etat { font-weight: 700; min-height: 1.3em; }
-@media (max-width: 760px) { .form { grid-template-columns: 1fr; } }
+   La barre ne mesure alors plus une hauteur fixe : elle prend celle
+   du nom. Cela ne décale rien dans la page — l'en-tête est en
+   position fixe, et le contenu est de toute façon masqué par le
+   menu pendant ce temps. */
+.menu-ouvert .site-header {
+  height: auto;
+}
+.menu-ouvert .site-header__nom {
+  font-size: var(--taille-titre);
+  line-height: 0.9;
+}
 
-/* ---------------- Pied de page : bloc noir arrondi ---------------- */
-.pied { background: var(--ink); color: var(--paper); border-radius: clamp(36px, 7vw, 90px) clamp(36px, 7vw, 90px) 0 0; padding: clamp(2rem, 5vw, 4rem) var(--marge) 2rem; margin-top: 2rem; overflow: hidden; }
-.pied__mot { font-weight: 900; font-size: min(16rem, 18vw); line-height: .8; letter-spacing: -.07em; margin-bottom: 2rem; white-space: nowrap; }
-.pied__infos { display: flex; flex-wrap: wrap; gap: 1.5rem 3.5rem; font-size: .85em; font-weight: 700; }
-.pied__infos a:hover { color: var(--orange); }
-.pied__soeur { border-bottom: 2px solid var(--orange); }
-.pied__infos p:last-child { margin-left: auto; }
-@media (max-width: 760px) { .pied__infos p:last-child { margin-left: 0; } }
+/* Le bouton du menu n'est plus qu'un carré : plus de mot à côté,
+   donc plus de typographie ni d'espacement à régler ici. */
+.menu-toggle {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+}
+.menu-toggle__box {
+  display: flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  /* Même épaisseur de trait que les pastilles du site. */
+  border: var(--ligne) solid var(--ink);
+}
+.menu-toggle__bar {
+  height: 2px;
+  width: 1.125rem;
+  background: var(--ink);
+  border-radius: 1px;
+  transition: transform 0.3s var(--ease-editorial);
+}
+.menu-toggle[aria-expanded="true"] .menu-toggle__bar--1 { transform: translateY(3.5px) rotate(45deg); }
+.menu-toggle[aria-expanded="true"] .menu-toggle__bar--2 { transform: translateY(-3.5px) rotate(-45deg); }
 
-/* ---------------- Apparition ---------------- */
-.rev { opacity: 0; transform: translateY(18px); transition: opacity .6s ease-out, transform .6s var(--ease); }
-.rev--vu { opacity: 1; transform: none; }
-.rail .carte.rev--vu:nth-child(even) { transform: translateY(1.6rem); }
+/* ------------------------------------------------------------
+   Barre de navigation en cases (ordinateur uniquement).
+   Sur mobile et tablette, le menu plein écran reste en place.
+   Chaque case se remplit de sa couleur primaire au survol ;
+   la case de la page courante est inversée (noir sur blanc).
+   ------------------------------------------------------------ */
+.nav-bar { display: none; }
+
+/* En dessous de 1200px, les six cases ne tiennent pas en gros
+   caractères : le menu plein écran reste alors en service. */
+@media (min-width: 1200px) {
+  .menu-toggle { display: none; }
+  .main-nav { display: none; }
+
+  .site-header {
+    padding: 0;
+    align-items: stretch;
+    justify-content: flex-start;
+    background: var(--paper);
+    border-bottom: var(--ligne) solid var(--ink);
+  }
+  .site-header__nom {
+    /* Le nom ne se laisse jamais comprimer par les six rubriques. */
+    flex-shrink: 0;
+    padding: 0 1.5rem;
+    margin-left: 0;
+  }
+
+  .nav-bar {
+    display: flex;
+    flex: 1;
+    border-left: var(--ligne) solid var(--ink);
+  }
+  .nav-bar__list {
+    display: flex;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nav-bar__item {
+    display: flex;
+    flex: 1 0 auto;
+  }
+  .nav-bar__item + .nav-bar__item {
+    border-left: var(--ligne) solid var(--ink);
+  }
+  .nav-bar__link {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    /* Six rubriques à loger : le calage horizontal est plus serré
+       que sur les cases du tableau. */
+    padding: 0 0.75rem;
+    white-space: nowrap;
+    font-family: var(--font-display);
+    /* Exactement la typographie du nom du cinéma (.site-header__nom) :
+       même taille, même graisse, même espacement. Toute différence
+       entre les deux se voit au premier coup d'œil dans une barre
+       d'un seul tenant. */
+    font-size: var(--taille-nav);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    transition: background 0.2s ease-out, color 0.2s ease-out;
+  }
+  /* Le remplissage au survol vient de .m-teinte (couleur tirée au
+     hasard) ; la case de la page courante, elle, reste noire. */
+  .nav-bar__link[aria-current="page"],
+  .nav-bar__link[aria-current="page"]:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+}
+
+.main-nav {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: var(--ink);
+  color: var(--paper);
+  padding: 6rem 1rem 2rem;
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 0.55s var(--ease-editorial);
+  visibility: hidden;
+}
+.main-nav.is-open {
+  clip-path: inset(0 0 0% 0);
+  visibility: visible;
+}
+@media (min-width: 768px) {
+  .main-nav { padding: 8rem 2.5rem 3rem; }
+}
+
+.main-nav__list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.25rem;
+}
+@media (min-width: 768px) { .main-nav__list { gap: 0.5rem; } }
+
+.main-nav__item {
+  border-bottom: var(--ligne) solid rgba(255, 255, 255, 0.15);
+  padding: 0.5rem 0;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.5s var(--ease-editorial), transform 0.5s var(--ease-editorial);
+}
+.main-nav.is-open .main-nav__item { opacity: 1; transform: translateY(0); }
+@media (min-width: 768px) { .main-nav__item { padding: 0.75rem 0; } }
+
+.main-nav__link {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-weight: 900;
+  font-size: var(--taille-titre);
+  line-height: 0.9;
+}
+.main-nav__link-label {
+  display: inline-block;
+  transition: transform 0.3s var(--ease-editorial);
+}
+.main-nav__link:hover .main-nav__link-label { transform: translateX(0.75rem); }
+@media (min-width: 768px) {
+  .main-nav__link:hover .main-nav__link-label { transform: translateX(1.5rem); }
+}
+.main-nav__link-num {
+  display: none;
+  font-weight: 400;
+  font-size: var(--taille-texte);
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.5);
+}
+@media (min-width: 768px) { .main-nav__link-num { display: block; } }
+
+.main-nav__footer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-top: var(--ligne) solid rgba(255, 255, 255, 0.15);
+  padding-top: 1.5rem;
+  font-weight: 400;
+  font-size: var(--taille-texte);
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.7);
+}
+@media (min-width: 768px) {
+  .main-nav__footer { flex-direction: row; align-items: center; justify-content: space-between; }
+}
+.main-nav__footer a { color: var(--paper); }
+
+/* Le contenu s'étire pour occuper la hauteur restante : c'est lui
+   qui repousse le pied de page en bas de l'écran. */
+.main-area { flex: 1 0 auto; }
+
+/* Le contenu se cale exactement sous l'en-tête fixe. Toutes les
+   pages du site (sauf l'accueil, qui n'a pas de barre) sont des
+   tableaux : leur quadrillage remonte d'une épaisseur de trait
+   pour venir se poser sur celui de la barre de navigation — un
+   seul trait à la jonction, jamais deux. */
+.main-area {
+  padding-top: calc(3.5rem - var(--ligne));
+}
+@media (min-width: 768px) {
+  .main-area {
+    padding-top: calc(4.5rem - var(--ligne));
+  }
+}
+
+/* Même principe en bas de page : le pied de page remonte d'une
+   épaisseur de trait pour que son cadre se confonde avec le bas
+   du tableau. Sur une page courte, où du papier les sépare, ce
+   décalage ne se voit pas. */
+#footer-root {
+  margin-top: calc(-1 * var(--ligne));
+}
+
+/* ------------------------------------------------------------
+   Affiches
+   ------------------------------------------------------------ */
+.poster {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+.poster img { position: absolute; inset: 0; height: 100%; width: 100%; object-fit: cover; }
+
+/* Les affiches générées sont des visuels (comme une image d'affiche) :
+   leurs tailles internes sont proportionnelles à la case et échappent
+   à la règle des deux tailles, qui vaut pour le texte du site. */
+.generated-poster {
+  position: relative;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+}
+.generated-poster--0 { background: var(--ink); color: var(--paper); }
+.generated-poster--0 .gp-row { display: flex; flex: 1; align-items: stretch; justify-content: space-between; padding: 1rem; }
+.generated-poster--0 .gp-year { font-size: 0.6875rem; letter-spacing: -0.01em; opacity: 0.7; }
+.generated-poster--0 .gp-title { writing-mode: vertical-rl; font-weight: 900; font-size: clamp(2.2rem, 10vw, 4.5rem); line-height: 0.85; letter-spacing: -0.01em; word-break: break-word; }
+.generated-poster--0 .gp-director { border-top: var(--ligne) solid rgba(255,255,255,0.25); padding: 1rem; font-size: 0.625rem; letter-spacing: -0.01em; opacity: 0.7; }
+
+.generated-poster--1 { border: var(--ligne) solid rgba(16,15,12,0.7); background: var(--paper); color: var(--ink); }
+.generated-poster--1 .gp-top { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 1rem; font-size: 0.625rem; letter-spacing: -0.01em; }
+.generated-poster--1 .gp-mid { display: flex; flex: 1; align-items: center; justify-content: center; padding: 1rem; text-align: center; }
+.generated-poster--1 .gp-mid span { font-weight: 900; font-size: clamp(2rem, 9vw, 4rem); line-height: 0.86; word-break: break-word; }
+.generated-poster--1 .gp-bar { height: 0.5rem; background: var(--ink); }
+
+.generated-poster--2 { background: var(--red); color: var(--paper); }
+.generated-poster--2 .gp-clip { position: absolute; inset: 0; background: var(--ink); clip-path: polygon(0 55%, 100% 30%, 100% 100%, 0% 100%); }
+.generated-poster--2 .gp-top { position: relative; z-index: 1; padding: 1rem; font-size: 0.625rem; letter-spacing: -0.01em; }
+.generated-poster--2 .gp-title { position: relative; z-index: 1; margin-top: auto; padding: 1rem; font-weight: 900; font-size: clamp(1.9rem, 8.5vw, 3.6rem); line-height: 0.86; word-break: break-word; }
+
+.generated-poster--3 { background: var(--blue); color: var(--paper); }
+.generated-poster--3 .gp-title { padding: 1rem; font-weight: 900; font-size: clamp(1.9rem, 8.5vw, 3.6rem); line-height: 0.86; word-break: break-word; }
+.generated-poster--3 .gp-bottom { display: flex; margin-top: auto; align-items: flex-end; justify-content: space-between; gap: 0.75rem; padding: 1rem; }
+.generated-poster--3 .gp-director { font-size: 0.625rem; letter-spacing: -0.01em; }
+.generated-poster--3 .gp-year { display: flex; height: 3.5rem; width: 3.5rem; align-items: center; justify-content: center; border-radius: 999px; background: var(--ink); font-size: 0.6875rem; }
+
+.generated-poster--4 { background: var(--ink); color: var(--paper); }
+.generated-poster--4 .gp-frame { margin: 0.75rem; display: flex; flex: 1; flex-direction: column; border: var(--ligne) solid rgba(255,255,255,0.4); padding: 1rem; }
+.generated-poster--4 .gp-spacer { flex: 1; }
+.generated-poster--4 .gp-title { font-weight: 900; font-size: clamp(1.8rem, 8vw, 3.4rem); line-height: 0.86; word-break: break-word; }
+.generated-poster--4 .gp-bottom { display: flex; margin-top: 0.75rem; justify-content: space-between; gap: 0.75rem; border-top: var(--ligne) solid rgba(255,255,255,0.3); padding-top: 0.5rem; font-size: 0.625rem; letter-spacing: -0.01em; opacity: 0.8; }
+
+/* La page Agenda est un tableau Mondrian comme le reste du
+   site : sa mise en page vit dans agenda-mondrian.css. */
+
+/* La page Histoire est un tableau Mondrian comme le reste du
+   site : sa mise en page vit dans histoire-mondrian.css. */
+
+/* La page Contact est un tableau Mondrian comme le reste du
+   site : sa mise en page vit dans contact-mondrian.css. */
+
+/* ------------------------------------------------------------
+   Pied de page
+   ------------------------------------------------------------ */
+/* Le pied de page est lui aussi un tableau : des cases blanches
+   séparées par les mêmes traits noirs que le reste du site, et les
+   mêmes couleurs tirées au hasard au survol.
+
+   Une seule suite de cases, sans rangées imposées : chacune se cale
+   sur la longueur de son texte et la suite se replie toute seule
+   selon la largeur de l'écran — une ligne sur ordinateur, trois ou
+   quatre sur mobile. Aucune case ne se retrouve seule sur sa ligne
+   par construction, elles se regroupent au mieux.
+
+   Il ne reprend aucune rubrique du site (voir footer.js) : la
+   navigation est ailleurs. */
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ligne);
+  background: var(--ink);
+  border: var(--ligne) solid var(--ink);
+}
+
+.site-footer__lien,
+.site-footer__case {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 1rem;
+  background: var(--paper);
+  font-size: var(--taille-texte);
+  line-height: 1.35;
+}
+.site-footer__lien {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+.site-footer__case { font-weight: 700; }
+
+/* Sur mobile, chaque case du pied de page prend toute la largeur :
+   à hauteur de case égale au reste du site, le colophon occupait
+   plus de la moitié de l'écran. Il se resserre donc — c'est un
+   pied de page, pas du contenu : le texte y garde sa taille, seul
+   le calage se réduit. */
+@media (max-width: 767px) {
+  .site-footer__lien,
+  .site-footer__case {
+    padding: 0.6rem 1rem;
+  }
+}
+
+/* La signature de l'agence : une case comme les autres, même
+   graisse que ses voisines. Elle ne s'en distingue que d'une
+   façon — c'est la seule case du site, avec le nom du cinéma, qui
+   échappe au tirage des couleurs : elle se remplit de rose fluo au
+   survol. */
+.site-footer__signature {
+  transition: background 0.2s ease-out, color 0.2s ease-out;
+}
+.site-footer__signature:hover,
+.site-footer__signature:focus-visible {
+  background: var(--rose-fluo);
+  color: var(--ink);
+}
+
+/* ============================================================
+   États d'une page : chargement, rubrique vide, erreur.
+
+   Le site n'affiche plus jamais de contenu d'exemple pour combler
+   un vide : il dit ce qu'il en est. Ces trois messages reprennent
+   le trait et le gris du reste du site.
+   ============================================================ */
+.etat {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.4;
+  margin: 0;
+  padding: 2rem 1.25rem;
+  border: var(--trait) solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  max-width: 42rem;
+}
+.etat--chargement {
+  /* Rien de clignotant : un simple texte, qui disparaît dès que le
+     contenu arrive. */
+  opacity: 0.55;
+  font-weight: 400;
+}
+.etat--erreur {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* Le paragraphe d'introduction d'une page, réglé dans Sanity
+   (« Pages du site → Textes des pages »). */
+.m-intro {
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+
+/* La liste d'avantages d'une formule d'abonnement. Elle s'écrit
+   exactement comme le paragraphe juste au-dessus : même fonte, même
+   corps, même graisse. Elle était plus petite, ce qui la faisait
+   passer pour une note de bas de page alors qu'elle dit l'essentiel
+   — ce que la formule donne droit. */
+.m-formule__avantages {
+  margin: 0.5rem 0 0;
+  /* Aucun retrait et aucune puce : les avantages commencent au même
+     bord que le titre, le prix et le paragraphe au-dessus d'eux. Le
+     retrait par défaut des listes les décalait vers la droite, seuls
+     de leur case à ne pas être alignés. */
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-body);
+  font-size: inherit;
+  font-weight: 400;
+  line-height: 1.45;
+}
+.m-formule__avantages li {
+  margin-bottom: 0.2rem;
+}
+
+/* Les coordonnées bancaires : une ligne par information, pour
+   qu'un IBAN reste lisible et copiable. */
+.m-banque__ligne {
+  margin: 0;
+}
+.m-banque__ligne + .m-banque__ligne {
+  margin-top: 0.15rem;
+}
+
+/* ============================================================
+   Minimum — ce qui s'ajoute à la base du Zinéma.
+
+   Même langage : trait de 4 px, cases sur fond papier, quatre
+   couleurs Mondrian tirées au hasard et visibles au survol,
+   Aileron en deux tailles. Ce qui change, c'est le programme :
+   un cinéma, une radio et un club sous le même toit. Chacun a sa
+   grande case sur l'accueil, et l'agenda les mêle dans une seule
+   suite de rangées.
+
+   Deux nouveautés propres au Minimum :
+   · la bande défilante (le bandeau d'une station de radio) ;
+   · le voyant « en direct », seule couleur fixe du site avec le
+     vert du billet : rouge, car il signale un fait, pas un décor.
+   ============================================================ */
+
+.mondrian { display: flex; flex-direction: column; gap: var(--ligne); background: var(--ink); border: var(--ligne) solid var(--ink); }
+.mondrian > * { background: var(--paper); min-width: 0; }
+.m-bande { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--ligne); background: var(--ink); }
+.m-bande > * { flex: 1 1 auto; background: var(--paper); min-width: 0; }
+.mondrian > .m-bande { background: var(--ink); }
+
+.m-cell { display: flex; flex-direction: column; justify-content: flex-start; gap: 0.5rem; padding: 1rem; font-size: var(--taille-texte); line-height: 1.35; }
+@media (min-width: 900px) { .m-cell { padding: 1.5rem; } }
+.m-cell__label { font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; opacity: 0.7; }
+.m-cell__value { font-weight: 700; hyphens: auto; overflow-wrap: break-word; }
+.m-cell p + p { margin-top: 0.6rem; }
+.m-cell--centre { align-items: center; justify-content: center; text-align: center; }
+a.m-cell, a.m-seance > * { transition: background 0.2s ease-out, color 0.2s ease-out; }
+
+.m-titre { padding: 1.25rem 1rem; }
+@media (min-width: 900px) { .m-titre { padding: 2rem 1.5rem; } }
+.m-titre h1, .m-titre h2 { margin-top: 0.5rem; font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; font-size: var(--taille-titre); line-height: 0.92; overflow-wrap: anywhere; }
+.m-sous { font-weight: 700; }
+
+/* ---------- Boutons-cases ---------- */
+.m-action { display: flex; align-items: center; justify-content: center; padding: 1rem 1.5rem; font-family: var(--font-display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; font-size: var(--taille-texte); text-align: center; }
+/* Le bouton qui fait acheter : le vert du Zinéma, seul sens fixe. */
+.m-action--billet { background: var(--vert) !important; color: #fff; }
+.m-action--billet:hover, .m-action--billet:focus-visible { background: var(--vert-fonce) !important; color: #fff; }
+
+/* ---------- Voyant « en direct » ---------- */
+.m-direct { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.02em; }
+.m-direct__point { width: 0.8em; height: 0.8em; border-radius: 50%; background: var(--red); flex: none; }
+.m-direct--on .m-direct__point { animation: clignote 1.4s steps(2, jump-none) infinite; }
+.m-direct--off .m-direct__point { background: var(--ink); opacity: 0.35; }
+@keyframes clignote { 50% { opacity: 0.2; } }
+
+/* ---------- Bande défilante : le bandeau de la radio ---------- */
+.m-defile { overflow: hidden; background: var(--ink) !important; color: var(--paper); white-space: nowrap; padding: 0.7rem 0; }
+.m-defile__piste { display: inline-flex; animation: defile 28s linear infinite; font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; font-size: var(--taille-texte); }
+.m-defile__piste span { padding: 0 1.2rem; }
+.m-defile__piste span:nth-child(3n+2) { color: var(--jaune); }
+@keyframes defile { to { transform: translateX(-50%); } }
+
+/* ---------- Accueil : trois grandes cases ---------- */
+.m-trois { display: grid; grid-template-columns: 1fr; gap: var(--ligne); background: var(--ink); }
+.m-trois > * { background: var(--paper); min-width: 0; }
+.m-monde { display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem; padding: 1rem; min-height: 14rem; font-size: var(--taille-texte); }
+@media (min-width: 900px) { .m-monde { padding: 1.5rem; } }
+.m-monde__nom { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; font-size: var(--taille-titre); line-height: 0.9; }
+.m-monde__texte { font-weight: 700; }
+.m-monde__label { font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; opacity: 0.7; }
+.m-monde__affiche { aspect-ratio: var(--format-affiche); overflow: hidden; border: var(--ligne) solid var(--ink); max-width: 14rem; }
+@media (min-width: 900px) {
+  .m-trois { grid-template-columns: 1.35fr 1fr; grid-template-rows: auto auto; }
+  .m-monde--cinema { grid-row: 1 / span 2; }
+}
+
+/* ---------- Rangées de programme (comme l'agenda du Zinéma) ---------- */
+.m-seances-liste { display: flex; flex-direction: column; gap: var(--ligne); background: var(--ink); }
+.m-seance { display: flex; flex-wrap: wrap; gap: var(--ligne); background: var(--ink); min-width: 0; }
+.m-seance > * { background: var(--paper); }
+.m-seance__heure { flex: 0 0 5.5rem; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 900; padding: 1rem 0.5rem; font-size: var(--taille-texte); }
+.m-seance__infos { flex: 1 1 14rem; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 0.25rem; padding: 1rem; font-size: var(--taille-texte); line-height: 1.3; }
+.m-seance__type { font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; opacity: 0.7; }
+.m-seance__titre { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; line-height: 1.1; overflow-wrap: anywhere; }
+.m-seance__sous { font-weight: 400; }
+.m-seance__action { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; padding: 1rem 1.5rem; font-family: var(--font-display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; font-size: var(--taille-texte); }
+@media (max-width: 599px) { .m-seance__action { flex: 1 1 100%; } }
+@media (min-width: 1080px) { .m-seance__heure { flex-basis: 7.5rem; } }
+a.m-seance:hover > *, a.m-seance:focus-visible > * { background: var(--case-fond); color: var(--case-texte); }
+.m-seance__action--billet { background: var(--vert) !important; color: #fff; }
+.m-seance__action--billet:hover { background: var(--vert-fonce) !important; }
+/* Le voyant d'un type de programme : un petit carré d'encre, un rond (radio), un losange (club). */
+.m-forme { display: inline-block; width: 0.7em; height: 0.7em; background: var(--ink); margin-right: 0.45em; vertical-align: baseline; }
+.m-forme--radio { border-radius: 50%; }
+.m-forme--club { transform: rotate(45deg) scale(0.9); }
+
+/* ---------- Filtres : cases-boutons (comme Films au Zinéma) ---------- */
+.m-filtres { display: flex; flex-wrap: wrap; gap: var(--ligne); background: var(--ink); }
+.m-filtre { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; padding: 0.75rem 1rem; background: var(--paper); color: var(--ink); font-family: var(--font-display); font-size: var(--taille-texte); font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; }
+.m-filtre.is-active, .m-filtre.is-active:hover { background: var(--case-fond); color: var(--case-texte); }
+.m-filtre--jour { flex-direction: column; gap: 0.15rem; padding: 0.6rem 1rem; }
+.m-jour__dow { font-weight: 700; }
+.m-jour__num { font-weight: 900; }
+.m-jour-actif { font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; padding: 1rem; font-size: var(--taille-texte); }
+
+/* ---------- Films : colonnes de cases ---------- */
+.m-films { display: flex; flex-wrap: wrap; gap: var(--ligne); background: var(--ink); }
+.m-film { flex: none; width: 100%; display: flex; flex-direction: column; gap: var(--ligne); background: var(--ink); min-width: 0; }
+.m-film > * { background: var(--paper); }
+@media (min-width: 600px) { .m-film { width: calc((100% - var(--ligne)) / 2); } }
+@media (min-width: 1080px) { .m-film { width: calc((100% - 2 * var(--ligne)) / 3); } }
+.m-film__affiche { aspect-ratio: var(--format-affiche); overflow: hidden; position: relative; }
+.m-film__affiche .poster img { transition: transform 0.4s var(--ease-editorial); }
+.m-film:hover .m-film__affiche .poster img { transform: scale(1.04); }
+.m-film__entete { flex: 1; }
+.m-film__titre { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; line-height: 1.05; overflow-wrap: anywhere; }
+.m-film__infos { font-weight: 400; }
+
+/* ---------- Fiche film ---------- */
+.m-fiche { display: grid; grid-template-columns: 1fr; gap: var(--ligne); background: var(--ink); }
+.m-fiche > * { background: var(--paper); min-width: 0; }
+.m-fiche__affiche { overflow: hidden; }
+.m-fiche__affiche .poster { height: auto; aspect-ratio: var(--format-affiche); }
+.m-fiche__colonne { display: flex; flex-direction: column; gap: var(--ligne); background: var(--ink); }
+.m-fiche__colonne > * { background: var(--paper); }
+@media (min-width: 900px) {
+  .m-fiche { grid-template-columns: minmax(16rem, 30%) 1fr; }
+}
+.m-ba { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; }
+
+/* ---------- Radio ---------- */
+.m-onair { display: flex; flex-direction: column; justify-content: space-between; gap: 1.5rem; }
+.m-onair__titre { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; font-size: var(--taille-titre); line-height: 0.9; overflow-wrap: anywhere; }
+.m-lecteur { display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 900; text-transform: uppercase; font-size: var(--taille-titre); line-height: 0.9; padding: 1.5rem; text-align: center; cursor: pointer; }
+.m-lecteur[disabled] { cursor: default; opacity: 0.55; }
+.m-lecteur.is-playing { background: var(--ink) !important; color: var(--paper); }
+
+/* ---------- Formulaire : chaque champ est une case ---------- */
+.m-champ { display: flex; flex-direction: column; gap: 0.4rem; padding: 1rem; font-size: var(--taille-texte); }
+@media (min-width: 900px) { .m-champ { padding: 1.5rem; } }
+.m-champ label { font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; opacity: 0.7; }
+.m-champ input, .m-champ textarea { font: inherit; font-weight: 700; color: var(--ink); background: transparent; border: 0; border-bottom: var(--ligne) solid var(--ink); border-radius: 0; padding: 0.4rem 0; width: 100%; }
+.m-champ input:focus, .m-champ textarea:focus { outline: none; border-bottom-color: var(--red); }
+.m-etat { padding: 1rem; font-weight: 700; font-size: var(--taille-texte); min-height: 3.5rem; }
+
+.m-vide { padding: 1.5rem 1rem; font-weight: 700; font-size: var(--taille-texte); }
+
+@media (prefers-reduced-motion: reduce) { .m-defile__piste { animation: none; } .m-direct--on .m-direct__point { animation: none; } }
+
+/* Les conteneurs de cases portent le trait noir, jamais le fond papier. */
+.mondrian > .m-trois, .mondrian > .m-films, .mondrian > .m-seances-liste,
+.mondrian > .m-filtres, .mondrian > .m-fiche, .mondrian > .m-bande { background: var(--ink); }
+.m-seance > a { color: var(--ink); }
+.m-seance > a.m-seance__action--billet { color: #fff; }
+
+.m-film--plus { justify-content: stretch; }
+.m-film--plus > .m-cell { flex: 1; justify-content: space-between; min-height: 10rem; }
+.m-film--plus .m-monde__nom { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; font-size: var(--taille-titre); line-height: .9; letter-spacing: -0.01em; }
