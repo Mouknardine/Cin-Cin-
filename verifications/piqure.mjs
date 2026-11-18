@@ -191,6 +191,21 @@ verifier('pas celle du huitième jour', html.includes('JEU&nbsp;26'), false)
 verifier('l’étiquette du film compte ses semaines', html.includes('1ÈRE SEMAINE'))
 verifier('le Marché de Noël mène à sa page', html.includes('href="https://www.zinema.ch/evenements/?e=marche-de-noel"'))
 verifier('un film coché : le bouton pour acheter un billet', html.includes('ACHETER UN BILLET SUR'))
+
+/* Le cinéma, le 18 novembre 2026 : la bande verte « pointe pas sur la
+   fiche du film mais sur l'agenda général, ce qui est bizarre ». Et le
+   bloc avec la date doit être « en vert dollar, qu'on comprenne que
+   c'est pour acheter ». */
+const destinationDuBouton = (message) => (message.match(/<a href="([^"]*)"[^>]*>ACHETER UN BILLET SUR/) ?? [])[1]
+const piqureDe = (...coches) => construirePiqure({envoi: ENVOI, titre: '', mot: '', choix: coches, reglages: donnees.reglages}, PROJET)
+verifier('un seul film coché : le bouton mène à sa fiche', destinationDuBouton(piqureDe(film('asako'))), 'https://www.zinema.ch/film/?s=asako')
+verifier('un film et un événement : le bouton mène à la fiche du film', destinationDuBouton(piqureDe(NOEL, film('drive'))), 'https://www.zinema.ch/film/?s=drive')
+verifier('plusieurs films : le bouton mène à l’agenda, qui les montre tous', destinationDuBouton(html), 'https://www.zinema.ch/agenda/')
+const pastillesDeLaPiqure = [...html.matchAll(/<td nowrap style="([^"]*)"/g)].map((m) => m[1])
+verifier(
+  'chaque pastille de date est verte, celle de la séance spéciale comprise',
+  pastillesDeLaPiqure.length > 0 && pastillesDeLaPiqure.every((style) => style.includes('background-color:#275a1b;')),
+)
 verifier('le pied du cinéma', html.includes('fondée en juin 2001') && html.includes('IBAN CH00'))
 verifier(
   'ni programme de la semaine, ni « Prochainement », ni tarifs',

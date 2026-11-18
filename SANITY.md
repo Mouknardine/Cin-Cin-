@@ -188,7 +188,7 @@ de plus : sur la fiche du film du site, la case de son jour porte un
 bandeau noir (« Avant-première · En présence de la réalisatrice Jeanne
 Dupont ») ; sur l'agenda, la séance a le même bandeau sous son titre ;
 dans la newsletter, un bandeau noir suit la séance dans le programme, et
-le bloc du film la rappelle avec sa pastille en noir ; sur la feuille à
+le bloc du film la rappelle en bandeau noir au-dessus de ses pastilles ; sur la feuille à
 imprimer, elle a sa propre ligne noire sous la séance. Ce texte vient de
 trois endroits déjà connus : l'avant-première, la première ou la
 projection extraordinaire de la fiche du film ; son champ **« Séance en
@@ -416,7 +416,13 @@ qui est coché** : ni programme de la semaine, ni « Prochainement », ni
 tarifs. Un film y montre ses séances des **sept jours qui suivent l'envoi**
 (ou, s'il ne passe qu'après, des sept jours qui suivent sa première séance),
 et ses séances spéciales en bandeau noir. Le bouton vert « Acheter un
-billet » n'apparaît que si un film est coché.
+billet » n'apparaît que si un film est coché : il mène à **la fiche de ce
+film** s'il est seul, à l'agenda s'il y en a plusieurs.
+
+**Dans les deux newsletters, les pastilles de date sont vertes** (demande
+du cinéma, 18 novembre 2026) : le vert est celui du billet, on comprend
+qu'on clique pour acheter. Une séance **complète** garde une pastille
+simplement encadrée, sans vert : elle ne vend plus rien.
 
 ### Ce que le hasard ne fait jamais
 

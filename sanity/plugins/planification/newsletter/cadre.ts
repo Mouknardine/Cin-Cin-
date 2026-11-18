@@ -52,12 +52,20 @@ export function bandeBleue(texte: string): string {
   )}</tr>`
 }
 
-/** L'appel au site : toute la case est cliquable. Le vert ne sert qu'à acheter une place. */
-export function appelAuSite(): string {
+/** L'agenda du site : là où l'on choisit parmi tous les films de la semaine. */
+export const AGENDA = `${SITE}/agenda/`
+
+/**
+ * L'appel au site : toute la case est cliquable. Le vert ne sert qu'à
+ * acheter une place. Il mène à l'agenda, sauf quand le message ne parle
+ * que d'un film : il mène alors à sa fiche (voir piqure/gabarit.ts).
+ * La destination arrive déjà échappée, comme celle de lienDuFilm.
+ */
+export function appelAuSite(destination: string = AGENDA): string {
   return `<tr>${cellule(
     /* « ZINEMA.CH &rarr; » ne se coupe pas : l'adresse et la flèche restent
        ensemble, sur la même ligne, quelle que soit la largeur. */
-    `<a href="${SITE}/agenda/" style="display:block;color:${BLANC};text-decoration:none;">` +
+    `<a href="${destination}" style="display:block;color:${BLANC};text-decoration:none;">` +
       `ACHETER UN BILLET SUR <span style="white-space:nowrap;">ZINEMA.CH &rarr;</span></a>`,
     `background-color:${VERT};color:${BLANC};padding:13px 14px;font-size:${TAILLE.titre};` +
       `line-height:1.25;font-weight:bold;text-transform:uppercase;`,

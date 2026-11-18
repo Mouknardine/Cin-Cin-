@@ -11,7 +11,8 @@
  *   │ les films et les événements cochés,     │
  *   │ le plus proche d'abord                  │
  *   ├─────────────────────────────────────────┤
- *   │ ACHETER UN BILLET SUR ZINEMA.CH →       │  ← s'il y a un film
+ *   │ ACHETER UN BILLET SUR ZINEMA.CH →       │  ← s'il y a un film :
+ *   │                                         │    sa fiche, ou l'agenda
  *   ├─────────────────────────────────────────┤
  *   │ pied                                    │
  *   └─────────────────────────────────────────┘
@@ -23,10 +24,10 @@
  * tarifs.
  */
 import {debutDeSemaine} from '../../utils/dates'
-import {appelAuSite, bandeBleue, entete, envelopper, pied} from '../cadre'
+import {AGENDA, appelAuSite, bandeBleue, entete, envelopper, pied} from '../cadre'
 import {etiquetteDuFilm} from '../etiquette'
 import {blocFilmPresente, type ProjetSanity} from '../film'
-import {TAILLE, capitales, cellule, paragraphes} from '../html'
+import {TAILLE, capitales, cellule, lienDuFilm, paragraphes} from '../html'
 import {blocEvenement} from '../rendez-vous'
 import type {ReglagesNewsletter} from '../types'
 import {dansLOrdre, titreDe, type FilmEnAvant, type MiseEnAvant} from './candidats'
@@ -77,6 +78,17 @@ function blocDuFilm(choix: FilmEnAvant, projet: ProjetSanity): string {
   })
 }
 
+/**
+ * Où mène le bouton vert. Un seul film coché : à sa fiche, où l'on achète
+ * sa place — le cinéma trouvait « bizarre » qu'il mène à l'agenda général
+ * (18 novembre 2026). Plusieurs films : à l'agenda, qui les montre tous.
+ */
+function destinationDuBouton(films: readonly FilmEnAvant[]): string {
+  if (films.length !== 1) return AGENDA
+  /* Un film sans page sur le site : l'agenda, plutôt qu'un lien mort. */
+  return lienDuFilm(films[0].film.slug) ?? AGENDA
+}
+
 function motDuCinema(mot: string): string {
   const texte = paragraphes(mot, `font-size:${TAILLE.texte};line-height:1.5;`)
   return texte ? `<tr>${cellule(texte, 'padding:12px 14px 5px;')}</tr>` : ''
@@ -90,14 +102,14 @@ export function construirePiqure(contenu: ContenuPiqure, projet: ProjetSanity): 
     .join('')
   /* Le vert ne sert qu'à acheter une place : sans film, pas de bouton. Un
      événement mène à sa page par son titre et son visuel. */
-  const avecUnFilm = contenu.choix.some((choix) => choix.genre === 'film')
+  const films = contenu.choix.filter((choix): choix is FilmEnAvant => choix.genre === 'film')
 
   return envelopper(
     entete() +
       bandeBleue(titreDuMessage(contenu.titre, contenu.choix)) +
       motDuCinema(contenu.mot) +
       blocs +
-      (avecUnFilm ? appelAuSite() : '') +
+      (films.length ? appelAuSite(destinationDuBouton(films)) : '') +
       pied(contenu.reglages),
   )
 }

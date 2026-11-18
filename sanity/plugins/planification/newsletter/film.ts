@@ -138,7 +138,6 @@ export function blocFilm(
 export function blocFilmPresente(film: FilmNewsletter, projet: ProjetSanity, presentation: PresentationDuFilm): string {
   const lien = lienDuFilm(film.slug)
   const {etiquette: etiquetteCalculee, etiquetteEncadree, pastilles} = presentation
-  const estSpeciale = (seance: SeanceNewsletter): boolean => Boolean(particulariteDe(seance, film))
 
   const titre =
     `<div style="font-size:${TAILLE.titre};line-height:1.15;font-weight:bold;text-transform:uppercase;` +
@@ -156,7 +155,7 @@ export function blocFilmPresente(film: FilmNewsletter, projet: ProjetSanity, pre
       (seance) => particulariteDe(seance, film),
       presentation.joursAbreges,
     ) +
-    pastillesDesSeances(pastilles, lien, estSpeciale)
+    pastillesDesSeances(pastilles, lien)
   const synopsis = paragraphes(film.synopsis, `font-size:${TAILLE.texte};line-height:1.5;`)
 
   /* La case de l'affiche est sur le papier, pas sur l'encre. Sur un

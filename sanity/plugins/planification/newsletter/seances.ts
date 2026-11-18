@@ -20,7 +20,7 @@
  * ---------------------------------------------------------------------------
  */
 import {ajouterJours, formatJourAbrege, formatJourLong, numeroDuJour} from '../utils/dates'
-import {BLANC, ENCRE, POLICE, TAILLE, TRAIT, capitales, echapper} from './html'
+import {BLANC, ENCRE, POLICE, TAILLE, TRAIT, VERT, capitales, echapper} from './html'
 import type {SeanceNewsletter} from './types'
 
 /** Du lundi de l'envoi au mercredi qui ouvre la semaine : deux jours. */
@@ -66,11 +66,15 @@ const PAR_RANGEE = 2
  * mso-padding-alt, qu'il est seul à lire. Les espaces sont insécables :
  * « LUN 5 19:00 » ne se coupe jamais en deux.
  */
-function puceHoraire(seance: SeanceNewsletter, lien: string | null, speciale: boolean): string {
-  /* Une séance spéciale (avant-première, invité·e…) s'inverse : encre
-     pleine, texte blanc. Elle se repère parmi les autres. */
-  const encre = speciale ? BLANC : ENCRE
-  const fond = speciale ? `background-color:${ENCRE};` : ''
+function puceHoraire(seance: SeanceNewsletter, lien: string | null): string {
+  /* Une pastille qui achète est verte, écrite en blanc : « qu'on comprenne
+     que c'est pour acheter » (demande du cinéma, 18 novembre 2026). Les
+     séances spéciales aussi — le bandeau d'encre au-dessus les distingue.
+     Comme sur la fiche du film du site, une séance complète, ou un film
+     sans page où acheter, garde sa pastille cadrée : elle ne vend rien. */
+  const achete = Boolean(lien) && seance.statut !== 'complet'
+  const encre = achete ? BLANC : ENCRE
+  const fond = achete ? `background-color:${VERT};` : ''
   const TEXTE_PASTILLE = textePastille(encre)
   const contenu =
     `${echapper(capitales(formatJourAbrege(seance.date)))}&nbsp;${echapper(numeroDuJour(seance.date))}` +
@@ -80,7 +84,7 @@ function puceHoraire(seance: SeanceNewsletter, lien: string | null, speciale: bo
     : `<span style="display:block;padding:${MARGE_PASTILLE};${TEXTE_PASTILLE}">${contenu}</span>`
   return (
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;">` +
-    `<tr><td nowrap style="${TRAIT}${fond}padding:0;mso-padding-alt:${MARGE_PASTILLE};${TEXTE_PASTILLE}">${interieur}</td></tr>` +
+    `<tr><td nowrap style="${TRAIT}padding:0;mso-padding-alt:${MARGE_PASTILLE};${fond}${TEXTE_PASTILLE}">${interieur}</td></tr>` +
     `</table>`
   )
 }
@@ -112,15 +116,11 @@ function caseDeLaGrille(contenu: string, derniereDeLaRangee: boolean): string {
  * grille reste à deux, alignée et régulière.
  * ---------------------------------------------------------------------------
  */
-export function pastillesDesSeances(
-  seances: readonly SeanceNewsletter[],
-  lien: string | null,
-  estSpeciale: (seance: SeanceNewsletter) => boolean = () => false,
-): string {
+export function pastillesDesSeances(seances: readonly SeanceNewsletter[], lien: string | null): string {
   if (!seances.length) return ''
   const rangees: string[] = []
   for (let debut = 0; debut < seances.length; debut += PAR_RANGEE) {
-    const cases = seances.slice(debut, debut + PAR_RANGEE).map((seance) => puceHoraire(seance, lien, estSpeciale(seance)))
+    const cases = seances.slice(debut, debut + PAR_RANGEE).map((seance) => puceHoraire(seance, lien))
     while (cases.length < PAR_RANGEE) cases.push('&nbsp;')
     rangees.push(`<tr>${cases.map((contenu, rang) => caseDeLaGrille(contenu, rang === PAR_RANGEE - 1)).join('')}</tr>`)
   }
@@ -138,10 +138,10 @@ const SEANCES_SPECIALES_MAX = 3
 /**
  * Les séances spéciales du film, chacune dans un bandeau d'encre sous le
  * titre : « VEN 6 · 20:00 — AVANT-PREMIÈRE · EN PRÉSENCE DE LA
- * RÉALISATRICE » (demande du cinéma, 3 novembre 2026). Sa pastille est
- * inversée de la même encre, plus bas. Quand aucune pastille ne reprend le
- * jour — un film annoncé, une piqûre de rappel —, il s'écrit en toutes
- * lettres : « VENDREDI 6 NOVEMBRE · 20:00 ».
+ * RÉALISATRICE » (demande du cinéma, 3 novembre 2026). Sa pastille, plus
+ * bas, est verte comme les autres : elle achète. Quand aucune pastille ne
+ * reprend le jour — un film annoncé, une piqûre de rappel —, il s'écrit en
+ * toutes lettres : « VENDREDI 6 NOVEMBRE · 20:00 ».
  *
  * `texteDe` dit ce qu'une séance a de spécial, ou null pour une séance
  * ordinaire (voir particularite.ts).

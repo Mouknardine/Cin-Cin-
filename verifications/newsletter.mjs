@@ -538,6 +538,36 @@ console.log('\nLes pastilles dans Outlook, signalées le 5 octobre 2026')
     pastilles[0].includes('>LUN&nbsp;14&nbsp;&nbsp;<span style="font-weight:normal;">19:00</span>'),
     pastilles[0],
   )
+  /* Le cinéma, le 18 novembre 2026 : « il faut que le bloc avec la date
+     soit en vert dollar, qu'on comprenne que c'est pour acheter ». C'est
+     le vert du billet, la seule couleur qui achète une place. */
+  verifier(
+    'chaque pastille est verte, écrite en blanc : elle achète une place',
+    pastilles.every((p) => p.includes('background-color:#275a1b;') && /<a [^>]*color:#ffffff;/.test(p)),
+    pastilles[0],
+  )
+}
+
+console.log('\nUne pastille qui ne vend rien ne verdit pas')
+{
+  /* Comme sur la fiche du film du site : une séance complète, ou un film
+     sans page où acheter, garde sa pastille cadrée — jamais verte. */
+  const pastillesDe = (html) =>
+    [...html.split('>LES FILMS DE LA SEMAINE<')[1].matchAll(/<td nowrap style="[\s\S]*?<\/td>/g)].map((m) => m[0])
+  const deuxSeances = pastillesDe(construire([
+    film({_id: 'plein', titre: 'Plein', seances: [S(DEBUT, '19:00', 'Salle 1', 'complet'), S('2026-09-18', '21:00', 'Salle 1')]}),
+  ], []))
+  const [complete = '', ouverte = ''] = deuxSeances
+  verifier('une séance complète reste cadrée, sans vert', deuxSeances.length === 2 && !complete.includes('#275a1b'), complete)
+  verifier("l'autre séance du film, elle, est verte", ouverte.includes('background-color:#275a1b;'), ouverte)
+  const sansPage = pastillesDe(construire([
+    film({_id: 'orphelin', titre: 'Sans page', slug: null, seances: [S(DEBUT, '19:00', 'Salle 1')]}),
+  ], []))
+  verifier(
+    "un film sans page sur le site n'a pas de pastille verte",
+    sansPage.length === 1 && !sansPage[0].includes('#275a1b'),
+    sansPage.join(' | '),
+  )
 }
 
 console.log('\nLes deux règles qui évitent les pastilles fondues')

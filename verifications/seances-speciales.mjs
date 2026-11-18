@@ -217,10 +217,14 @@ verifier(
   /background-color:#100f0c;color:#ffffff;[^"]*">VEN 6 · 20:00&nbsp;— AVANT-PREMIÈRE · EN PRÉSENCE DE LA RÉALISATRICE JEANNE DUPONT<\/td>/.test(blocs),
 )
 const pastillesNuit = [...blocs.split('>LA NUIT<')[1].split('>LE JOUR<')[0].matchAll(/<td nowrap style="([^"]*)"/g)].map((m) => m[1])
+/* Sa pastille était inversée en noir. Le cinéma l'a voulue verte
+   (18 novembre 2026), « qu'on comprenne que c'est pour acheter » : elle
+   est verte comme les autres, et c'est le bandeau noir juste au-dessus,
+   même jour et même heure, qui la distingue. */
 verifier(
-  'sa pastille est inversée, et elle seule',
-  pastillesNuit.map((style) => style.includes('background-color:#100f0c;')),
-  [true, false],
+  'sa pastille est verte comme les autres : le vert achète, le bandeau distingue',
+  pastillesNuit.map((style) => style.includes('background-color:#275a1b;') && !style.includes('background-color:#100f0c;')),
+  [true, true],
 )
 verifier(
   'un film à venir annonce sa première, jour en toutes lettres',
