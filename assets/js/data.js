@@ -53,13 +53,13 @@
 
   function sanityFetch(query, params) {
     /* « perspective=published » : Sanity ne renvoie que les documents
-       publiés. Sans ce mot, le site sert AUSSI les brouillons — le
-       jeu de données est public en lecture, donc les brouillons le
-       sont aussi. Un film à moitié rempli s'afficherait, et un film
-       en cours de modification apparaîtrait deux fois : une fois
-       publié, une fois en brouillon. C'est ce qui garantit la
+       publiés. Sans clé, il ne renvoie de toute façon jamais un
+       document dont l'identifiant contient un point : ni les
+       brouillons (« drafts.… »), ni les commandes de billets
+       (« commandes.… »). Ce mot est une seconde garantie de la
        promesse faite dans SANITY.md — tant qu'on n'a pas cliqué sur
-       « Publish », personne ne voit rien. */
+       « Publish », personne ne voit rien —, qui tiendrait même si
+       le site lisait un jour Sanity avec une clé. */
     var url = API_BASE + "?perspective=published&query=" + encodeURIComponent(query);
     if (params) {
       Object.keys(params).forEach(function (key) {

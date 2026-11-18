@@ -247,6 +247,9 @@ export const deskStructure: StructureResolver = (S) =>
         .child(
           S.documentTypeList("commande")
             .title("Billets vendus")
-            .defaultOrdering([{ field: "_createdAt", direction: "desc" }])
+            // Par date d'achat (creeLe), pas par _createdAt : le
+            // 18.11.2026, les commandes ont été recopiées dans le
+            // dossier privé, et leur _createdAt est devenu ce jour-là.
+            .defaultOrdering([{ field: "creeLe", direction: "desc" }])
         ),
     ]);

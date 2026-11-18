@@ -1,6 +1,6 @@
 name: Vérifier
 
-# Quatre vérifications, à chaque envoi, avant toute publication :
+# Cinq vérifications, à chaque envoi, avant toute publication :
 #
 #   npm run typecheck        — les schémas et l'outil Planification du
 #                              Studio se tiennent (TypeScript).
@@ -15,6 +15,13 @@ name: Vérifier
 #   php verifications/billetterie-conclusion.php — un billet payé part
 #                              par e-mail une fois et une seule, même si
 #                              le client ne revient pas sur le site.
+#   php verifications/donnees-personnelles.php — les commandes (e-mail
+#                              de l'acheteur, référence du billet) sont
+#                              toujours créées dans le dossier privé de
+#                              Sanity, jamais lisibles sans clé.
+#
+# Les deux vérifications PHP sont aussi rejouées par le déploiement
+# Infomaniak, qui ne publie rien si elles échouent.
 #
 # L'ordre du programme existe forcément en deux exemplaires :
 # sanity/salles.ts pour le Studio, assets/js/data.js pour le site, qui
@@ -70,6 +77,10 @@ jobs:
       # le client ne revient pas sur le site. Voir le fichier.
       - name: Le billet payé part par e-mail, une seule fois
         run: php verifications/billetterie-conclusion.php
+
+      # Les commandes ne sont jamais lisibles sans clé. Voir le fichier.
+      - name: Les données des acheteurs restent privées
+        run: php verifications/donnees-personnelles.php
 
       - name: Le navigateur des vérifications
         run: npx playwright install --with-deps chromium

@@ -2,6 +2,7 @@ import { defineConfig } from "sanity";
 import { structureTool } from "sanity/structure";
 import { visionTool } from "@sanity/vision";
 import { schemaTypes, typesNonCreables, typesUniques } from "./sanity/schemaTypes";
+import { actionsRetirees } from "./sanity/actionsRetirees";
 import { deskStructure } from "./sanity/deskStructure";
 import { planification } from "./sanity/plugins/planification";
 
@@ -34,16 +35,14 @@ export default defineConfig({
     // Le bouton « + » ne propose que ce qui se crée vraiment à la main.
     newDocumentOptions: (options) =>
       options.filter((option) => !typesNonCreables.includes(option.templateId)),
-    // Les fiches uniques ne peuvent être ni dupliquées ni supprimées.
-    actions: (actions, { schemaType }) =>
-      typesUniques.includes(schemaType)
-        ? actions.filter(
-            (action) =>
-              !["duplicate", "delete", "unpublish"].includes(
-                (action as { action?: string }).action ?? ""
-              )
-          )
-        : actions,
+    // Fiches uniques et commandes : certaines actions sont retirées,
+    // voir sanity/actionsRetirees.ts.
+    actions: (actions, { schemaType }) => {
+      const retirees = actionsRetirees(schemaType, typesUniques);
+      return actions.filter(
+        (action) => !retirees.includes((action as { action?: string }).action ?? "")
+      );
+    },
   },
   plugins: [
     structureTool({ name: "structure", title: "Contenu", structure: deskStructure }),

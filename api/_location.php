@@ -7,9 +7,12 @@
    recevoir les demandes, et remet le message au serveur de
    courrier — la même voie que les billets.
 
-   L'adresse du cinéma n'apparaît nulle part dans la page : elle
-   ne quitte jamais le serveur, hors de portée des robots qui
-   ramassent les adresses e-mail sur le web.
+   L'adresse du cinéma n'apparaît nulle part dans la page, hors de
+   portée des robots qui ramassent les adresses e-mail sur le web.
+   Elle reste lisible sans clé par qui interroge Sanity directement
+   (la fiche « location » est publique) : c'est l'adresse du cinéma,
+   jamais celle d'un client. Aucune demande n'est enregistrée dans
+   Sanity : elle part seulement par courriel.
    ============================================================ */
 
 declare(strict_types=1);

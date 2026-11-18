@@ -35,9 +35,31 @@ concurrency:
 
 jobs:
   publier:
-    runs-on: ubuntu-latest
+    # Ubuntu 24.04, comme « Vérifier » : PHP y est installé d'origine,
+    # ce qui permet de rejouer les vérifications de la billetterie
+    # juste avant l'envoi.
+    #
+    # Piège à connaître : c'est PHP 8.3, alors qu'Infomaniak tourne en
+    # PHP 8.5. Le jour où le dossier api/ utilise une écriture propre
+    # à PHP 8.4 ou 8.5, l'étape « La billetterie est saine » échouera
+    # ici alors que le code marche en ligne, et plus rien ne partira.
+    # Il faudra alors installer PHP 8.5 sur cette machine, ici et dans
+    # « Vérifier ».
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+
+      # Ce déploiement part en même temps que « Vérifier », sans
+      # l'attendre. Les vérifications de la billetterie, rapides, sont
+      # donc rejouées ici : si l'une échoue, rien n'est envoyé. Une
+      # billetterie cassée, ou des commandes de nouveau lisibles sans
+      # clé (e-mails des acheteurs, références des billets), ne
+      # partent jamais en ligne.
+      - name: La billetterie est saine
+        run: |
+          for f in api/*.php; do php -l "$f" || exit 1; done
+          php verifications/billetterie-conclusion.php
+          php verifications/donnees-personnelles.php
 
       # On n'envoie QUE le site public. Le Studio Sanity, les modes
       # d'emploi, les dépendances et le modèle de fichier de

@@ -151,6 +151,16 @@ fonctionne donc normalement pendant toute la migration.
 - Billet par e-mail : envoyé dès que SumUp confirme le paiement, une
   seule fois, retenté tout seul si le serveur de courrier refuse.
   Vérifié par `php verifications/billetterie-conclusion.php`.
+- Données des acheteurs privées : les commandes sont rangées dans le
+  dossier privé de Sanity (identifiant `commandes.…`), lisibles
+  seulement avec la clé du serveur ou une session du Studio. Le
+  Studio ne permet pas de les dupliquer (la copie serait publique).
+  La page du billet n'affiche que l'adresse masquée (`m•••@example.com`).
+  Vérifié par `php verifications/donnees-personnelles.php`, rejoué
+  avant chaque mise en ligne, et chaque matin en conditions réelles
+  par la tâche GitHub « Commandes privées ». Jusqu'au 18 novembre
+  2026, les commandes étaient lisibles sans clé. Si l'une le
+  redevient : `sanity/maintenance/deplacer-commandes.mjs`.
 
 ## 5. Ce qu'il reste à faire
 

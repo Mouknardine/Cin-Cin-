@@ -1,0 +1,79 @@
+name: Commandes privées
+
+# Chaque matin, vu de l'extérieur et sans aucune clé : combien de
+# commandes de billets Sanity laisse-t-il lire ? La réponse doit
+# être 0, sur l'adresse directe comme sur le cache (apicdn).
+#
+# Jusqu'au 18 novembre 2026, les commandes (e-mail de l'acheteur,
+# référence du billet, qui suffit à entrer en salle) étaient lisibles
+# par n'importe qui. Elles sont depuis rangées dans le dossier privé
+# de Sanity (identifiant « commandes.… »).
+#
+# verifications/donnees-personnelles.php lit le code ; ce contrôle-ci
+# regarde la réalité. Il est le seul à voir une commande redevenue
+# publique par un autre chemin : un bouton du Studio, une ancienne
+# version du serveur restée en mémoire chez Infomaniak, un script
+# lancé à la main.
+#
+# S'il échoue, GitHub prévient par e-mail. Marche à suivre : ranger
+# les commandes en cause dans le dossier privé avec
+# sanity/maintenance/deplacer-commandes.mjs (sauvegarde, essai à
+# blanc, puis pour de vrai : tout est expliqué en tête du fichier),
+# puis chercher par où elles sont arrivées. S'il échoue parce que
+# Sanity ne répond pas, il suffit de le relancer depuis l'onglet
+# Actions.
+#
+# Aucun secret : la requête est exactement celle que pourrait faire
+# n'importe qui. Elle ne renvoie qu'un nombre, et la réponse n'est
+# jamais recopiée dans le journal, public comme le dépôt. Les messages
+# d'erreur y restent volontairement sobres.
+#
+# Le chiffre de l'adresse directe (api) fait foi ; celui du cache
+# (apicdn) peut retarder de quelques minutes.
+#
+# Deux limites de GitHub, à connaître :
+# - l'e-mail d'échec part au compte GitHub qui a modifié la ligne
+#   « cron » en dernier ;
+# - dans un dépôt public, les tâches planifiées s'arrêtent après
+#   60 jours sans aucun envoi sur le dépôt. GitHub prévient alors par
+#   e-mail ; il suffit de les réactiver dans l'onglet Actions.
+
+on:
+  schedule:
+    # Chaque jour à 6 h 23 UTC (7 h 23 en hiver, 8 h 23 en été).
+    - cron: "23 6 * * *"
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/commandes-privees.yml
+
+jobs:
+  compter:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Aucune commande lisible sans clé
+        run: |
+          publiques=0
+          corps=$(mktemp)
+          for hote in api apicdn; do
+            code=$(curl -sS --max-time 30 -o "$corps" -w '%{http_code}' --get \
+              "https://vle63mzm.$hote.sanity.io/v2024-01-01/data/query/production" \
+              --data-urlencode 'query=count(*[_type == "commande"])') || code="injoignable"
+            if [ "$code" != "200" ]; then
+              echo "::error::$hote.sanity.io a répondu « $code » : contrôle impossible, à relancer."
+              exit 1
+            fi
+            nombre=$(jq -r '.result' "$corps")
+            case "$nombre" in
+              '' | *[!0-9]*)
+                echo "::error::Réponse inattendue de $hote.sanity.io : contrôle impossible, à relancer."
+                exit 1
+                ;;
+            esac
+            echo "$hote.sanity.io : $nombre"
+            if [ "$nombre" != "0" ]; then
+              publiques=1
+              echo "::error::Contrôle en échec sur $hote.sanity.io. Marche à suivre en tête de .github/workflows/commandes-privees.yml."
+            fi
+          done
+          exit $publiques

@@ -73,10 +73,8 @@ $maintenant = gmdate('Y-m-d\TH:i:s\Z');
    MINUTES_RESERVATION.
 
    Elle est rangée dans le dossier privé de Sanity : voir
-   PREFIXE_COMMANDE_PRIVEE. */
-$creation = sanityCreer([
-    '_id' => PREFIXE_COMMANDE_PRIVEE,
-    '_type' => 'commande',
+   creerCommandePrivee(). */
+$creation = creerCommandePrivee([
     'reference' => $reference,
     'statut' => 'en-attente',
     'seance' => ['_type' => 'reference', '_ref' => $seance['_id']],

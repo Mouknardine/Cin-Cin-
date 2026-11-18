@@ -62,7 +62,8 @@ reussite([
         'reduit' => (int) ($commande['billetsReduit'] ?? 0),
         'nombre' => $nombre,
         'montant' => (float) ($commande['montant'] ?? 0),
-        'email' => $commande['email'] ?? '',
+        /* Masquée : quiconque a la référence voit cette réponse. */
+        'email' => masquerEmail((string) ($commande['email'] ?? '')),
         /* Le site n'annonce l'envoi que si l'envoi a eu lieu. */
         'courrielEnvoye' => !empty($commande['billetEnvoyeLe']),
     ],

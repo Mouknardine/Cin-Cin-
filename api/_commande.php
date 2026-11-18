@@ -39,6 +39,20 @@ function commandeParPaiement(string $checkoutId): ?array
     return is_array($commande) ? $commande : null;
 }
 
+/* L'adresse de l'acheteur telle que la page du billet l'affiche :
+   « marie@example.com » devient « m•••@example.com ». Le client y
+   reconnaît son adresse, mais quiconque reçoit le lien du billet
+   (un ami à qui on l'a transféré, par exemple) ne la lit pas en
+   entier. Une adresse illisible donne une chaîne vide. */
+function masquerEmail(string $email): string
+{
+    $arobase = strrpos($email, '@');
+    if ($arobase === false || $arobase === 0 || $arobase === strlen($email) - 1) {
+        return '';
+    }
+    return mb_substr($email, 0, 1, 'UTF-8') . '•••' . substr($email, $arobase);
+}
+
 final class OutilsCommandeEnLigne implements OutilsCommande
 {
     public function lirePaiement(string $checkoutId): array

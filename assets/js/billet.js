@@ -95,7 +95,8 @@
         "m-bande--rappel",
         '<p class="m-cell m-billet__rappel ' + C.classe() + '">' +
           (billet.courrielEnvoye
-            ? "Un exemplaire vient d'être envoyé à " + R.escapeHtml(billet.email) +
+            ? "Un exemplaire vient d'être envoyé" +
+              (billet.email ? " à " + R.escapeHtml(billet.email) : " par e-mail") +
               ". Pensez à regarder vos indésirables. "
             : "") +
           "Notez la référence ou gardez cette page ouverte : elle seule " +

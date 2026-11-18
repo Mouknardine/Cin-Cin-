@@ -43,6 +43,34 @@ const MINUTES_POUR_PAYER = 20;
    Jusqu'au 18 novembre 2026, les commandes étaient publiques. */
 const PREFIXE_COMMANDE_PRIVEE = 'commandes.';
 
+/**
+ * Le document d'une nouvelle commande. L'identifiant et le type
+ * sont posés en dernier : aucun champ reçu ne peut les remplacer,
+ * donc aucune commande ne peut atterrir hors du dossier privé.
+ *
+ * @param array<string, mixed> $champs
+ * @return array<string, mixed>
+ */
+function documentCommandePrivee(array $champs): array
+{
+    return array_merge($champs, [
+        '_id' => PREFIXE_COMMANDE_PRIVEE,
+        '_type' => 'commande',
+    ]);
+}
+
+/**
+ * La seule façon de créer une commande. Toute autre création est
+ * refusée par verifications/donnees-personnelles.php.
+ *
+ * @param array<string, mixed> $champs
+ * @return array<string, mixed> la réponse de Sanity
+ */
+function creerCommandePrivee(array $champs): array
+{
+    return sanityCreer(documentCommandePrivee($champs));
+}
+
 /* ---------------- La séance et son état ---------------- */
 
 /* Rassemble en une seule requête tout ce dont dépend un achat :
