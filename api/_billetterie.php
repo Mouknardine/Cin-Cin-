@@ -32,6 +32,17 @@ const MINUTES_RESERVATION = 30;
    rendue. Sans cette marge, une place payée pourrait être revendue. */
 const MINUTES_POUR_PAYER = 20;
 
+/* Où ranger les commandes dans Sanity. Le site lit Sanity sans clé,
+   depuis le navigateur des visiteurs : tout document y est donc
+   public, SAUF ceux dont l'identifiant contient un point, qui
+   exigent la clé secrète du serveur ou une session du Studio.
+   Une commande porte l'e-mail de l'acheteur et la référence de son
+   billet, qui suffit à entrer en salle : elle ne doit jamais être
+   publique. Le point final demande à Sanity de compléter
+   l'identifiant au hasard (« commandes.k3Xf… »).
+   Jusqu'au 18 novembre 2026, les commandes étaient publiques. */
+const PREFIXE_COMMANDE_PRIVEE = 'commandes.';
+
 /* ---------------- La séance et son état ---------------- */
 
 /* Rassemble en une seule requête tout ce dont dépend un achat :

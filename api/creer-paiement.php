@@ -70,8 +70,12 @@ $maintenant = gmdate('Y-m-d\TH:i:s\Z');
 /* La commande est écrite AVANT le paiement : si SumUp ou le réseau
    flanche ensuite, il reste une trace de ce qui a été tenté. Elle
    restera « en attente » et libérera ses places au bout de
-   MINUTES_RESERVATION. */
+   MINUTES_RESERVATION.
+
+   Elle est rangée dans le dossier privé de Sanity : voir
+   PREFIXE_COMMANDE_PRIVEE. */
 $creation = sanityCreer([
+    '_id' => PREFIXE_COMMANDE_PRIVEE,
     '_type' => 'commande',
     'reference' => $reference,
     'statut' => 'en-attente',

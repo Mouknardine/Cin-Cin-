@@ -235,5 +235,21 @@ verifier('identifiant suspect → ignoré', sumupLireNotification('{"event_type"
 verifier('corps illisible → ignoré', sumupLireNotification('pas du json') === null);
 verifier('identifiant qui n\'est pas du texte → ignoré', sumupLireNotification('{"event_type":"CHECKOUT_STATUS_CHANGED","id":["a"]}') === null);
 
+/* 11. Une commande n'est jamais lisible sans clé. Le site lit Sanity
+   sans clé : seul un identifiant à point (« commandes.… ») protège
+   l'e-mail de l'acheteur et la référence de son billet. */
+require_once __DIR__ . '/../api/_billetterie.php';
+verifier(
+    'les commandes vont dans le dossier privé de Sanity',
+    str_contains(PREFIXE_COMMANDE_PRIVEE, '.') && str_ends_with(PREFIXE_COMMANDE_PRIVEE, '.')
+        && !str_starts_with(PREFIXE_COMMANDE_PRIVEE, 'drafts.')
+        && !str_starts_with(PREFIXE_COMMANDE_PRIVEE, 'versions.')
+);
+$creationCommande = (string) file_get_contents(__DIR__ . '/../api/creer-paiement.php');
+verifier(
+    'la création de commande utilise ce dossier privé',
+    preg_match("/sanityCreer\(\[\s*'_id' => PREFIXE_COMMANDE_PRIVEE,\s*'_type' => 'commande'/", $creationCommande) === 1
+);
+
 echo $echecs === 0 ? "Tout est bon.\n" : "$echecs vérification(s) en échec.\n";
 exit($echecs === 0 ? 0 : 1);
