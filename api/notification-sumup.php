@@ -55,9 +55,10 @@ try {
     accuserReception();
 }
 
-if (billetEstDu($commande, time())) {
-    /* Payé, mais le billet n'est pas parti (courrier en panne, ou
-       envoi en cours ailleurs) : SumUp rappellera, on réessaiera. */
+if (billetEstDu($commande, time()) || ($commande['statut'] ?? '') === 'en-attente') {
+    /* Payé mais billet pas parti (courrier en panne, envoi en cours
+       ailleurs), ou SumUp prévient d'un changement qu'il n'affiche
+       pas encore : on répond par une erreur pour qu'il rappelle. */
     http_response_code(503);
     exit;
 }

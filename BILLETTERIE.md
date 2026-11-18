@@ -43,8 +43,14 @@ le recevoir. Les deux chemins passent par la même règle
 (`api/_conclusion.php`), qui garantit **un seul** mail.
 
 Si le serveur de courrier refuse le message, SumUp rappelle 1 min,
-5 min, 20 min puis 2 h plus tard, et l'envoi est retenté à chaque
-fois. Ouvrir la page du billet le relance aussi.
+5 min, 20 min puis 2 h plus tard, et l'envoi est retenté dès que dix
+minutes ont passé depuis l'essai précédent (ce délai évite qu'un
+client reçoive deux mails). Ouvrir la page du billet le relance aussi.
+
+Une carte refusée ne clôt pas la commande : le client peut payer
+avec une autre sur la même page SumUp. La commande « échouée » garde
+donc ses places et reste surveillée jusqu'au paiement ou à
+l'expiration.
 
 Le client a **20 minutes** pour payer sur la page SumUp ; ses places
 restent réservées **30 minutes**. Les dix minutes d'écart laissent à

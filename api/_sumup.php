@@ -93,8 +93,8 @@ function sumupLireNotification(string $corps): ?string
     if (!is_array($message) || ($message['event_type'] ?? '') !== 'CHECKOUT_STATUS_CHANGED') {
         return null;
     }
-    $id = (string) ($message['id'] ?? '');
-    return preg_match('/^[A-Za-z0-9-]{1,64}$/', $id) ? $id : null;
+    $id = $message['id'] ?? null;
+    return is_string($id) && preg_match('/^[A-Za-z0-9-]{1,64}$/', $id) ? $id : null;
 }
 
 /* Traduit le statut SumUp en statut de commande Zinéma. */

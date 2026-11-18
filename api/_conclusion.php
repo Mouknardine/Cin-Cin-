@@ -29,9 +29,17 @@
 declare(strict_types=1);
 
 /* Si un envoi a échoué, on attend avant de réessayer : assez pour
-   qu'un envoi encore en cours ailleurs ait fini, assez peu pour que
-   le nouvel essai de SumUp (5 minutes plus tard) le relance. */
-const MINUTES_AVANT_NOUVEL_ENVOI = 4;
+   qu'un envoi encore en cours ailleurs ait forcément fini (un
+   échange avec le serveur de courrier peut traîner quelques minutes
+   en cas de panne), sans quoi le client recevrait deux mails. Les
+   rappels de SumUp à 20 minutes et 2 heures relancent l'envoi. */
+const MINUTES_AVANT_NOUVEL_ENVOI = 10;
+
+/* Les statuts que SumUp peut encore faire changer. « Échouée » en
+   fait partie : une carte refusée laisse le client réessayer avec
+   une autre sur la même page de paiement. Seuls « payée » et
+   « expirée » sont définitifs. */
+const STATUTS_A_REVERIFIER = ['en-attente', 'echouee'];
 
 /** SumUp annonce un autre montant que celui demandé : un humain doit regarder. */
 final class MontantDivergent extends RuntimeException
@@ -70,7 +78,7 @@ function conclureCommande(array $commande, OutilsCommande $outils): array
 }
 
 /**
- * Demande à SumUp où en est une commande « en attente », et l'écrit.
+ * Demande à SumUp où en est une commande pas encore conclue, et l'écrit.
  *
  * Celui qui fait passer la commande à « payée » réserve l'envoi du
  * billet dans la même écriture : personne d'autre ne peut l'envoyer
@@ -80,12 +88,13 @@ function conclureCommande(array $commande, OutilsCommande $outils): array
  */
 function trancherPaiement(array $commande, OutilsCommande $outils): array
 {
-    if (($commande['statut'] ?? 'en-attente') !== 'en-attente' || empty($commande['sumupCheckoutId'])) {
+    $statut = (string) ($commande['statut'] ?? 'en-attente');
+    if (!in_array($statut, STATUTS_A_REVERIFIER, true) || empty($commande['sumupCheckoutId'])) {
         return [$commande, false];
     }
 
     $paiement = $outils->lirePaiement((string) $commande['sumupCheckoutId']);
-    if ($paiement['statut'] === 'en-attente') {
+    if ($paiement['statut'] === $statut) {
         return [$commande, false];
     }
 
@@ -142,8 +151,19 @@ function envoyerBilletSiDu(array $commande, OutilsCommande $outils, bool $envoiR
         return $commande;
     }
 
+    /* Le mail est parti : quoi qu'il arrive ensuite, le client doit
+       voir son billet. Si Sanity ne répond pas au moment de le noter,
+       on le consigne sans faire échouer la page — au pire, un second
+       mail partira plus tard. */
     $envoye = ['billetEnvoyeLe' => horodatage($outils->maintenant())];
-    $outils->modifier((string) $commande['_id'], $envoye);
+    try {
+        $outils->modifier((string) $commande['_id'], $envoye);
+    } catch (Throwable $e) {
+        error_log(
+            '[zinema-billetterie] billet ' . ($commande['reference'] ?? '?')
+            . ' envoyé, mais envoi non noté dans Sanity : ' . $e->getMessage()
+        );
+    }
     return array_merge($commande, $envoye);
 }
 

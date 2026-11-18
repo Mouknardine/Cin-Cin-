@@ -30,7 +30,7 @@ ini_set('display_errors', '1');
 const MAINTENANT = 1_795_000_000; /* une date fixe : le test ne dépend pas de l'heure */
 
 /** Un faux Sanity, un faux SumUp, un faux serveur de courrier. */
-final class OutilsSimules implements OutilsCommande
+class OutilsSimules implements OutilsCommande
 {
     /** @var array<string, array<string, mixed>> */
     public array $base = [];
@@ -196,6 +196,33 @@ $o->statutSumup = 'PENDING';
 conclureCommande(nouvelleCommande($o), $o);
 verifier('paiement en cours → rien ne bouge', $o->base['cmd-1']['statut'] === 'en-attente' && $o->courriels === []);
 
+/* 8 bis. Carte refusée, puis une autre carte acceptée sur la même page SumUp. */
+$o = new OutilsSimules();
+$o->statutSumup = 'FAILED';
+conclureCommande(nouvelleCommande($o), $o);
+verifier('carte refusée → commande échouée pour l\'instant', $o->base['cmd-1']['statut'] === 'echouee');
+$o->statutSumup = 'PAID';
+conclureCommande($o->relire('cmd-1'), $o);
+conclureCommande($o->relire('cmd-1'), $o);
+verifier('seconde carte acceptée → commande payée', $o->base['cmd-1']['statut'] === 'payee');
+verifier('seconde carte acceptée → un seul billet', $o->courriels === ['ZIN-ABC234']);
+
+/* 8 ter. Le mail est parti, mais Sanity ne répond pas au moment de le noter. */
+$o = new class extends OutilsSimules {
+    public function modifier(string $id, array $champs): void
+    {
+        throw new RuntimeException('Sanity injoignable');
+    }
+};
+$plantage = false;
+try {
+    $c = conclureCommande(nouvelleCommande($o), $o);
+} catch (Throwable) {
+    $plantage = true;
+}
+verifier('note d\'envoi impossible → pas de page en erreur', !$plantage && $o->courriels === ['ZIN-ABC234']);
+verifier('note d\'envoi impossible → la page annonce quand même le mail', !$plantage && !empty($c['billetEnvoyeLe']));
+
 /* 9. Un billet pour une séance passée n'a plus de sens. */
 $o = new OutilsSimules();
 conclureCommande(nouvelleCommande($o, ['statut' => 'payee', 'seanceDate' => '2026-01-01']), $o);
@@ -206,6 +233,7 @@ verifier('notification lisible', sumupLireNotification('{"event_type":"CHECKOUT_
 verifier('autre événement → ignoré', sumupLireNotification('{"event_type":"AUTRE","id":"abc"}') === null);
 verifier('identifiant suspect → ignoré', sumupLireNotification('{"event_type":"CHECKOUT_STATUS_CHANGED","id":"x\' or 1"}') === null);
 verifier('corps illisible → ignoré', sumupLireNotification('pas du json') === null);
+verifier('identifiant qui n\'est pas du texte → ignoré', sumupLireNotification('{"event_type":"CHECKOUT_STATUS_CHANGED","id":["a"]}') === null);
 
 echo $echecs === 0 ? "Tout est bon.\n" : "$echecs vérification(s) en échec.\n";
 exit($echecs === 0 ? 0 : 1);

@@ -20,7 +20,9 @@ const MAX_BILLETS_PAR_COMMANDE = 10;
 
 /* Une commande non payée retient ses places pendant ce délai, puis
    les rend : sans ça, un panier abandonné bloquerait des sièges
-   pour toujours. */
+   pour toujours. Une commande « échouée » les retient aussi : après
+   une carte refusée, le client peut encore payer avec une autre sur
+   la même page SumUp. */
 const MINUTES_RESERVATION = 30;
 
 /* Le temps laissé au client sur la page de paiement SumUp. Plus
@@ -46,7 +48,7 @@ function chargerContexte(string $idSeance): array
           },
           "reglages": *[_type == "siteSettings"][0]{tarifPlein, tarifReduit, salles},
           "prises": *[_type == "commande" && seance._ref == $id
-             && (statut == "payee" || (statut == "en-attente" && creeLe > $limite))
+             && (statut == "payee" || (statut in ["en-attente", "echouee"] && creeLe > $limite))
           ]{billetsPlein, billetsReduit}
         }',
         ['id' => $idSeance, 'limite' => $limite]
