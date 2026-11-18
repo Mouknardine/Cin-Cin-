@@ -30,7 +30,12 @@ on:
 
 jobs:
   verifier:
-    runs-on: ubuntu-latest
+    # Ubuntu 24.04 et pas « ubuntu-latest » : le 18 novembre 2026, GitHub
+    # est passé à Ubuntu 26.04, où Playwright 1.56 ne sait pas installer
+    # son navigateur (« Playwright does not support chromium on
+    # ubuntu26.04-x64 »), et la publication du Studio s'est arrêtée là.
+    # À remonter quand Playwright prendra en charge la nouvelle version.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
