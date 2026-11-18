@@ -7,7 +7,7 @@
 import {DialogImpression} from '../impression/DialogImpression'
 import {DialogNewsletter} from '../newsletter/DialogNewsletter'
 import {DialogPiqure} from '../newsletter/piqure/DialogPiqure'
-import type {FilmPlanning, SeancePlanning} from '../types'
+import type {CaseSansFilm, FilmPlanning, SeancePlanning} from '../types'
 import type {DialogOuvert} from './BarreSemaine'
 import {DialogDupliquerSemaine} from './DialogDupliquerSemaine'
 import {DialogGenererSemaine} from './DialogGenererSemaine'
@@ -19,6 +19,7 @@ interface Props {
   debutSemaine: string
   films: FilmPlanning[]
   seances: SeancePlanning[]
+  casesSansFilm: CaseSansFilm[]
   onFermer: () => void
   /** Après une création : remettre les soirées d'aplomb et relire la semaine. */
   onCree: () => void
@@ -29,6 +30,7 @@ export function AssistantsDeLaSemaine({
   debutSemaine,
   films,
   seances,
+  casesSansFilm,
   onFermer,
   onCree,
 }: Props): React.JSX.Element | null {
@@ -52,6 +54,7 @@ export function AssistantsDeLaSemaine({
           films={films}
           debutSemaine={debutSemaine}
           seancesSemaine={seances}
+          casesSansFilm={casesSansFilm}
           onFermer={onFermer}
           onCree={onCree}
         />

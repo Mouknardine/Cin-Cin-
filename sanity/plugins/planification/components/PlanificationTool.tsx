@@ -20,6 +20,7 @@ import {useDeplacementSeances} from '../hooks/useDeplacementSeances'
 import {useAnnulation} from '../hooks/useAnnulation'
 import {useDonneesPlanning} from '../hooks/useDonneesPlanning'
 import {FournisseurHistorique, useHistoriqueDeLOnglet} from '../hooks/useHistorique'
+import {useRetraitCaseSansFilm} from '../hooks/useRetraitCaseSansFilm'
 import {useSemaineAffichee} from '../hooks/useSemaineAffichee'
 import {useSoireesAJour} from '../hooks/useSoireesAJour'
 import {
@@ -57,7 +58,10 @@ export function PlanificationTool(): React.JSX.Element {
   const [suppressionEnCours, setSuppressionEnCours] = useState(false)
 
   const finSemaine = useMemo(() => finDeSemaine(debutSemaine), [debutSemaine])
-  const {films, seances, chargement, erreur, recharger} = useDonneesPlanning(debutSemaine, finSemaine)
+  const {films, seances, casesSansFilm, chargement, erreur, recharger} = useDonneesPlanning(
+    debutSemaine,
+    finSemaine,
+  )
   const conflits = useMemo(() => idsEnConflit(seances), [seances])
 
   const rafraichir = useSoireesAJour(debutSemaine, finSemaine, recharger)
@@ -65,6 +69,7 @@ export function PlanificationTool(): React.JSX.Element {
   const annulation = useAnnulation(historique, recharger)
   const glisser = useDeplacementSeances(rafraichir, historique)
   const changerDeSalle = useChangementDeSalle(seances, rafraichir, historique)
+  const retirerCaseSansFilm = useRetraitCaseSansFilm(rafraichir, historique)
   /* Les films de la semaine, dans l'ordre du compteur : c'est aussi
      l'ordre dans lequel ils reçoivent leur couleur. */
   const lesFilmsDeLaSemaine = useMemo(() => filmsDeLaSemaine(films, seances), [films, seances])
@@ -81,9 +86,10 @@ export function PlanificationTool(): React.JSX.Element {
       onChangerFilm: (seance) => setChoixDeFilm({seance}),
       onChangerDeSalle: (seance) => void changerDeSalle(seance),
       onAjouter: (creneau) => setChoixDeFilm({creneau}),
+      onRetirerCaseSansFilm: (caseSansFilm) => void retirerCaseSansFilm(caseSansFilm),
       couleurDe,
     }),
-    [changerDeSalle, couleurDe],
+    [changerDeSalle, couleurDe, retirerCaseSansFilm],
   )
 
   const confirmerSuppression = useCallback(async () => {
@@ -146,6 +152,7 @@ export function PlanificationTool(): React.JSX.Element {
             debutSemaine={debutSemaine}
             couleurSemaine={couleurDeLaSemaine(debutSemaine)}
             seances={seances}
+            casesSansFilm={casesSansFilm}
             conflits={conflits}
             chargement={chargement}
             actions={actions}
@@ -154,8 +161,9 @@ export function PlanificationTool(): React.JSX.Element {
 
           <Text size={1} muted>
             Glissez une séance pour la déplacer (sur une case occupée, les deux films échangent),
-            cliquez une case vide pour la remplir. Menu ⋮ d'une séance pour changer son film ou
-            faire passer le film dans l'autre salle. Tout est publié immédiatement sur le site.
+            cliquez une case vide pour la remplir — d'un film, ou de « Vacances », « Projection
+            privée ». Menu ⋮ d'une séance pour changer son film ou faire passer le film dans l'autre
+            salle. Tout est publié immédiatement sur le site.
           </Text>
         </Stack>
 
@@ -164,6 +172,7 @@ export function PlanificationTool(): React.JSX.Element {
           debutSemaine={debutSemaine}
           films={films}
           seances={seances}
+          casesSansFilm={casesSansFilm}
           onFermer={fermerDialog}
           onCree={rafraichir}
         />

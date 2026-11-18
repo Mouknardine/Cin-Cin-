@@ -13,16 +13,22 @@ import {useToast} from '@sanity/ui'
 
 import {
   API_VERSION,
+  type CaseSansFilm,
   type FilmPlanning,
   type RapportCreation,
   type SeanceCandidate,
   type SeancePlanning,
 } from '../types'
-import {verifierNouvellesSeances} from '../utils/conflits'
+import {verifierAvantCreation} from '../utils/cases-sans-film'
 import {ajouterJours, finDeSemaine} from '../utils/dates'
 import {compterParFilm, composerLaSemaine, creneauxLibres} from '../utils/generation-semaine'
 import {semainesDe} from '../utils/historique'
-import {chargerSeancesPeriode, compterSeancesParFilm, creerSeances} from '../utils/mutations'
+import {
+  chargerCasesSansFilm,
+  chargerSeancesPeriode,
+  compterSeancesParFilm,
+  creerSeances,
+} from '../utils/mutations'
 import {useHistorique} from './useHistorique'
 
 /** Sur combien de semaines alentour on regarde pour égaliser les films. */
@@ -32,6 +38,8 @@ interface Entree {
   films: FilmPlanning[]
   debutSemaine: string
   seancesSemaine: SeancePlanning[]
+  /** Les vacances et projections privées de la semaine : aucun film n'y est posé. */
+  casesSansFilm: CaseSansFilm[]
   onCree: () => void
 }
 
@@ -53,6 +61,7 @@ export function useGenerationSemaine({
   films,
   debutSemaine,
   seancesSemaine,
+  casesSansFilm,
   onCree,
 }: Entree): Generation {
   const client = useClient({apiVersion: API_VERSION})
@@ -69,8 +78,8 @@ export function useGenerationSemaine({
   const [rapport, setRapport] = useState<RapportCreation | null>(null)
 
   const libres = useMemo(
-    () => creneauxLibres(debutSemaine, seancesSemaine).length,
-    [debutSemaine, seancesSemaine],
+    () => creneauxLibres(debutSemaine, seancesSemaine, casesSansFilm).length,
+    [casesSansFilm, debutSemaine, seancesSemaine],
   )
   const seancesPrevues = useMemo(
     () => (proposition ? compterParFilm(proposition) : undefined),
@@ -115,6 +124,7 @@ export function useGenerationSemaine({
           debutSemaine,
           films: films.filter((film) => selection.has(film._id)),
           seancesExistantes: seancesSemaine,
+          casesSansFilm,
           dejaProgrammees,
           semainePrecedente,
         }),
@@ -124,14 +134,19 @@ export function useGenerationSemaine({
     } finally {
       setEnCours(false)
     }
-  }, [client, debutSemaine, equilibrer, films, seancesSemaine, selection, toast])
+  }, [casesSansFilm, client, debutSemaine, equilibrer, films, seancesSemaine, selection, toast])
 
   const creer = useCallback(async () => {
     if (!proposition) return
     setEnCours(true)
     try {
-      const existantes = await chargerSeancesPeriode(client, debutSemaine, finDeSemaine(debutSemaine))
-      const {aCreer, doublons, conflits} = verifierNouvellesSeances(proposition, existantes)
+      /* Relues au moment d'écrire : une case a pu être remplie ou
+         marquée ailleurs depuis la proposition. */
+      const [existantes, casesActuelles] = await Promise.all([
+        chargerSeancesPeriode(client, debutSemaine, finDeSemaine(debutSemaine)),
+        chargerCasesSansFilm(client, debutSemaine, finDeSemaine(debutSemaine)),
+      ])
+      const {aCreer, doublons, conflits} = verifierAvantCreation(proposition, existantes, casesActuelles)
       if (aCreer.length > 0) {
         await historique.avantDeModifier('remplir la semaine au hasard', semainesDe(debutSemaine))
       }

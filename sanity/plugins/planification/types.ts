@@ -38,6 +38,18 @@ export interface SeancePlanning {
   evenement?: string | null
 }
 
+/**
+ * Une case sans film — « Projection privée », « Vacances » — posée dans
+ * la grille à la place d'un film. Voir sanity/casesSansFilm.ts.
+ */
+export interface CaseSansFilm {
+  _id: string
+  date: string
+  heure: string
+  salle: string
+  libelle: string
+}
+
 /** Une séance à créer (pas encore enregistrée). */
 export interface NouvelleSeance {
   filmId: string
@@ -88,6 +100,8 @@ export interface ActionsPlanning {
   /** Fait passer le film de cette séance dans l'autre salle, pour toute la semaine. */
   onChangerDeSalle: (seance: SeancePlanning) => void
   onAjouter: (creneau: CreneauDate) => void
+  /** Retire une case sans film : la case redevient libre. */
+  onRetirerCaseSansFilm: (caseSansFilm: CaseSansFilm) => void
   /** La couleur d'un film dans la grille et dans le compteur. */
   couleurDe: (filmId: string) => string
 }

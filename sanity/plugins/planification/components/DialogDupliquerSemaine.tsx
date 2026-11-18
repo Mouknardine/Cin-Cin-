@@ -12,27 +12,23 @@
  * jamais déplacées par le hasard : elles se recopient telles quelles.
  *
  * Une avant-première ou une première, elle, ne se recopie pas : c'est un
- * rendez-vous unique, tenu par la fiche du film.
+ * rendez-vous unique, tenu par la fiche du film. Les vacances et les
+ * projections privées non plus : ce sont des dates, pas une habitude de
+ * la semaine. Et aucune séance n'est recopiée sur celles de la semaine
+ * d'arrivée — le bilan dit lesquelles ont été écartées.
  */
 import {Box, Button, Dialog, Select, Stack, Text, useToast} from '@sanity/ui'
 import {useCallback, useMemo, useState} from 'react'
 import {useClient} from 'sanity'
 
-import {API_VERSION, type RapportCreation, type SeanceCandidate, type SeancePlanning} from '../types'
-import {verifierNouvellesSeances} from '../utils/conflits'
-import {
-  HORS_GRILLE,
-  SALLES_STANDARD,
-  creneauDeLaSeance,
-  vagueDeLaSeance,
-} from '../utils/creneaux-standards'
+import {API_VERSION, type RapportCreation, type SeancePlanning} from '../types'
+import {verifierAvantCreation} from '../utils/cases-sans-film'
 import {ajouterJours, finDeSemaine, formatPeriodeSemaine} from '../utils/dates'
+import {estOrdinaire, rebattreLesCartes, recopier} from '../utils/duplication'
 import {useHistorique} from '../hooks/useHistorique'
 import {semainesDe} from '../utils/historique'
-import {chargerSeancesPeriode, creerSeances} from '../utils/mutations'
-import {poserLesHeures} from '../utils/heures-de-la-grille'
+import {chargerCasesSansFilm, chargerSeancesPeriode, creerSeances} from '../utils/mutations'
 import {estTenueParLaFiche} from '../utils/projection-de-la-fiche'
-import {type Place, affecterFilms} from '../utils/repartition'
 import {OptionACocher} from './OptionACocher'
 import {RapportResultat} from './RapportResultat'
 
@@ -42,73 +38,6 @@ interface Props {
   seancesSemaine: SeancePlanning[]
   onFermer: () => void
   onCree: () => void
-}
-
-/** Recopie une séance telle quelle, une ou plusieurs semaines plus loin. */
-function recopier(seance: SeancePlanning, decalage: number): SeanceCandidate {
-  return {
-    filmId: seance.filmId,
-    titre: seance.filmTitre,
-    duree: seance.filmDuree,
-    date: ajouterJours(seance.date, decalage * 7),
-    heure: seance.heure,
-    salle: seance.salle,
-  }
-}
-
-/** Une séance tombe-t-elle sur une case ordinaire de la grille ? */
-function estOrdinaire(seance: SeancePlanning): boolean {
-  return vagueDeLaSeance(seance) !== HORS_GRILLE
-}
-
-/**
- * Les séances de la semaine d'arrivée, films redistribués au hasard sur les
- * mêmes cases, salle par salle : un film ne quitte pas sa salle. Les
- * séances particulières sont recopiées à l'identique.
- *
- * Les heures sont RECALCULÉES, pas recopiées : un film de 2 h 20 qui atterrit
- * à 19 h repousse la séance de 21 h de sa salle au quart d'heure suivant.
- */
-function rebattreLesCartes(
-  seancesSemaine: SeancePlanning[],
-  decalage: number,
-  dejaPosees: readonly SeancePlanning[],
-): SeanceCandidate[] {
-  const ordinaires = seancesSemaine.filter(estOrdinaire)
-  const particulieres = seancesSemaine.filter((seance) => !estOrdinaire(seance))
-  const parFilm = new Map(ordinaires.map((seance) => [seance.filmId, seance]))
-
-  const occupees: Place[] = dejaPosees
-    .map((seance) => ({...creneauDeLaSeance(seance), filmId: seance.filmId}))
-    .filter((place) => place.vague !== HORS_GRILLE)
-
-  const affectations: Place[] = []
-  for (const salle of SALLES_STANDARD) {
-    const deLaSalle = ordinaires.filter((seance) => seance.salle === salle)
-    const creneaux = deLaSalle.map((seance) => ({
-      ...creneauDeLaSeance(seance),
-      date: ajouterJours(seance.date, decalage * 7),
-    }))
-    const pool = deLaSalle.map((seance) => seance.filmId)
-    affectations.push(
-      ...affecterFilms(creneaux, pool, {dejaPosees: [...occupees, ...affectations]}),
-    )
-  }
-
-  const melangees = poserLesHeures(
-    affectations,
-    (filmId) => parFilm.get(filmId)?.filmDuree ?? null,
-    dejaPosees,
-  ).map((place) => ({
-    filmId: place.filmId,
-    titre: parFilm.get(place.filmId)?.filmTitre ?? 'Film',
-    duree: parFilm.get(place.filmId)?.filmDuree ?? null,
-    date: place.date,
-    heure: place.heure,
-    salle: place.salle,
-  }))
-
-  return [...melangees, ...particulieres.map((seance) => recopier(seance, decalage))]
 }
 
 export function DialogDupliquerSemaine({
@@ -141,11 +70,14 @@ export function DialogDupliquerSemaine({
     try {
       /* La semaine d'arrivée est lue AVANT le tirage : ce qui s'y trouve
          déjà pèse sur le hasard, plutôt que d'être découvert après coup. */
-      const existantes = await chargerSeancesPeriode(client, debutCible, finDeSemaine(debutCible))
+      const [existantes, casesSansFilm] = await Promise.all([
+        chargerSeancesPeriode(client, debutCible, finDeSemaine(debutCible)),
+        chargerCasesSansFilm(client, debutCible, finDeSemaine(debutCible)),
+      ])
       const candidates = rebattre
         ? rebattreLesCartes(seancesSemaine, decalage, existantes)
         : seancesSemaine.map((seance) => recopier(seance, decalage))
-      const {aCreer, doublons, conflits} = verifierNouvellesSeances(candidates, existantes)
+      const {aCreer, doublons, conflits} = verifierAvantCreation(candidates, existantes, casesSansFilm)
       if (aCreer.length > 0) {
         await historique.avantDeModifier('dupliquer la semaine', semainesDe(debutCible))
       }

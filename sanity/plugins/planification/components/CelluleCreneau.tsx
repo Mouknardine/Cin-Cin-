@@ -9,20 +9,25 @@
  *   - case occupée  → les deux séances échangent leurs places.
  *
  * Sauf une case tenue par une avant-première ou une première : elle se
- * règle dans la fiche du film, un échange la déplacerait en douce.
+ * règle dans la fiche du film, un échange la déplacerait en douce. Et
+ * sauf une case sans film (vacances, projection privée) : on la retire
+ * d'abord, par son menu ⋮.
  */
 import {AddIcon} from '@sanity/icons'
 import {Box, Card, Flex, Text} from '@sanity/ui'
 import {useCallback, useState} from 'react'
 
-import type {ActionsPlanning, CreneauDate, GlisserDeposer, SeancePlanning} from '../types'
+import type {ActionsPlanning, CaseSansFilm, CreneauDate, GlisserDeposer, SeancePlanning} from '../types'
 import {estTenueParLaFiche} from '../utils/projection-de-la-fiche'
+import {CarteSansFilm} from './CarteSansFilm'
 import {CarteSeance} from './CarteSeance'
 
 interface Props {
   creneau: CreneauDate
   /** La séance posée sur ce créneau, s'il y en a une. */
   seance: SeancePlanning | null
+  /** La case sans film posée ici, s'il n'y a pas de séance. */
+  caseSansFilm?: CaseSansFilm | null
   enConflit: boolean
   actions: ActionsPlanning
   glisser: GlisserDeposer
@@ -31,6 +36,7 @@ interface Props {
 export function CelluleCreneau({
   creneau,
   seance,
+  caseSansFilm = null,
   enConflit,
   actions,
   glisser,
@@ -39,7 +45,8 @@ export function CelluleCreneau({
   const portee = glisser.seanceGlissee
   /* Une case n'accepte un dépôt que si une séance est en cours de
      déplacement, et que ce n'est pas celle qui s'y trouve déjà. */
-  const accepte = Boolean(portee) && portee?._id !== seance?._id && !estTenueParLaFiche(seance)
+  const accepte =
+    Boolean(portee) && portee?._id !== seance?._id && !estTenueParLaFiche(seance) && !caseSansFilm
 
   const survoler = useCallback(
     (evenement: React.DragEvent<HTMLDivElement>) => {
@@ -84,6 +91,8 @@ export function CelluleCreneau({
           onDebutGlisser={glisser.onDebut}
           onFinGlisser={glisser.onFin}
         />
+      ) : caseSansFilm ? (
+        <CarteSansFilm caseSansFilm={caseSansFilm} actions={actions} />
       ) : (
         <Card
           as="button"

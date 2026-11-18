@@ -1,16 +1,17 @@
 /**
- * Charge les films et les séances de la semaine affichée,
- * et se met à jour tout seul quand le contenu change dans Sanity.
+ * Charge les films, les séances et les cases sans film de la semaine
+ * affichée, et se met à jour tout seul quand le contenu change dans Sanity.
  */
 import {useCallback, useEffect, useRef, useState} from 'react'
 import {useClient} from 'sanity'
 
-import {API_VERSION, type FilmPlanning, type SeancePlanning} from '../types'
-import {chargerFilms, chargerSeancesPeriode} from '../utils/mutations'
+import {API_VERSION, type CaseSansFilm, type FilmPlanning, type SeancePlanning} from '../types'
+import {chargerCasesSansFilm, chargerFilms, chargerSeancesPeriode} from '../utils/mutations'
 
 interface DonneesPlanning {
   films: FilmPlanning[]
   seances: SeancePlanning[]
+  casesSansFilm: CaseSansFilm[]
   chargement: boolean
   erreur: string | null
   recharger: () => void
@@ -22,6 +23,7 @@ export function useDonneesPlanning(debut: string, fin: string): DonneesPlanning 
   const client = useClient({apiVersion: API_VERSION})
   const [films, setFilms] = useState<FilmPlanning[]>([])
   const [seances, setSeances] = useState<SeancePlanning[]>([])
+  const [casesSansFilm, setCasesSansFilm] = useState<CaseSansFilm[]>([])
   const [chargement, setChargement] = useState(true)
   const [erreur, setErreur] = useState<string | null>(null)
   const [version, setVersion] = useState(0)
@@ -32,11 +34,16 @@ export function useDonneesPlanning(debut: string, fin: string): DonneesPlanning 
     let annule = false
     setChargement(true)
 
-    Promise.all([chargerFilms(client), chargerSeancesPeriode(client, debut, fin)])
-      .then(([listeFilms, listeSeances]) => {
+    Promise.all([
+      chargerFilms(client),
+      chargerSeancesPeriode(client, debut, fin),
+      chargerCasesSansFilm(client, debut, fin),
+    ])
+      .then(([listeFilms, listeSeances, listeCases]) => {
         if (annule) return
         setFilms(listeFilms)
         setSeances(listeSeances)
+        setCasesSansFilm(listeCases)
         setErreur(null)
       })
       .catch(() => {
@@ -56,7 +63,7 @@ export function useDonneesPlanning(debut: string, fin: string): DonneesPlanning 
   const minuteur = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     const abonnement = client
-      .listen(`*[_type == "screening" || _type == "film"]`, {}, {visibility: 'query', events: ['mutation']})
+      .listen(`*[_type in ["screening", "film", "sansFilm"]]`, {}, {visibility: 'query', events: ['mutation']})
       .subscribe({
         next: () => {
           if (minuteur.current) clearTimeout(minuteur.current)
@@ -72,5 +79,5 @@ export function useDonneesPlanning(debut: string, fin: string): DonneesPlanning 
     }
   }, [client, recharger])
 
-  return {films, seances, chargement, erreur, recharger}
+  return {films, seances, casesSansFilm, chargement, erreur, recharger}
 }

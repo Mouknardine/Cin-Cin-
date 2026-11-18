@@ -7,6 +7,7 @@ import {
   CreditCardIcon,
   HomeIcon,
   PlayIcon,
+  RemoveCircleIcon,
   SparklesIcon,
   UsersIcon,
 } from "@sanity/icons";
@@ -97,6 +98,23 @@ export const deskStructure: StructureResolver = (S) =>
                     .defaultOrdering([
                       { field: "date", direction: "desc" },
                       { field: "time", direction: "desc" },
+                    ])
+                ),
+              /* Les jours sans film, tels que l'agenda les annonce.
+                 Ils se posent depuis la grille de la Planification ;
+                 cette liste sert à les retrouver et à les corriger. */
+              S.listItem()
+                .id("agenda-sans-film")
+                .title("Vacances et projections privées")
+                .icon(RemoveCircleIcon)
+                .child(
+                  S.documentTypeList("sansFilm")
+                    .title("Vacances et projections privées")
+                    .filter('_type == "sansFilm" && date >= $debut')
+                    .params({ debut: aujourdhui() })
+                    .defaultOrdering([
+                      { field: "date", direction: "asc" },
+                      { field: "time", direction: "asc" },
                     ])
                 ),
             ])

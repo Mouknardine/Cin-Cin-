@@ -114,6 +114,24 @@ a.m-seance:focus-visible > * {
   color: var(--case-texte);
 }
 
+/* ---------- Un jour sans film : « Vacances », « Projection privée » ----------
+   Une rangée qui ne mène nulle part : pas de lien, donc pas de
+   survol. L'étiquette est un bandeau d'encre, comme la mention d'une
+   séance spéciale, mais à la force du titre : c'est l'information du
+   jour, et elle ne se confond pas avec un titre de film. */
+.m-seance__etiquette {
+  align-self: flex-start;
+  padding: 0.3rem 0.6rem;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
 @media (min-width: 1080px) {
   .m-seance__heure { flex-basis: 7.5rem; }
   .m-seance__statut { padding-inline: 2rem; }

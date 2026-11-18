@@ -18,7 +18,8 @@
    Comme repartition.ts, ce fichier ne fait que des calculs : il se
    vérifie tout seul dans verifications/repartition.mjs.
    ============================================================ */
-import type {FilmPlanning, SeanceCandidate, SeancePlanning} from '../types'
+import type {CaseSansFilm, FilmPlanning, SeanceCandidate, SeancePlanning} from '../types'
+import {creneauBloque} from './cases-sans-film'
 import {
   type CreneauOrdinaire,
   HORS_GRILLE,
@@ -31,10 +32,15 @@ import {intervallesSeChevauchent} from './conflits'
 import {type Alea, type Place, affecterFilms, repartirEquitablement} from './repartition'
 import {type PassageEnSalle, attribuerLesSalles} from './salles-attitrees'
 
-/** Les cases ordinaires de la semaine sur lesquelles rien n'est encore posé. */
+/**
+ * Les cases ordinaires de la semaine sur lesquelles rien n'est encore
+ * posé : ni séance, ni case sans film (un jour de vacances prend toutes
+ * les cases de sa journée).
+ */
 export function creneauxLibres(
   debutSemaine: string,
   seancesExistantes: readonly SeancePlanning[],
+  casesSansFilm: readonly CaseSansFilm[] = [],
 ): CreneauOrdinaire[] {
   const occupees = new Set(
     seancesExistantes
@@ -43,7 +49,7 @@ export function creneauxLibres(
       .map(clefCreneau),
   )
   return creneauxOrdinairesDeLaSemaine(debutSemaine).filter(
-    (creneau) => !occupees.has(clefCreneau(creneau)),
+    (creneau) => !occupees.has(clefCreneau(creneau)) && !creneauBloque(creneau, casesSansFilm),
   )
 }
 
@@ -54,6 +60,8 @@ export interface DemandeDeSemaine {
   films: readonly FilmPlanning[]
   /** Les séances déjà posées cette semaine-là : elles restent en place. */
   seancesExistantes: readonly SeancePlanning[]
+  /** Les vacances et projections privées : aucun film n'y est posé. */
+  casesSansFilm?: readonly CaseSansFilm[]
   /**
    * Combien de séances chaque film a déjà, sur une période plus large.
    * C'est ce qui égalise les films SUR LA DURÉE et pas seulement sur la
@@ -81,12 +89,13 @@ export function composerLaSemaine(
     debutSemaine,
     films,
     seancesExistantes,
+    casesSansFilm = [],
     dejaProgrammees = {},
     semainePrecedente = [],
   } = demande
   if (films.length === 0) return []
 
-  const creneaux = creneauxLibres(debutSemaine, seancesExistantes)
+  const creneaux = creneauxLibres(debutSemaine, seancesExistantes, casesSansFilm)
   if (creneaux.length === 0) return []
 
   const parFilm = new Map(films.map((film) => [film._id, film]))

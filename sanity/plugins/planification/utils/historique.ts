@@ -53,9 +53,11 @@ function lecteurComplet(client: SanityClient): SanityClient {
   return client.withConfig({perspective: 'raw'})
 }
 
-const REQUETE_PERIODE = `*[_type == "screening" && defined(date) && date >= $debut && date <= $fin]`
+/* Les cases sans film (vacances, projection privée) sont dans la photo
+   comme les séances : poser ou retirer l'une d'elles s'annule pareil. */
+const REQUETE_PERIODE = `*[_type in ["screening", "sansFilm"] && defined(date) && date >= $debut && date <= $fin]`
 
-/** Photographie toutes les séances d'une période. */
+/** Photographie toutes les séances d'une période, et ses cases sans film. */
 export async function photographier(
   client: SanityClient,
   geste: string,

@@ -16,14 +16,19 @@
  * Les séances qui ne tombent sur aucune case ordinaire — le Hall-Bar
  * d'un soir d'événement, une avant-première à 18 h — s'affichent en bas
  * de leur journée, sous un trait. Elles se déplacent comme les autres.
+ *
+ * Une case sans film (vacances, projection privée) occupe sa case comme
+ * une séance. Le rangement est fait dans utils/rangement-du-jour.ts.
  */
 import {Box, Card, Flex, Grid, Spinner, Stack, Text} from '@sanity/ui'
 import {useMemo} from 'react'
 
-import type {ActionsPlanning, GlisserDeposer, SeancePlanning} from '../types'
-import {HORS_GRILLE, SALLES_STANDARD, vagueDeLaSeance, vaguesDuJour} from '../utils/creneaux-standards'
+import type {ActionsPlanning, CaseSansFilm, GlisserDeposer, SeancePlanning} from '../types'
+import {SALLES_STANDARD, vaguesDuJour} from '../utils/creneaux-standards'
 import {DUREE_SEMAINE_JOURS, ajouterJours, aujourdHui, formatJourCourt} from '../utils/dates'
 import {heureDeDepart} from '../utils/enchainement'
+import {clefDeCase, rangerLaJournee} from '../utils/rangement-du-jour'
+import {CarteSansFilm} from './CarteSansFilm'
 import {CelluleCreneau} from './CelluleCreneau'
 
 interface Props {
@@ -32,6 +37,7 @@ interface Props {
   /** La teinte de cette semaine, reprise en haut de chaque journée. */
   couleurSemaine: string
   seances: SeancePlanning[]
+  casesSansFilm: CaseSansFilm[]
   /** Les identifiants des séances qui se chevauchent : elles s'affichent en rouge. */
   conflits: ReadonlySet<string>
   chargement: boolean
@@ -39,33 +45,11 @@ interface Props {
   glisser: GlisserDeposer
 }
 
-/**
- * Range les séances d'une journée par case (salle + vague).
- *
- * Deux séances peuvent viser la même case — un doublon, ou un conflit
- * qu'on est en train de corriger. La seconde n'est pas escamotée : elle
- * rejoint les séances « hors grille », où elle reste visible et
- * déplaçable. Une séance cachée serait une séance oubliée.
- */
-function rangerParCase(seancesDuJour: SeancePlanning[]): {
-  parCase: Map<string, SeancePlanning>
-  horsGrille: SeancePlanning[]
-} {
-  const parCase = new Map<string, SeancePlanning>()
-  const horsGrille: SeancePlanning[] = []
-  for (const seance of seancesDuJour) {
-    const vague = vagueDeLaSeance(seance)
-    const clef = `${seance.salle}|${vague}`
-    if (vague !== HORS_GRILLE && !parCase.has(clef)) parCase.set(clef, seance)
-    else horsGrille.push(seance)
-  }
-  return {parCase, horsGrille}
-}
-
 export function GrilleSemaine({
   debutSemaine,
   couleurSemaine,
   seances,
+  casesSansFilm,
   conflits,
   chargement,
   actions,
@@ -89,9 +73,11 @@ export function GrilleSemaine({
     <Box overflow="auto" paddingBottom={2}>
       <Grid columns={DUREE_SEMAINE_JOURS} gap={2} style={{minWidth: 1320}}>
         {jours.map((jour) => {
-          const {parCase, horsGrille} = rangerParCase(
-            seances.filter((seance) => seance.date === jour),
-          )
+          const {seances: parCase, casesSansFilm: casesParCase, horsGrille, casesHorsGrille} =
+            rangerLaJournee(
+              seances.filter((seance) => seance.date === jour),
+              casesSansFilm.filter((caseSansFilm) => caseSansFilm.date === jour),
+            )
           const estAujourdHui = jour === dateDuJour
           return (
             <Card
@@ -118,17 +104,18 @@ export function GrilleSemaine({
                       {vagueInfo.titre}
                     </Text>
                     {SALLES_STANDARD.map((salle) => {
-                      const seance = parCase.get(`${salle}|${vague}`) ?? null
+                      const seance = parCase.get(clefDeCase(salle, vague)) ?? null
                       /* Une case libre de seconde vague ne part pas
                          forcément à l'heure de sa vague : elle attend la
                          fin du premier film dans la même salle. */
-                      const precedente = vague > 0 ? (parCase.get(`${salle}|${vague - 1}`) ?? null) : null
+                      const precedente = vague > 0 ? (parCase.get(clefDeCase(salle, vague - 1)) ?? null) : null
                       const heure = seance?.heure ?? heureDeDepart(vague, jour, precedente)
                       return (
                         <CelluleCreneau
                           key={salle}
                           creneau={{date: jour, heure, salle}}
                           seance={seance}
+                          caseSansFilm={casesParCase.get(clefDeCase(salle, vague)) ?? null}
                           enConflit={seance ? conflits.has(seance._id) : false}
                           actions={actions}
                           glisser={glisser}
@@ -138,7 +125,7 @@ export function GrilleSemaine({
                   </Stack>
                 ))}
 
-                {horsGrille.length > 0 && (
+                {horsGrille.length + casesHorsGrille.length > 0 && (
                   <Stack
                     space={2}
                     role="list"
@@ -158,6 +145,9 @@ export function GrilleSemaine({
                         actions={actions}
                         glisser={glisser}
                       />
+                    ))}
+                    {casesHorsGrille.map((caseSansFilm) => (
+                      <CarteSansFilm key={caseSansFilm._id} caseSansFilm={caseSansFilm} actions={actions} />
                     ))}
                   </Stack>
                 )}

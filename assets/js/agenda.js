@@ -6,16 +6,20 @@
    rangée de cases — heure / film & salle / statut — entièrement
    cliquable vers la fiche du film. Les couleurs des cases sont
    tirées au hasard à chaque affichage (couleurs.js).
+
+   Les jours sans film s'y lisent aussi : « Vacances », « Projection
+   privée », posées dans la grille du Studio à la place d'un film.
+   Leurs rangées ne mènent nulle part — ce ne sont pas des séances.
+   Le rangement des jours est dans agenda-jours.js, le dessin des
+   rangées d'un jour dans agenda-rangees.js.
    ============================================================ */
 (function () {
   "use strict";
 
-  var root = document.body.dataset.root || "";
   var app = document.getElementById("agenda-app");
   var R = window.ZinemaRender;
   var C = window.ZinemaCouleurs;
-
-  var statusText = { disponible: "", complet: "Complet", annule: "Annulé" };
+  var rangeesDuJourHTML = window.ZinemaAgendaRangees.duJour;
 
   /* --------------------------------------------------------------
      La semaine de cinéma va du MERCREDI au MARDI : c'est le rythme
@@ -47,27 +51,6 @@
     var date = enDateUTC(debutISO);
     date.setUTCDate(date.getUTCDate() + 6);
     return enISO(date);
-  }
-
-  function groupByDate(screenings) {
-    var map = {};
-    var order = [];
-    screenings.forEach(function (s) {
-      if (!(s.date in map)) {
-        map[s.date] = [];
-        order.push(s.date);
-      }
-      map[s.date].push(s);
-    });
-    order.sort();
-    return order.map(function (date) {
-      /* Le même ordre que partout ailleurs sur le site : les vagues de
-         séances l'une après l'autre, et dans chaque vague Salle 1,
-         Salle 2, Hall-Bar. Une seule séance sans heure ne doit pas
-         emporter tout l'agenda : elle se range en fin de journée. */
-      var list = window.ZinemaData.trierSeances(map[date]);
-      return { date: date, screenings: list };
-    });
   }
 
   var days = [];
@@ -111,52 +94,6 @@
     return '<nav class="m-filtres" aria-label="Choisir le jour">' + boutons + "</nav>";
   }
 
-  /* Une séance = une rangée de cases, toute la rangée est cliquable.
-     Chaque case tire SA couleur, pas la rangée : au survol, l'heure
-     et le titre du film se remplissent de deux couleurs différentes
-     — c'est ce qui fait lire la rangée comme un tableau de cases, et
-     non comme une seule barre de couleur. Le tirage ne sert jamais
-     deux fois la même couleur d'affilée, deux cases voisines sont
-     donc toujours distinctes.
-
-     La case statut n'existe que si la séance est complète ou annulée
-     (jamais de case vide dans le tableau). */
-  function seanceHTML(s) {
-    var filmHref = s.film ? root + "film/?s=" + encodeURIComponent(s.film.slug) : root + "films/";
-    /* La salle se lit d'un coup d'œil, en capitales et en gras comme
-       le titre au-dessus (demande du cinéma, 22 septembre). La note de
-       version reste en maigre et telle qu'elle est écrite : « VO st.
-       fr » en capitales se lirait plus mal, pas mieux. */
-    /* Une séance spéciale (avant-première, en présence de la
-       réalisatrice…) porte sa mention dans un bandeau d'encre, sous le
-       titre, et non plus en petit à côté de la salle (demande du
-       cinéma, 3 novembre 2026). */
-    var speciale = R.particularitesDeLaSeance(s, s.film).join(" · ");
-    var sub = [
-      s.room ? '<span class="m-seance__salle-nom">' + R.escapeHtml(s.room) + "</span>" : "",
-      s.versionNote && !speciale ? "— " + R.escapeHtml(s.versionNote) : "",
-    ]
-      .filter(Boolean)
-      .join(" ");
-    var heureHTML =
-      '<span class="m-cell m-seance__heure c-' + C.suivante() + '">' + s.time + "</span>";
-    var infosHTML =
-      '<span class="m-cell m-seance__infos c-' + C.suivante() + '">' +
-      '<span class="m-seance__titre">' + R.escapeHtml(s.film ? s.film.title : "Séance") + "</span>" +
-      (sub ? '<span class="m-seance__salle">' + sub + "</span>" : "") +
-      (speciale ? '<span class="m-seance__special">' + R.escapeHtml(speciale) + "</span>" : "") +
-      "</span>";
-    var statutHTML = statusText[s.status]
-      ? '<span class="m-cell m-seance__statut c-' + C.suivante() +
-        (s.status === "annule" ? " m-seance__statut--annule" : "") + '">' +
-        statusText[s.status] + "</span>"
-      : "";
-    return (
-      '<a class="m-seance" href="' + filmHref + '">' +
-      heureHTML + infosHTML + statutHTML + "</a>"
-    );
-  }
-
   /* Vue Jour : la date en toutes lettres, puis les séances du jour. */
   function dayViewHTML() {
     var activeDay = days.filter(function (d) { return d.date === activeDate; })[0] || days[0];
@@ -164,7 +101,7 @@
     return (
       dayTabsHTML() +
       '<p class="m-cell m-jour-actif ' + C.classe() + '">' + R.formatDayHeading(activeDay.date) + "</p>" +
-      '<div class="m-seances-liste">' + activeDay.screenings.map(seanceHTML).join("") + "</div>"
+      '<div class="m-seances-liste">' + rangeesDuJourHTML(activeDay) + "</div>"
     );
   }
 
@@ -185,7 +122,7 @@
         return (
           '<div class="m-semaine__col">' +
           '<p class="m-cell m-semaine__date ' + C.classe() + '">' + R.formatDayHeading(d.date) + "</p>" +
-          '<div class="m-semaine__liste">' + d.screenings.map(seanceHTML).join("") + "</div></div>"
+          '<div class="m-semaine__liste">' + rangeesDuJourHTML(d) + "</div></div>"
         );
       })
       .join("");
@@ -223,19 +160,26 @@
 
   app.innerHTML = R.etatChargement("de l'agenda");
 
-  D.getScreenings().then(function (screenings) {
+  Promise.all([D.getScreenings(), D.getCasesSansFilm()]).then(function (reponses) {
+    var screenings = reponses[0];
+    var cases = reponses[1];
     if (D.estUneErreur(screenings)) {
       app.innerHTML = R.etatErreur();
       return;
     }
-    /* Aucune séance : la page reste vide, sans phrase pour le dire. */
-    if (!screenings.length) {
+    /* Les cases sans film sont un complément : si elles n'ont pas pu
+       être chargées (data.js le signale dans la console), l'agenda
+       garde ses séances plutôt que d'afficher une erreur. */
+    if (D.estUneErreur(cases)) cases = [];
+
+    /* Ni séance ni case sans film : la page reste vide, sans phrase
+       pour le dire. */
+    days = window.ZinemaAgendaJours.composerLesJours(screenings, cases, D.trierSeances);
+    if (days.length === 0) {
       app.innerHTML = "";
       return;
     }
-
-    days = groupByDate(screenings);
-    activeDate = days[0] ? days[0].date : null;
+    activeDate = days[0].date;
     render();
   });
 })();

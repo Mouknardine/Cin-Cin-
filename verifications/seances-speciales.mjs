@@ -317,7 +317,8 @@ verifier(
 const filmJs = readFileSync(new URL('../assets/js/film.js', import.meta.url), 'utf8')
 const cssFilm = readFileSync(new URL('../assets/css/film-mondrian.css', import.meta.url), 'utf8')
 verifier('la fiche du film pose un bandeau dans la case du jour', filmJs.includes('m-seances__bloc--special') && /\.m-seances__special \{[^}]*background: var\(--ink\);/.test(cssFilm))
-const agendaJs = readFileSync(new URL('../assets/js/agenda.js', import.meta.url), 'utf8')
+/* Les rangées de l'agenda se dessinent dans agenda-rangees.js. */
+const agendaJs = readFileSync(new URL('../assets/js/agenda-rangees.js', import.meta.url), 'utf8')
 verifier('l’agenda aussi', agendaJs.includes('m-seance__special'))
 const dataSite = readFileSync(new URL('../assets/js/data.js', import.meta.url), 'utf8')
 verifier('le site lit la marque de la séance et l’invité du film', /CHAMPS_SEANCE =[\s\S]*evenementDuFilm[\s\S]*presence,presenceDate/.test(dataSite))

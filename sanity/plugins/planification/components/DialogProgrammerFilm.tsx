@@ -7,11 +7,11 @@ import {useCallback, useMemo, useState} from 'react'
 import {useClient} from 'sanity'
 
 import {API_VERSION, type Creneau, type FilmPlanning, type RapportCreation} from '../types'
-import {verifierNouvellesSeances} from '../utils/conflits'
+import {verifierAvantCreation} from '../utils/cases-sans-film'
 import {genererCandidates} from '../utils/candidates-film'
 import {useHistorique} from '../hooks/useHistorique'
 import {semainesDe} from '../utils/historique'
-import {chargerSeancesPeriode, creerSeances} from '../utils/mutations'
+import {chargerCasesSansFilm, chargerSeancesPeriode, creerSeances} from '../utils/mutations'
 import {ListeCreneaux} from './ListeCreneaux'
 import {RapportResultat} from './RapportResultat'
 
@@ -77,12 +77,14 @@ export function DialogProgrammerFilm({
     try {
       const candidates = genererCandidates(film, creneaux, dateDebut, nbSemaines)
       const dates = candidates.map((c) => c.date)
-      const existantes = await chargerSeancesPeriode(
-        client,
-        dates.reduce((min, d) => (d < min ? d : min), dates[0]),
-        dates.reduce((max, d) => (d > max ? d : max), dates[0]),
-      )
-      const {aCreer, doublons, conflits} = verifierNouvellesSeances(candidates, existantes)
+      const premiere = dates.reduce((min, d) => (d < min ? d : min), dates[0])
+      const derniere = dates.reduce((max, d) => (d > max ? d : max), dates[0])
+      /* Les vacances et projections privées comptent : aucun film n'y est posé. */
+      const [existantes, casesSansFilm] = await Promise.all([
+        chargerSeancesPeriode(client, premiere, derniere),
+        chargerCasesSansFilm(client, premiere, derniere),
+      ])
+      const {aCreer, doublons, conflits} = verifierAvantCreation(candidates, existantes, casesSansFilm)
       if (aCreer.length > 0) {
         await historique.avantDeModifier('programmer un film', semainesDe(...aCreer.map((c) => c.date)))
       }

@@ -373,6 +373,18 @@
       });
     },
 
+    /** Les cases sans film d'aujourd'hui et des jours suivants :
+        « Vacances », « Projection privée », posées dans la grille de
+        la Planification. Seul l'agenda les affiche. */
+    getCasesSansFilm: function () {
+      return cachee("cases-sans-film", function () {
+        return sanityFetch(
+          '*[_type == "sansFilm" && date >= $today] | order(date asc, time asc) {date,time,room,libelle}',
+          { today: aujourdhui() }
+        );
+      });
+    },
+
     /** Les films que la page Événements annonce d'elle-même : ceux
         qui sortent prochainement (le jour de leur sortie, ils
         quittent la page tout seuls), les avant-premières, premières et

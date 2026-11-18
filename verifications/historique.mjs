@@ -53,8 +53,12 @@ function verifier(intitule, condition, detail = '') {
    ------------------------------------------------------------------ */
 function fauxSanity(documents) {
   const base = new Map(documents.map((d) => [d._id, structuredClone(d)]))
-  const dansLaPeriode = ({debut, fin}) =>
-    [...base.values()].filter((d) => d._type === 'screening' && d.date && d.date >= debut && d.date <= fin)
+  /* Les types que la requête demande : la photo prend aussi les cases
+     sans film, « Vider la semaine » ne prend que les séances. */
+  const typesDemandes = (requete) =>
+    requete.includes('"sansFilm"') ? ['screening', 'sansFilm'] : ['screening']
+  const dansLaPeriode = ({debut, fin}, types) =>
+    [...base.values()].filter((d) => types.includes(d._type) && d.date && d.date >= debut && d.date <= fin)
 
   const client = {
     base,
@@ -65,7 +69,7 @@ function fauxSanity(documents) {
           .filter((d) => d._type === 'commande' && params.seances.includes(d.seance?._ref))
           .map((d) => d.seance._ref)
       }
-      const trouves = dansLaPeriode(params)
+      const trouves = dansLaPeriode(params, typesDemandes(requete))
       return requete.trim().endsWith('._id') ? trouves.map((d) => d._id) : trouves.map((d) => structuredClone(d))
     },
     transaction() {
@@ -120,11 +124,16 @@ const seance = (_id, date, time, room, film = 'film-a') => ({
   _rev: 'r0', _createdAt: '2026-09-01T00:00:00Z', _updatedAt: '2026-09-01T00:00:00Z',
 })
 
-/** L'état comparable d'une semaine : les séances et leurs champs, sans ce que Sanity gère seul. */
+const caseSansFilm = (_id, date, time, room, libelle) => ({
+  _id, _type: 'sansFilm', date, time, room, libelle,
+  _rev: 'r0', _createdAt: '2026-09-01T00:00:00Z', _updatedAt: '2026-09-01T00:00:00Z',
+})
+
+/** L'état comparable d'une semaine : les séances, les cases sans film et leurs champs, sans ce que Sanity gère seul. */
 function etat(client, periode) {
   return JSON.stringify(
     [...client.base.values()]
-      .filter((d) => d._type === 'screening' && d.date >= periode.debut && d.date <= periode.fin)
+      .filter((d) => ['screening', 'sansFilm'].includes(d._type) && d.date >= periode.debut && d.date <= periode.fin)
       .map(({_rev, _createdAt, _updatedAt, ...champs}) => champs)
       .sort((a, b) => a._id.localeCompare(b._id)),
   )
@@ -149,6 +158,7 @@ function semaineDeTest() {
     seance('c', '2026-10-11', '17:00', 'Salle 2'),
     seance('vendue', '2026-10-10', '19:00', 'Salle 2'),
     seance('ailleurs', '2026-10-20', '19:00', 'Salle 1'),
+    caseSansFilm('vacances', '2026-10-12', '19:00', 'Salle 1', 'Vacances'),
     {_id: 'commande-1', _type: 'commande', seance: {_type: 'reference', _ref: 'vendue'}},
   ])
 }
@@ -172,6 +182,7 @@ function semaineDeTest() {
     etat(client, SEMAINE).includes('"vendue"') && !client.base.has('a') && !client.base.has('drafts.b'),
   )
   verifier('Vider une semaine ne touche pas aux autres', client.base.has('ailleurs'))
+  verifier('Vider la semaine garde les cases sans film', client.base.has('vacances'))
 
   await restaurer(client, photo)
   verifier('Annuler fait revenir la semaine exactement', etat(client, SEMAINE) === avant, etat(client, SEMAINE))
@@ -188,6 +199,21 @@ function semaineDeTest() {
   verifier('Le geste a bien eu lieu', etat(client, SEMAINE) !== avant)
   await restaurer(client, photo)
   verifier('Annuler retire la séance créée et remet l’heure d’avant', etat(client, SEMAINE) === avant, etat(client, SEMAINE))
+}
+
+/* ---- Poser ou retirer une case sans film, puis annuler ---- */
+{
+  const client = semaineDeTest()
+  const avant = etat(client, SEMAINE)
+  const photo = await photographier(client, 'poser « Projection privée »', SEMAINE)
+  await client.transaction().create({_id: 'privee', _type: 'sansFilm', date: '2026-10-08', time: '19:00', room: 'Salle 2', libelle: 'Projection privée'}).commit()
+  await restaurer(client, photo)
+  verifier('Annuler retire la case sans film posée', !client.base.has('privee') && etat(client, SEMAINE) === avant)
+
+  const photoRetrait = await photographier(client, 'retirer « Vacances »', SEMAINE)
+  await client.transaction().delete('vacances').commit()
+  await restaurer(client, photoRetrait)
+  verifier('Annuler fait revenir la case sans film retirée', client.base.get('vacances')?.libelle === 'Vacances')
 }
 
 /* ---- Une annulation impossible ne casse rien ---- */

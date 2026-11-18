@@ -15,7 +15,7 @@ import {SparklesIcon, SyncIcon} from '@sanity/icons'
 import {Box, Button, Card, Dialog, Flex, Stack, Text} from '@sanity/ui'
 
 import {SEMAINES_DE_RECUL, useGenerationSemaine} from '../hooks/useGenerationSemaine'
-import type {FilmPlanning, SeancePlanning} from '../types'
+import type {CaseSansFilm, FilmPlanning, SeancePlanning} from '../types'
 import {formatPeriodeSemaine} from '../utils/dates'
 import {ListeFilmsACocher} from './ListeFilmsACocher'
 import {OptionACocher} from './OptionACocher'
@@ -26,6 +26,8 @@ interface Props {
   /** Le mercredi qui ouvre la semaine à remplir. */
   debutSemaine: string
   seancesSemaine: SeancePlanning[]
+  /** Les vacances et projections privées de la semaine : aucun film n'y est posé. */
+  casesSansFilm: CaseSansFilm[]
   onFermer: () => void
   onCree: () => void
 }
@@ -34,10 +36,11 @@ export function DialogGenererSemaine({
   films,
   debutSemaine,
   seancesSemaine,
+  casesSansFilm,
   onFermer,
   onCree,
 }: Props): React.JSX.Element {
-  const generation = useGenerationSemaine({films, debutSemaine, seancesSemaine, onCree})
+  const generation = useGenerationSemaine({films, debutSemaine, seancesSemaine, casesSansFilm, onCree})
   const {proposition, creneauxLibres: libres} = generation
 
   return (

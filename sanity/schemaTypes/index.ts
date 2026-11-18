@@ -2,6 +2,7 @@ import { imageZinema } from "./objects/imageZinema";
 
 import { film } from "./film";
 import { screening } from "./screening";
+import { sansFilm } from "./sansFilm";
 import { evenement } from "./evenement";
 import { histoire } from "./histoire";
 import { siteSettings } from "./siteSettings";
@@ -16,6 +17,8 @@ export const schemaTypes = [
   // Contenu courant
   film,
   screening,
+  // Vacances, projection privée : posées dans la grille à la place d'un film
+  sansFilm,
   evenement,
 
   // Documents uniques (une seule fiche pour tout le site)
