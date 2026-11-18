@@ -89,7 +89,14 @@ export const commande = defineType({
       title: "Billet envoyé par e-mail le",
       type: "datetime",
       description:
-        "Rempli automatiquement au moment du paiement. Vide alors que la commande est payée : l'e-mail n'est pas parti, le client n'a que la page du billet — sa référence reste valable.",
+        "Rempli automatiquement au moment du paiement. Vide alors que la commande est payée : l'e-mail n'est pas encore parti. Le serveur réessaie tout seul pendant deux heures ; ouvrir la page du billet (zinema.ch/billet/?ref= suivi de la référence) le relance aussi. La référence reste valable dans tous les cas.",
+    }),
+    defineField({
+      name: "envoiTenteLe",
+      title: "Dernier essai d'envoi du billet",
+      type: "datetime",
+      description:
+        "Rempli par le serveur à chaque tentative. Une date ici sans date d'envoi au-dessus : le serveur de courrier a refusé le message, le détail est dans le journal Infomaniak.",
     }),
     defineField({
       name: "utiliseeLe",

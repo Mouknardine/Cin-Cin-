@@ -23,6 +23,13 @@ const MAX_BILLETS_PAR_COMMANDE = 10;
    pour toujours. */
 const MINUTES_RESERVATION = 30;
 
+/* Le temps laissé au client sur la page de paiement SumUp. Plus
+   court que la réservation : un paiement validé à la dernière
+   seconde laisse encore dix minutes à SumUp pour prévenir le serveur
+   (il réessaie après 1 puis 5 minutes) avant que la place ne soit
+   rendue. Sans cette marge, une place payée pourrait être revendue. */
+const MINUTES_POUR_PAYER = 20;
+
 /* ---------------- La séance et son état ---------------- */
 
 /* Rassemble en une seule requête tout ce dont dépend un achat :

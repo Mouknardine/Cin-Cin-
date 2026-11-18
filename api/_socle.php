@@ -164,7 +164,10 @@ function appelHttp(string $methode, string $url, array $entetes = [], ?array $co
     $reponse = curl_exec($curl);
     $statut = (int) curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
     $erreur = curl_error($curl);
-    curl_close($curl);
+    /* Pas de curl_close() : sans effet depuis PHP 8.0, il est déclaré
+       obsolète en PHP 8.5 (la version d'Infomaniak) et remplissait le
+       journal du serveur d'un avertissement à chaque appel — le journal
+       même où l'on cherche pourquoi un billet n'est pas parti. */
 
     if ($reponse === false) {
         throw new RuntimeException("Appel $methode $url impossible : $erreur");

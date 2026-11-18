@@ -26,13 +26,30 @@ Le parcours complet :
 | 3 | Le serveur enregistre la commande en « en attente » | Sanity |
 | 4 | Le serveur demande une page de paiement à SumUp | SumUp |
 | 5 | Le client paie par carte | **Page SumUp** |
-| 6 | SumUp le renvoie sur `/billet/` | Site |
+| 6 | SumUp prévient le serveur **et** renvoie le client sur `/billet/` | SumUp |
 | 7 | Le serveur **redemande à SumUp** si c'est bien payé | Serveur |
-| 8 | La commande passe « payée », le billet s'affiche | Sanity + Site |
+| 8 | La commande passe « payée », le billet part par e-mail et s'affiche | Sanity + Site |
 
 L'étape 7 est la clé : le site ne croit jamais le navigateur sur
 parole. Ouvrir l'adresse d'un billet à la main ne fabrique donc pas
 de billet gratuit.
+
+À l'étape 6, SumUp prévient **directement le serveur**
+(`api/notification-sumup.php`), même si le client ne revient jamais
+sur le site : onglet fermé, paiement validé dans l'app de sa banque,
+achat depuis Instagram. Avant le 18 novembre 2026, seul le retour du
+client déclenchait l'envoi du billet, et des acheteurs ont payé sans
+le recevoir. Les deux chemins passent par la même règle
+(`api/_conclusion.php`), qui garantit **un seul** mail.
+
+Si le serveur de courrier refuse le message, SumUp rappelle 1 min,
+5 min, 20 min puis 2 h plus tard, et l'envoi est retenté à chaque
+fois. Ouvrir la page du billet le relance aussi.
+
+Le client a **20 minutes** pour payer sur la page SumUp ; ses places
+restent réservées **30 minutes**. Les dix minutes d'écart laissent à
+SumUp le temps de prévenir le serveur : une place payée n'est jamais
+rendue à la vente.
 
 ---
 
@@ -125,18 +142,18 @@ fonctionne donc normalement pendant toute la migration.
   recontrôlé, places limitées, référence au format vérifié,
   10 billets maximum par commande, panier abandonné qui libère ses
   places au bout de 30 minutes.
+- Billet par e-mail : envoyé dès que SumUp confirme le paiement, une
+  seule fois, retenté tout seul si le serveur de courrier refuse.
+  Vérifié par `php verifications/billetterie-conclusion.php`.
 
 ## 5. Ce qu'il reste à faire
 
 1. **Tester en conditions réelles** avec les vraies clés SumUp.
    Rien n'a pu être essayé pour l'instant : il faut un serveur PHP
    et un compte SumUp.
-2. **L'envoi du billet par e-mail.** La page du billet annonce déjà
-   « un exemplaire a été envoyé à… », mais l'envoi lui-même n'est
-   pas encore branché.
-3. **Le contrôle à l'entrée** : une page simple où saisir une
+2. **Le contrôle à l'entrée** : une page simple où saisir une
    référence pour vérifier un billet et le marquer comme utilisé
    (le champ existe déjà dans la commande).
-4. **Remboursements** : ils se font aujourd'hui depuis le compte
+3. **Remboursements** : ils se font aujourd'hui depuis le compte
    SumUp. Le statut « remboursée » existe dans la commande mais
    n'est pas encore mis à jour automatiquement.

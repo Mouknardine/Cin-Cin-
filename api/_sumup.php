@@ -30,8 +30,14 @@ function sumupEntetes(): array
 /* Crée le paiement et renvoie [identifiant, adresse de la page de
    paiement]. Le montant est en francs (unité principale), tel que
    l'attend SumUp. */
-function sumupCreerCheckout(string $reference, float $montant, string $description, string $urlRetour): array
-{
+function sumupCreerCheckout(
+    string $reference,
+    float $montant,
+    string $description,
+    string $urlRetour,
+    string $urlNotification,
+    int $payableJusqua
+): array {
     $r = appelHttp('POST', SUMUP_BASE . '/checkouts', sumupEntetes(), [
         'checkout_reference' => $reference,
         'amount' => round($montant, 2),
@@ -42,6 +48,14 @@ function sumupCreerCheckout(string $reference, float $montant, string $descripti
         'hosted_checkout' => ['enabled' => true],
         /* Où SumUp renvoie le client une fois la carte validée. */
         'redirect_url' => $urlRetour,
+        /* Où SumUp prévient le SERVEUR quand le paiement change
+           d'état. Ne dépend pas du client : c'est ce qui garantit
+           l'envoi du billet même s'il ne revient jamais sur le site. */
+        'return_url' => $urlNotification,
+        /* Au-delà, la page de paiement ne prend plus la carte. Sans
+           cette limite, un onglet de paiement resté ouvert pourrait
+           encaisser une place déjà rendue et revendue. */
+        'valid_until' => gmdate('Y-m-d\TH:i:s\Z', $payableJusqua),
     ]);
 
     if ($r['statut'] < 200 || $r['statut'] >= 300) {
@@ -66,6 +80,21 @@ function sumupLireCheckout(string $id): array
         throw new RuntimeException('SumUp lecture ' . $r['statut'] . ' : ' . $r['brut']);
     }
     return $r['corps'];
+}
+
+/* Ce que SumUp envoie au serveur : {"event_type": …, "id": …}.
+   Renvoie l'identifiant du paiement concerné, ou null si le message
+   ne nous concerne pas. On n'y croit pas pour autant : l'appelant
+   redemande toujours son état à SumUp (SumUp ne signe pas ces
+   messages, n'importe qui pourrait en envoyer). */
+function sumupLireNotification(string $corps): ?string
+{
+    $message = json_decode($corps, true);
+    if (!is_array($message) || ($message['event_type'] ?? '') !== 'CHECKOUT_STATUS_CHANGED') {
+        return null;
+    }
+    $id = (string) ($message['id'] ?? '');
+    return preg_match('/^[A-Za-z0-9-]{1,64}$/', $id) ? $id : null;
 }
 
 /* Traduit le statut SumUp en statut de commande Zinéma. */

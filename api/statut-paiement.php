@@ -14,9 +14,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/_billetterie.php';
-require_once __DIR__ . '/_courriel.php';
-require_once __DIR__ . '/_sumup.php';
+require_once __DIR__ . '/_commande.php';
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'GET') {
     echec('Requête invalide.', 405);
@@ -29,71 +27,26 @@ if (!preg_match('/^ZIN-[A-Z2-9]{6}$/', $reference)) {
     echec('Référence de billet invalide.', 422);
 }
 
-$commande = sanityLire(
-    '*[_type == "commande" && reference == $r][0]{
-       _id, reference, statut, filmTitre, seanceDate, seanceHeure, seanceSalle,
-       billetsPlein, billetsReduit, montant, email, sumupCheckoutId, payeeLe,
-       billetEnvoyeLe
-     }',
-    ['r' => $reference]
-);
-
-if (!is_array($commande)) {
+$commande = commandeParReference($reference);
+if ($commande === null) {
     echec('Billet introuvable.', 404);
 }
 
 /* Tant que la commande n'est pas conclue, on redemande son sort à
-   SumUp. Une fois payée (ou échouée), le verdict est définitif :
-   inutile de rappeler SumUp à chaque affichage du billet. */
-$statut = (string) ($commande['statut'] ?? 'en-attente');
-
-if ($statut === 'en-attente' && !empty($commande['sumupCheckoutId'])) {
-    $checkout = sumupLireCheckout((string) $commande['sumupCheckoutId']);
-    $nouveau = sumupStatutVersCommande((string) ($checkout['status'] ?? ''));
-
-    if ($nouveau !== $statut) {
-        $champs = ['statut' => $nouveau];
-        if ($nouveau === 'payee') {
-            $champs['payeeLe'] = gmdate('Y-m-d\TH:i:s\Z');
-
-            /* Garde-fou : le montant encaissé doit être celui qu'on a
-               demandé. Si SumUp annonce autre chose, on ne délivre pas
-               le billet et on laisse une trace bien visible. */
-            $encaisse = round((float) ($checkout['amount'] ?? 0), 2);
-            $attendu = round((float) ($commande['montant'] ?? 0), 2);
-            if (abs($encaisse - $attendu) > 0.001) {
-                echec(
-                    'Ce paiement demande une vérification. Le cinéma vous recontacte au plus vite.',
-                    409,
-                    "Montant divergent pour $reference : encaissé $encaisse, attendu $attendu"
-                );
-            }
-        }
-        sanityModifier((string) $commande['_id'], $champs);
-        $commande['statut'] = $nouveau;
-        $commande['payeeLe'] = $champs['payeeLe'] ?? ($commande['payeeLe'] ?? null);
-        $statut = $nouveau;
-
-        /* Le billet part par e-mail au moment précis où la commande
-           devient payée, et une seule fois : on n'entre dans cette
-           branche que si le statut vient de changer.
-
-           « billetEnvoyeLe » sert de trace, pas de garde-fou : si
-           l'envoi échoue, le client a déjà son billet à l'écran et
-           l'échec part dans le journal du serveur. On ne lui gâche
-           pas son achat pour un e-mail. */
-        if ($nouveau === 'payee') {
-            $envoye = courrielEnvoyerBillet($commande);
-            $commande['billetEnvoyeLe'] = $envoye ? gmdate('Y-m-d\TH:i:s\Z') : null;
-            if ($envoye) {
-                sanityModifier(
-                    (string) $commande['_id'],
-                    ['billetEnvoyeLe' => $commande['billetEnvoyeLe']]
-                );
-            }
-        }
-    }
+   SumUp ; une fois payée, on s'assure que le billet est parti. SumUp
+   prévient aussi le serveur de son côté (notification-sumup.php) :
+   les deux chemins passent par la même règle, qui garantit un seul
+   mail. Voir _conclusion.php. */
+try {
+    $commande = conclureCommande($commande, new OutilsCommandeEnLigne());
+} catch (MontantDivergent $e) {
+    echec(
+        'Ce paiement demande une vérification. Le cinéma vous recontacte au plus vite.',
+        409,
+        $e->getMessage()
+    );
 }
+$statut = (string) ($commande['statut'] ?? 'en-attente');
 
 $nombre = (int) ($commande['billetsPlein'] ?? 0) + (int) ($commande['billetsReduit'] ?? 0);
 

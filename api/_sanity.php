@@ -36,19 +36,41 @@ function sanityLire(string $groq, array $parametres = []): mixed
     return $r['corps']['result'] ?? null;
 }
 
-/* Appliquer des modifications (créer, corriger). */
-function sanityMuter(array $mutations): array
+function sanityEnvoyerMutations(array $mutations): array
 {
-    $r = appelHttp(
+    return appelHttp(
         'POST',
         sanityBase('mutate') . '?returnIds=true',
         ['Authorization: Bearer ' . config()['sanity']['jeton_ecriture']],
         ['mutations' => $mutations]
     );
+}
+
+/* Appliquer des modifications (créer, corriger). */
+function sanityMuter(array $mutations): array
+{
+    $r = sanityEnvoyerMutations($mutations);
     if ($r['statut'] < 200 || $r['statut'] >= 300) {
         throw new RuntimeException('Sanity écriture ' . $r['statut'] . ' : ' . $r['brut']);
     }
     return $r['corps'];
+}
+
+/* Modifier un document SEULEMENT s'il n'a pas bougé depuis qu'on l'a
+   lu (même révision). Renvoie faux si quelqu'un est passé avant :
+   c'est ce qui empêche deux envois du même billet. */
+function sanityModifierSiInchangee(string $id, string $revision, array $champs): bool
+{
+    $r = sanityEnvoyerMutations([
+        ['patch' => ['id' => $id, 'ifRevisionID' => $revision, 'set' => $champs]],
+    ]);
+    if ($r['statut'] >= 200 && $r['statut'] < 300) {
+        return true;
+    }
+    if ($r['statut'] === 409 || ($r['statut'] < 500 && stripos($r['brut'], 'revision') !== false)) {
+        return false;
+    }
+    throw new RuntimeException('Sanity écriture ' . $r['statut'] . ' : ' . $r['brut']);
 }
 
 function sanityCreer(array $document): array

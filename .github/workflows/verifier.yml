@@ -1,6 +1,6 @@
 name: Vérifier
 
-# Trois vérifications, à chaque envoi, avant toute publication :
+# Quatre vérifications, à chaque envoi, avant toute publication :
 #
 #   npm run typecheck        — les schémas et l'outil Planification du
 #                              Studio se tiennent (TypeScript).
@@ -12,6 +12,9 @@ name: Vérifier
 #                              sous l'Outlook classique. Les pastilles des
 #                              séances s'y sont fondues un soir en un seul
 #                              bloc ; ce fichier empêche que ça revienne.
+#   php verifications/billetterie-conclusion.php — un billet payé part
+#                              par e-mail une fois et une seule, même si
+#                              le client ne revient pas sur le site.
 #
 # L'ordre du programme existe forcément en deux exemplaires :
 # sanity/salles.ts pour le Studio, assets/js/data.js pour le site, qui
@@ -57,6 +60,16 @@ jobs:
 
       - name: L'ordre du programme est le bon
         run: npm test
+
+      # La billetterie (dossier api/) est en PHP. PHP est déjà installé
+      # sur la machine de GitHub : rien à ajouter.
+      - name: La billetterie se lit sans erreur
+        run: for f in api/*.php; do php -l "$f" || exit 1; done
+
+      # Un billet payé part par e-mail une fois et une seule, même si
+      # le client ne revient pas sur le site. Voir le fichier.
+      - name: Le billet payé part par e-mail, une seule fois
+        run: php verifications/billetterie-conclusion.php
 
       - name: Le navigateur des vérifications
         run: npx playwright install --with-deps chromium

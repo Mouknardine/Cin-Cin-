@@ -4,8 +4,9 @@
 # Les fichiers qui commencent par un souligné (_socle.php,
 # _sumup.php…) sont des briques internes : elles ne répondent à
 # personne, mais on interdit quand même qu'on puisse les ouvrir
-# depuis un navigateur. Seuls creer-paiement.php et
-# statut-paiement.php sont des portes d'entrée.
+# depuis un navigateur. Les portes d'entrée sont creer-paiement.php,
+# statut-paiement.php, demande-location.php, et notification-sumup.php
+# (appelée par SumUp, jamais par un visiteur).
 # ============================================================
 
 # « Require » n'existe qu'à partir d'Apache 2.4 : l'encadrer évite

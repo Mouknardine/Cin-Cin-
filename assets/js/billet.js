@@ -124,8 +124,9 @@
       }
       messageHTML(
         "Paiement en attente",
-        "Votre paiement n'est pas encore confirmé. Rechargez cette page dans une minute — " +
-          "et si rien ne change, écrivez au cinéma en indiquant la référence " + reference + "."
+        "Votre paiement n'est pas encore confirmé. Dès que SumUp le confirme, le billet part " +
+          "par e-mail. Notez d'ici là la référence " + reference + " : sans nouvelles d'ici " +
+          "une heure, écrivez au cinéma en l'indiquant."
       );
       return;
     }

@@ -95,9 +95,16 @@ if ($idCommande === '') {
 $description = $total . ' billet' . ($total > 1 ? 's' : '') . ' — '
     . ($seance['filmTitre'] ?? 'Séance') . ', ' . libelleSeance($seance);
 
-$urlRetour = rtrim(config()['site']['url'], '/') . '/billet/?ref=' . rawurlencode($reference);
+$adresseSite = rtrim(config()['site']['url'], '/');
 
-$checkout = sumupCreerCheckout($reference, $montant, $description, $urlRetour);
+$checkout = sumupCreerCheckout(
+    $reference,
+    $montant,
+    $description,
+    $adresseSite . '/billet/?ref=' . rawurlencode($reference),
+    $adresseSite . '/api/notification-sumup.php',
+    time() + MINUTES_POUR_PAYER * 60
+);
 
 sanityModifier($idCommande, ['sumupCheckoutId' => $checkout['id']]);
 
