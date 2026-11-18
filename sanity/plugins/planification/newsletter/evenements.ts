@@ -24,7 +24,7 @@
 import {ordonnerSeances} from '../../../salles'
 import {libelleDuTypeEvenement} from '../../../typesEvenement'
 import {ajouterJours} from '../utils/dates'
-import type {SeanceProgramme} from './donnees'
+import type {SeanceProgramme} from './types'
 import {
   adresseDeLEvenement,
   rendezVousARappeler,

@@ -14,127 +14,12 @@ import type {SanityClient} from 'sanity'
 
 import {ordonnerSeances} from '../../../salles'
 import {ajouterJours, debutDeSemaine, finDeSemaine} from '../utils/dates'
-import {particulariteDeLaSeance, texteParticularite} from './particularite'
 import {JOURS_D_AVANCE_DU_RAPPEL, REQUETE_EVENEMENTS, avecLesSoirees, evenementsAnnonces, uneVersionParEvenement} from './evenements'
+import {CHAMPS_FILM, REQUETE_REGLAGES, filmsLus, reglagesDuCinema, type ReglagesLus} from './lecture'
+import {particulariteDeLaSeance, texteParticularite} from './particularite'
 import type {EvenementNewsletter} from './rendez-vous'
 import {jourDeLEnvoi} from './seances'
-
-/** Une séance, telle que la newsletter en a besoin. */
-export interface SeanceNewsletter {
-  date: string
-  heure: string
-  salle: string
-  statut: string | null
-  /** La marque d'une avant-première, d'une première ou d'une projection
-      extraordinaire, posée par la fiche du film ; sinon null. */
-  projection?: string | null
-  /** La « Mention particulière » de la séance. */
-  mention?: string | null
-}
-
-/** Une séance de la grille de la semaine, avec le film qu'elle projette. */
-export interface SeanceProgramme extends SeanceNewsletter {
-  filmId: string | null
-  titre: string
-  /** L'adresse de la fiche du film sur le site, pour rendre le titre cliquable. */
-  slug: string | null
-  /** Pour la soirée d'un événement : l'adresse complète de sa page, à la place de celle d'un film. */
-  lien?: string | null
-  /** « Avant-première · En présence de … », ou null pour une séance ordinaire. */
-  particularite: string | null
-}
-
-/** Un film, avec ses séances sur la fenêtre observée. */
-export interface FilmNewsletter {
-  _id: string
-  titre: string
-  /** L'adresse de sa page sur le site : zinema.ch/film/?s=… */
-  slug: string | null
-  realisation: string | null
-  pays: string | null
-  annee: number | null
-  duree: number | null
-  version: string | null
-  sousTitres: string | null
-  age: string | null
-  /** Le type du film, écrit tel quel (« Documentaire »). */
-  typeDeFilm: string | null
-  /** L'ancienne saisie en étiquettes, lue tant que le type est vide. */
-  genres: string[] | null
-  synopsis: string | null
-  dateDeSortie: string | null
-  /** Sa toute première séance chez nous, annulées exclues, à n'importe quelle
-      date : c'est d'elle que partent ses semaines quand la date de sortie manque. */
-  premiereProjection: string | null
-  statut: string | null
-  bandeAnnonce: string | null
-  presse: string | null
-  afficheRef: string | null
-  /** L'invité·e de la fiche (« Séance en présence de… »), et son jour s'il n'en vient qu'un. */
-  presence?: string | null
-  presenceDate?: string | null
-  seances: SeanceNewsletter[]
-}
-
-/** Les réglages du cinéma repris dans le pied de la newsletter. */
-export interface ReglagesNewsletter {
-  adresse: string | null
-  telephone: string | null
-  telephoneBis: string | null
-  email: string | null
-  tarifPlein: number | null
-  tarifReduit: number | null
-  conditionsReduit: string[] | null
-  salles: {nom: string; places: number}[] | null
-  iban: string | null
-}
-
-export interface DonneesNewsletter {
-  debutSemaine: string
-  finSemaine: string
-  /** Les séances de la semaine, dans l'ordre du programme. */
-  programme: SeanceProgramme[]
-  /** Le lundi et le mardi de l'envoi, rappelés en grisé au-dessus du programme. */
-  lundiEtMardi: SeanceProgramme[]
-  /** Les films projetés cette semaine, dans l'ordre où le programme les annonce. */
-  filmsDeLaSemaine: FilmNewsletter[]
-  /** Ceux qui arrivent : séances après la semaine, ou date de sortie à venir. */
-  filmsAVenir: FilmNewsletter[]
-  /** Les événements annoncés : ceux qui ont lieu dans la semaine, et ceux
-      cochés « Le rappeler dans chaque newsletter » (voir evenements.ts). */
-  rendezVous?: EvenementNewsletter[]
-  reglages: ReglagesNewsletter
-}
-
-const CHAMPS_FILM = `
-  _id,
-  "titre": title,
-  "slug": coalesce(slug.current, _id),
-  "realisation": director,
-  "pays": country,
-  "annee": year,
-  "duree": duration,
-  "version": language,
-  "sousTitres": subtitles,
-  "age": ageRating,
-  typeDeFilm,
-  genres,
-  synopsis,
-  "dateDeSortie": releaseDate,
-  "premiereProjection": *[_type == "screening" && film._ref == ^._id && status != "annule"]
-    | order(date asc)[0].date,
-  "statut": status,
-  "bandeAnnonce": trailerUrl,
-  "presse": presseUrl,
-  "afficheRef": poster.asset._ref,
-  presence,
-  presenceDate,
-  "seances": *[_type == "screening" && film._ref == ^._id
-    && date >= $fenetreDebut && date <= $fenetreFin]
-    | order(date asc, time asc)
-    { date, "heure": time, "salle": room, "statut": status,
-      "projection": evenementDuFilm, "mention": versionNote }
-`
+import type {DonneesNewsletter, FilmNewsletter, SeanceNewsletter, SeanceProgramme} from './types'
 
 /**
  * La fenêtre observée autour de la semaine.
@@ -197,30 +82,19 @@ export async function chargerNewsletter(
   const fenetreFin = ajouterJours(fin, JOURS_EN_AVANT)
 
   const reponse = await client.fetch<{
-    films: FilmNewsletter[]
+    films: FilmNewsletter[] | null
     evenements: EvenementNewsletter[] | null
-    reglages: Omit<ReglagesNewsletter, 'iban'> | null
-    iban: string | null
+    reglages: ReglagesLus | null
   }>(
     `{
       "films": *[_type == "film" && status != "passe"]{${CHAMPS_FILM}},
       "evenements": ${REQUETE_EVENEMENTS},
-      "reglages": *[_type == "siteSettings"][0]{
-        "adresse": address,
-        "telephone": phone,
-        "telephoneBis": phoneSecondary,
-        email, tarifPlein, tarifReduit, conditionsReduit,
-        "salles": salles[]{nom, places}
-      },
-      "iban": *[_type == "abonnements"][0].iban
+      "reglages": ${REQUETE_REGLAGES}
     }`,
     {fenetreDebut, fenetreFin, envoi: jourDeLEnvoi(debut), horizon: ajouterJours(fin, JOURS_D_AVANCE_DU_RAPPEL)},
   )
 
-  const films = (reponse.films ?? []).map((film) => ({
-    ...film,
-    seances: film.seances ?? [],
-  }))
+  const films = filmsLus(reponse.films)
 
   /* Les soirées des événements prennent leur ligne dans le programme de leur
      jour, entre les séances (demande du cinéma, 4 novembre 2026). */
@@ -270,7 +144,7 @@ export async function chargerNewsletter(
     filmsDeLaSemaine,
     filmsAVenir,
     rendezVous: evenementsAnnonces(evenements, envoi, fin),
-    reglages: {...(reponse.reglages ?? videReglages()), iban: reponse.iban ?? null},
+    reglages: reglagesDuCinema(reponse.reglages),
   }
 }
 
@@ -280,17 +154,4 @@ function premiereAnnonce(film: FilmNewsletter, apres: string): string {
   /* Sans séance ni date de sortie, le film ferme la liste plutôt que de
      remonter en tête par un tri sur une chaîne vide. */
   return premiereSeance ?? film.dateDeSortie ?? '9999-12-31'
-}
-
-function videReglages(): Omit<ReglagesNewsletter, 'iban'> {
-  return {
-    adresse: null,
-    telephone: null,
-    telephoneBis: null,
-    email: null,
-    tarifPlein: null,
-    tarifReduit: null,
-    conditionsReduit: null,
-    salles: null,
-  }
 }

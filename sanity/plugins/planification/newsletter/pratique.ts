@@ -2,7 +2,7 @@
  * Le bloc « Infos » : tarifs, billets, salles.
  */
 import {PARRAIN_DE_SALLE, SALLES, rangDeSalle, type NomDeSalle} from '../../../salles'
-import type {ReglagesNewsletter} from './donnees'
+import type {ReglagesNewsletter} from './types'
 import {ENCRE, GRIS, JAUNE, SITE, TAILLE, bandeau, cellule, echapper, sansLienAutomatique, tableau} from './html'
 
 function ligneDeTarif(montant: number | null, libelle: string): string {

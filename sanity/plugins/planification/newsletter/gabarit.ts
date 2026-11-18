@@ -29,50 +29,21 @@
  * border-collapse. La contrainte de l'e-mail et la DA tombent juste.
  *
  * Les blocs vivent chacun dans leur fichier : programme.ts, film.ts,
- * pratique.ts. Ce fichier ne fait que les poser dans l'ordre.
+ * pratique.ts ; le logo, la case bleue, l'appel au site et le pied, communs
+ * avec la piqûre de rappel, dans cadre.ts. Ce fichier ne fait que les poser
+ * dans l'ordre.
  */
 import {formatJourLong, formatJourLongAvecAnnee, numeroDeSemaine} from '../utils/dates'
-import type {DonneesNewsletter, ReglagesNewsletter} from './donnees'
+import {appelAuSite, bandeBleue, entete, envelopper, pied} from './cadre'
 import {blocFilm, type ProjetSanity} from './film'
-import {
-  BLANC, BLEU, ENCRE, LARGEUR, PAPIER, POLICE, SITE, TAILLE, VERT,
-  bandeau, capitales, cellule, echapper, tableau,
-} from './html'
+import {bandeau, cellule, tableau} from './html'
 import {blocPratique} from './pratique'
 import {lignesDuProgramme} from './programme'
 import {rubriqueRendezVous} from './rendez-vous'
 import {jourDeLEnvoi} from './seances'
+import type {DonneesNewsletter} from './types'
 
 export type OptionsGabarit = ProjetSanity
-
-/**
- * Le logo du cinéma, tel qu'il est dessiné : noir sur blanc. Servi par le
- * site lui-même, à une adresse que toute messagerie peut aller chercher.
- *
- * Le cinéma a demandé qu'il soit « plus frontal et toujours noir sur blanc »
- * (22 septembre 2026) : l'ancienne version blanche sur l'encre ne passait
- * ni à l'écran ni à l'impression, où le fond noir sortait en gris.
- */
-const LOGO = `${SITE}/assets/img/zinema-logo.png`
-const MARGE_LOGO = 16
-/* Toute la largeur du message, moins la marge de chaque côté. */
-const LARGEUR_LOGO = LARGEUR - 2 * MARGE_LOGO
-
-/**
- * L'en-tête : le logo seul, sur toute la largeur du message, en noir sur
- * blanc. Si la messagerie bloque les images, le texte de remplacement
- * s'écrit à sa place, en noir.
- */
-function entete(): string {
-  return `<tr>${cellule(
-    `<a href="${SITE}" style="display:block;color:${ENCRE};text-decoration:none;">` +
-      `<img src="${LOGO}" width="${LARGEUR_LOGO}" alt="ZINÉMA" style="display:block;width:100%;` +
-      `max-width:${LARGEUR_LOGO}px;height:auto;border:0;margin:0 auto;color:${ENCRE};font-family:${POLICE};` +
-      `font-size:${TAILLE.titre};font-weight:bold;text-align:center;"></a>`,
-    `background-color:${BLANC};padding:${MARGE_LOGO + 8}px ${MARGE_LOGO}px;text-align:center;`,
-    'align="center"',
-  )}</tr>`
-}
 
 /**
  * La case bleue, qui ouvre le programme : « PROGRAMME DU MERCREDI 16 SEPTEMBRE
@@ -86,46 +57,10 @@ function entete(): string {
  * même chose une deuxième fois : il a disparu.
  */
 function bandeDeLaSemaine(donnees: DonneesNewsletter): string {
-  return `<tr>${cellule(
-    echapper(
-      capitales(
-        `Programme du ${formatJourLong(donnees.debutSemaine)} au ` +
-          `${formatJourLongAvecAnnee(donnees.finSemaine)} (${numeroDeSemaine(donnees.debutSemaine)})`,
-      ),
-    ),
-    `background-color:${BLEU};color:${BLANC};padding:10px 14px;` +
-      `font-size:${TAILLE.titre};line-height:1.25;font-weight:bold;text-transform:uppercase;`,
-  )}</tr>`
-}
-
-/** L'appel au site, juste après le programme : toute la case est cliquable. */
-function appelAuSite(): string {
-  return `<tr>${cellule(
-    /* « ZINEMA.CH &rarr; » ne se coupe pas : l'adresse et la flèche restent
-       ensemble, sur la même ligne, quelle que soit la largeur. */
-    `<a href="${SITE}/agenda/" style="display:block;color:${BLANC};text-decoration:none;">` +
-      `ACHETER UN BILLET SUR <span style="white-space:nowrap;">ZINEMA.CH &rarr;</span></a>`,
-    `background-color:${VERT};color:${BLANC};padding:13px 14px;font-size:${TAILLE.titre};` +
-      `line-height:1.25;font-weight:bold;text-transform:uppercase;`,
-  )}</tr>`
-}
-
-function pied(reglages: ReglagesNewsletter): string {
-  const contacts = [
-    reglages.telephone ? `${echapper(reglages.telephone)} (cinéma)` : null,
-    reglages.telephoneBis ? `${echapper(reglages.telephoneBis)} (bureau)` : null,
-    reglages.email
-      ? `<a href="mailto:${echapper(reglages.email)}" style="color:${BLANC};font-weight:bold;">${echapper(reglages.email)}</a>`
-      : null,
-  ]
-    .filter(Boolean)
-    .join(' · ')
-  return `<tr>${cellule(
-    contacts +
-      (reglages.iban ? `<br>IBAN ${echapper(reglages.iban)}` : '') +
-      `<br>Salle de cinéma fondée en juin 2001 par Laurent Serge Toplitsch.`,
-    `background-color:${ENCRE};color:${BLANC};padding:14px;font-size:${TAILLE.petit};line-height:1.7;`,
-  )}</tr>`
+  return bandeBleue(
+    `Programme du ${formatJourLong(donnees.debutSemaine)} au ` +
+      `${formatJourLongAvecAnnee(donnees.finSemaine)} (${numeroDeSemaine(donnees.debutSemaine)})`,
+  )
 }
 
 /** L'objet du message, prêt à coller dans la ligne « Objet ». */
@@ -157,21 +92,12 @@ export function construireNewsletter(donnees: DonneesNewsletter, options: Option
     `<tr>${cellule(tableau(lignesDuProgramme(donnees.programme)), 'padding:0;')}</tr>` +
     appelAuSite() +
     (filmsDeLaSemaine ? bandeau('Les films de la semaine') + filmsDeLaSemaine : '') +
-    /* La piqûre de rappel des événements qui reviennent (match d'impro,
-       ciné-club…), entre les films de la semaine et ceux qui arrivent. */
+    /* Le rappel des événements qui reviennent (match d'impro, ciné-club…),
+       entre les films de la semaine et ceux qui arrivent. */
     rubriqueRendezVous(donnees.rendezVous, jourDeLEnvoi(donnees.debutSemaine), options) +
     (filmsProchainement ? bandeau('Prochainement') + filmsProchainement : '') +
     blocPratique(donnees.reglages) +
     pied(donnees.reglages)
 
-  /* Le message prend toute la largeur d'un téléphone, et s'arrête à 600 px
-     ailleurs. Outlook, qui ignore max-width, reçoit sa largeur fixe par un
-     tableau qu'il est seul à lire. */
-  return (
-    `<!--[if mso]><table role="presentation" width="${LARGEUR}" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->` +
-    `<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" align="center" ` +
-    `style="width:100%;max-width:${LARGEUR}px;margin:0 auto;border-collapse:collapse;` +
-    `background-color:${PAPIER};color:${ENCRE};font-family:${POLICE};">${corps}</table>` +
-    `<!--[if mso]></td></tr></table><![endif]-->`
-  )
+  return envelopper(corps)
 }

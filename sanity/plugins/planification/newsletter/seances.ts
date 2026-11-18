@@ -19,9 +19,9 @@
  * rangées dans une grille de deux colonnes (voir pastillesDesSeances).
  * ---------------------------------------------------------------------------
  */
-import {ajouterJours, formatJourAbrege, numeroDuJour} from '../utils/dates'
-import type {SeanceNewsletter} from './donnees'
+import {ajouterJours, formatJourAbrege, formatJourLong, numeroDuJour} from '../utils/dates'
 import {BLANC, ENCRE, POLICE, TAILLE, TRAIT, capitales, echapper} from './html'
+import type {SeanceNewsletter} from './types'
 
 /** Du lundi de l'envoi au mercredi qui ouvre la semaine : deux jours. */
 const JOURS_ENTRE_ENVOI_ET_SEMAINE = 2
@@ -113,7 +113,7 @@ function caseDeLaGrille(contenu: string, derniereDeLaRangee: boolean): string {
  * ---------------------------------------------------------------------------
  */
 export function pastillesDesSeances(
-  seances: SeanceNewsletter[],
+  seances: readonly SeanceNewsletter[],
   lien: string | null,
   estSpeciale: (seance: SeanceNewsletter) => boolean = () => false,
 ): string {
@@ -129,5 +129,50 @@ export function pastillesDesSeances(
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" ` +
     `style="width:100%;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">` +
     `${rangees.join('')}</table></div>`
+  )
+}
+
+/** Au-delà, on renvoie à la fiche du film : la case doit rester lisible. */
+const SEANCES_SPECIALES_MAX = 3
+
+/**
+ * Les séances spéciales du film, chacune dans un bandeau d'encre sous le
+ * titre : « VEN 6 · 20:00 — AVANT-PREMIÈRE · EN PRÉSENCE DE LA
+ * RÉALISATRICE » (demande du cinéma, 3 novembre 2026). Sa pastille est
+ * inversée de la même encre, plus bas. Quand aucune pastille ne reprend le
+ * jour — un film annoncé, une piqûre de rappel —, il s'écrit en toutes
+ * lettres : « VENDREDI 6 NOVEMBRE · 20:00 ».
+ *
+ * `texteDe` dit ce qu'une séance a de spécial, ou null pour une séance
+ * ordinaire (voir particularite.ts).
+ */
+export function bandeauxDesSeancesSpeciales(
+  seances: readonly SeanceNewsletter[],
+  texteDe: (seance: SeanceNewsletter) => string | null,
+  joursAbreges: boolean,
+): string {
+  const lignes = seances
+    .filter((seance) => seance.statut !== 'annule')
+    .map((seance) => ({seance, texte: texteDe(seance)}))
+    .filter((ligne): ligne is {seance: SeanceNewsletter; texte: string} => Boolean(ligne.texte))
+    .slice(0, SEANCES_SPECIALES_MAX)
+    .map(({seance, texte}) => {
+      const jour = joursAbreges
+        ? `${formatJourAbrege(seance.date)} ${numeroDuJour(seance.date)}`
+        : formatJourLong(seance.date)
+      return (
+        `<tr><td style="background-color:${ENCRE};color:${BLANC};padding:7px 10px;font-family:${POLICE};` +
+        `font-size:${TAILLE.petit};line-height:1.4;mso-line-height-rule:exactly;font-weight:bold;` +
+        `letter-spacing:0.03em;text-transform:uppercase;">` +
+        `${echapper(capitales(`${jour} · ${seance.heure}`))}&nbsp;— ${echapper(capitales(texte))}</td></tr>`
+      )
+    })
+  if (!lignes.length) return ''
+  /* Un tableau plutôt que des div colorées : Word, qui dessine l'Outlook
+     classique, ne peint pas le fond d'une div. L'espace entre deux
+     bandeaux est celui des cases (border-spacing). */
+  return (
+    `<div style="padding-top:8px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" ` +
+    `style="width:100%;border-collapse:separate;border-spacing:0 4px;">${lignes.join('')}</table></div>`
   )
 }

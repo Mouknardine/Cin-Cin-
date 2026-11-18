@@ -9,7 +9,7 @@
  * taille, mais tout en grisé : ils précèdent la semaine annoncée.
  */
 import {formatJourLong} from '../utils/dates'
-import type {SeanceProgramme} from './donnees'
+import type {SeanceProgramme} from './types'
 import {BLANC, BLEU, ENCRE, GRIS_CLAIR, JAUNE, ROUGE, TAILLE, capitales, cellule, echapper, lienDuFilm} from './html'
 
 interface Couleur {

@@ -1,10 +1,12 @@
 /**
  * Les assistants ouverts depuis la barre de la semaine : programmer un
  * film, dupliquer la semaine, la remplir au hasard ou la vider, sortir
- * la newsletter ou la feuille à imprimer. Un seul est ouvert à la fois.
+ * la newsletter, la piqûre de rappel ou la feuille à imprimer. Un seul
+ * est ouvert à la fois.
  */
 import {DialogImpression} from '../impression/DialogImpression'
 import {DialogNewsletter} from '../newsletter/DialogNewsletter'
+import {DialogPiqure} from '../newsletter/piqure/DialogPiqure'
 import type {FilmPlanning, SeancePlanning} from '../types'
 import type {DialogOuvert} from './BarreSemaine'
 import {DialogDupliquerSemaine} from './DialogDupliquerSemaine'
@@ -56,6 +58,8 @@ export function AssistantsDeLaSemaine({
       )
     case 'newsletter':
       return <DialogNewsletter debutSemaine={debutSemaine} onFermer={onFermer} />
+    case 'piqure':
+      return <DialogPiqure debutSemaine={debutSemaine} onFermer={onFermer} />
     case 'vider':
       return <DialogViderSemaine debutSemaine={debutSemaine} onFermer={onFermer} onFait={onCree} />
     case 'impression':

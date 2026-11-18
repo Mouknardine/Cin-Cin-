@@ -4,6 +4,7 @@
  */
 import {
   AddIcon,
+  BellIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   CopyIcon,
@@ -25,6 +26,7 @@ export type DialogOuvert =
   | 'dupliquer'
   | 'generer'
   | 'newsletter'
+  | 'piqure'
   | 'impression'
   | 'vider'
   | null
@@ -116,6 +118,13 @@ export function BarreSemaine({
           text="Newsletter"
           mode="ghost"
           onClick={() => onOuvrir('newsletter')}
+        />
+        <Button
+          icon={BellIcon}
+          text="Piqûre de rappel"
+          mode="ghost"
+          title="Une petite newsletter en milieu de semaine, pour mettre en avant un film ou un événement"
+          onClick={() => onOuvrir('piqure')}
         />
         <Button
           icon={DocumentTextIcon}

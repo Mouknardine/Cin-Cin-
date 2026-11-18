@@ -390,6 +390,34 @@ ces places font le chemin inverse — personne n'est supprimé.
   valide que lorsqu'elle convient.
 - **Supprimer une séance** : menu ⋮ sur la séance.
 
+### La piqûre de rappel (la petite newsletter du milieu de semaine)
+
+En plus de la newsletter du lundi, le bouton **Piqûre de rappel** (à côté de
+« Newsletter ») prépare un envoi court pour **mettre en avant un film ou un
+événement** : deux films en présence du réalisateur vendredi, le Marché de
+Noël dans trois semaines…
+
+1. **Jour de l'envoi** : aujourd'hui par défaut. Tout ce qui est proposé part
+   de ce jour-là.
+2. **Cocher ce qu'on met en avant.** La liste propose les films qui ont une
+   séance dans les **huit semaines** qui suivent, et les événements qui ont
+   lieu dans ces huit semaines. Rien n'est coché d'avance. Sous chaque film :
+   sa prochaine séance, et sa séance spéciale s'il en a une (avant-première,
+   « en présence de… », mention particulière).
+3. **Titre** (facultatif) : il s'écrit dans la case bleue et sert d'objet au
+   message. Laissé vide, il reprend les noms cochés (« Asako I & II, Drive
+   My Car et Marché de Noël »).
+4. **Un mot** (facultatif) : quelques lignes sous la case bleue.
+5. **Copier la newsletter**, comme le lundi.
+
+La piqûre reprend la mise en page de la grosse newsletter — logo, case
+bleue, mêmes blocs de film et d'événement, même pied — mais **seulement ce
+qui est coché** : ni programme de la semaine, ni « Prochainement », ni
+tarifs. Un film y montre ses séances des **sept jours qui suivent l'envoi**
+(ou, s'il ne passe qu'après, des sept jours qui suivent sa première séance),
+et ses séances spéciales en bandeau noir. Le bouton vert « Acheter un
+billet » n'apparaît que si un film est coché.
+
 ### Ce que le hasard ne fait jamais
 
 - Un film ne passe **jamais deux fois en même temps** dans les deux salles.
@@ -434,7 +462,8 @@ npm run studio:deploy   # Met en ligne https://cincin-zinema.sanity.studio
 npm run typecheck       # Vérifie les schémas
 npm test                # Vérifie l'ordre du programme, la newsletter,
                         # le tirage au sort d'une semaine, les séances
-                        # spéciales et les rendez-vous qui reviennent
+                        # spéciales, les rendez-vous qui reviennent et
+                        # la piqûre de rappel
 npm run test:messageries  # Rejoue la newsletter dans les messageries
                           # (il faut Chromium : npx playwright install chromium)
 ```

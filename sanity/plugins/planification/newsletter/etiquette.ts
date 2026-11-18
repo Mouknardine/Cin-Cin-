@@ -25,7 +25,7 @@
  * ---------------------------------------------------------------------------
  */
 import {finDeSemaine, formatJourLong, semainesEntre} from '../utils/dates'
-import type {FilmNewsletter} from './donnees'
+import type {FilmNewsletter} from './types'
 
 /**
  * Au-delà de ce nombre de semaines, un film qui repasse n'est plus « en

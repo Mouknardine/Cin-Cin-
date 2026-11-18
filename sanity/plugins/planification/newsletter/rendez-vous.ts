@@ -1,7 +1,8 @@
 /**
- * La piqûre de rappel : les événements qui reviennent — un match d'impro
- * par mois, un ciné-club du dimanche — rappelés dans chaque newsletter
- * (demande du cinéma, 3 novembre 2026).
+ * La rubrique « Rendez-vous » : les événements qui reviennent — un match
+ * d'impro par mois, un ciné-club du dimanche — rappelés dans chaque
+ * newsletter (demande du cinéma, 3 novembre 2026). Le même bloc sert à la
+ * piqûre de rappel du milieu de semaine (piqure/gabarit.ts).
  *
  * Rien à réécrire chaque semaine. Quels événements la rubrique annonce :
  * voir evenements.ts. Ce fichier les met en page : sous le titre, les trois
@@ -130,7 +131,12 @@ function caseVisuel(evenement: EvenementNewsletter, image: Omit<OptionsImage, 'l
   return lien ? `<a href="${lien}" style="display:block;line-height:0;text-decoration:none;">${img}</a>` : img
 }
 
-function blocEvenement(evenement: EvenementNewsletter, envoi: string, image: Omit<OptionsImage, 'largeur'>): string {
+/** Un événement : son visuel, son type, son titre, ses prochaines dates et son résumé. */
+export function blocEvenement(
+  evenement: EvenementNewsletter,
+  envoi: string,
+  image: Omit<OptionsImage, 'largeur'>,
+): string {
   const lien = lienDeLEvenement(evenement.slug)
   const type = libelleDuTypeEvenement(evenement.typeNom, evenement.ancienType)
   const titre = echapper(capitales(evenement.titre))

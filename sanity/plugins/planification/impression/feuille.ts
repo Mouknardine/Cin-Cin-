@@ -21,7 +21,7 @@
  * pouvoir le vérifier hors du navigateur.
  */
 import {echapper} from '../newsletter/html'
-import type {SeanceProgramme} from '../newsletter/donnees'
+import type {SeanceProgramme} from '../newsletter/types'
 import {formatJourLong, formatJourLongAvecAnnee, numeroDeSemaine} from '../utils/dates'
 import {mesuresDeLaFeuille} from './mesures'
 import {stylesDeLaFeuille} from './styles'
